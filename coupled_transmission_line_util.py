@@ -171,7 +171,7 @@ def voltage_at_source_location(Z0, phase_vel, Cm_per_len, l_c, l_Gf, l_Gn, omega
     return val
 
 
-def Z_transfer_total(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega):
+def Z_transfer_total(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega):
 
     L_G = l_Gn + l_c + l_Gf
 
@@ -181,7 +181,7 @@ def Z_transfer_total(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega):
 
     Z_trans_along_shorted_tr_val = voltage_at_source_location(Z0, phase_vel, Cm_per_len, l_c, l_Gf, l_Gn, omega)
 
-    voltage_transmission_coupled_lines_val = voltage_transmission_coupled_lines(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega)
+    voltage_transmission_coupled_lines_val = voltage_transmission_coupled_lines(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega)
 
     tau_Rn = l_Rn/phase_vel
 
@@ -195,7 +195,186 @@ def Z_transfer_total(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega):
 def lamda_by_4_omega(phase_vel, L):
 
     lambda_line = 4 * L
-
     val = 2 * np.pi * phase_vel / lambda_line
 
     return val
+
+
+
+############################
+### Lumped Element Model ###
+############################
+
+
+def transmission_line_C_and_L(phase_vel, Z0):
+
+    C_val = 1/(phase_vel*Z0)
+    L_val = Z0 / phase_vel
+
+    return C_val, L_val
+
+
+def lumped_model_C_and_L(phase_vel, Z0, cpw__length):
+
+    tl_C_val, tl_L_val = transmission_line_C_and_L(phase_vel, Z0)
+
+    C_val = (tl_C_val * cpw__length / 2)*(0.9e-3+1e-3*(3e-15/1e-3+tl_C_val)/tl_C_val+1.7e-3)/cpw__length
+    L_val = 8 * tl_L_val * cpw__length / np.pi**2 
+
+    return C_val, L_val
+
+
+def lumped_model_Cg_and_Lg(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len):
+
+    omega_f = find_notch_filter_frequency(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, 1e9*2*np.pi, 10e9*2*np.pi, 5e4*2*np.pi)
+    Z0_f = find_filter_char_impedance(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega_f)
+
+    Cg = 1/(omega_f*Z0_f)
+    Lg =  Z0_f / omega_f
+
+    return Cg, Lg
+
+
+def lumped_model_transmission(L1, C1, L2, C2, Cg, Lg, omega):
+
+    Z_res1 = Zres(C1, L1, omega)
+    Z_res2 = Zres(C2, L2, omega)
+    Z_res_coupler = Zres(Cg, Lg, omega)
+
+    val = Z_res1 * Z_res2 / Z_res_coupler * 1/(1 + (Z_res1 + Z_res2)/Z_res_coupler)
+
+    return val 
+
+def lumped_model_resonator_coupling(L1, C1, L2, C2, Cg, Lg):
+
+    omega_1 = omega_r(C1, L1)
+    omega_2 = omega_r(C2, L2)
+
+    Z21_omega_1 = lumped_model_transmission(1, C1, 1, C2, Cg, Lg, omega_1)
+    Z21_omega_1 = lumped_model_transmission(1, C1, 1, C2, Cg, Lg, omega_2)
+
+    val = -0.25*(omega_1**3*omega_2**3*C1*C2)**0.5*(np.imag(Z21_omega_1)/omega_1 + np.imag(Z21_omega_1)/omega_2)
+
+    return val
+
+
+
+
+def find_notch_filter_frequency(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, min_search, max_search, search_spacing):
+        
+    # Define the two sides of the equation
+    # We will find the zero crossing, to get the solution to the equation
+    # Note: omega is the variable in which we want to find the crossing
+    def defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omega):
+        Cl, Ll= transmission_line_C_and_L(phase_vel, Z0)
+        phase_vel_c = omega_r(Cl + Cm, Ll)
+        tau_c = l_c / phase_vel_c
+        tau_G_dash = (l_Gf / phase_vel + l_c / phase_vel_c / 2) 
+        tau_R_dash = (l_Rf / phase_vel + l_c / phase_vel_c / 2) 
+        val = omega * tau_c / (np.sin(omega * tau_c)) * (np.cos(2*omega*tau_G_dash) + np.cos(2*omega*tau_R_dash)) /(1 + np.cos(2*omega*(tau_G_dash + tau_R_dash)))
+        return val
+
+    def defining_eq2(Z0, phase_vel, Lm, Cm):
+        Cl, Ll= transmission_line_C_and_L(phase_vel, Z0)
+        Zm = Zchar(Cm, Lm)
+        Z0_c = Zchar(Cl + Cm, Ll)
+        val = ((Zm/Z0_c)**2 + 1) / (1 - (Zm/Z0_c)**2)
+        return val
+
+    # Define vector containing results of equation for different omega values
+    omegas = np.arange(min_search, max_search, search_spacing)
+    results = defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas) - defining_eq2(Z0, phase_vel, Lm, Cm)
+    
+    # The equation will have a zero crossing once the sign of the difference changes
+    asign = np.sign(results)
+    signchange = ((np.roll(asign, 1) - asign) != 0).astype(int)
+    signchange[0] = 0
+    idxs = np.array(np.nonzero(signchange))[0]
+    print("idxs -> ", idxs)
+
+    plt.plot(omegas,  defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas) - defining_eq2(Z0, phase_vel, Lm, Cm), marker=".")
+    plt.plot(omegas[idxs], defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas[idxs]), color="red", marker="x")
+    plt.show()
+    #quit()
+    ### added debugger - check for continuity of eq1 around idx:
+    gaps = defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas[idxs + 1]) - defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas[idxs - 1])
+    idx = idxs[(abs(gaps) < 1)]
+    if idx.size == 0:
+        print('idxs:', idxs)
+        raise ValueError('No valid solution to notch frequency equation for given input parameters in specified frequency range. Therefore cannot proceed to finding Lg and Cg.')
+
+    
+    Z_transfer_vals = np.abs(Z_transfer_total(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas[idx]))
+
+    # print('Z_transfer_vals:', Z_transfer_vals)
+
+    min_idx = np.argmin(Z_transfer_vals)
+
+    idx = idx[min_idx]
+
+    # print('idx:', idx)
+
+    omega_f_rough  = omegas[idx]
+
+    # print('omega_f_rough:', omega_f_rough/(1e9*2*np.pi))
+
+    fine_search_spacing = 100 * 2*np.pi
+
+    omegas = np.arange(omega_f_rough - search_spacing, omega_f_rough + search_spacing, fine_search_spacing)
+
+    results = defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas) - defining_eq2(Z0, phase_vel, Lm, Cm)
+
+    asign = np.sign(results)
+    signchange = ((np.roll(asign, 1) - asign) != 0).astype(int)
+    signchange[0] = 0
+
+    idx= np.nonzero(signchange)
+
+    val  = omegas[idx][0]
+
+    # plt.plot(omegas/(1e9*2*np.pi), signchange)
+    # plt.show()
+    # print (signchange)
+
+    return val
+
+def find_notch_filter_char_impedance(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f):
+
+    cpw__length1 = l_c + l_Gf + l_Gn
+    cpw__length2 = l_c + l_Rf + l_Rn
+
+    C1, L1 = lumped_model_C_and_L(phase_vel, Z0, cpw__length1)
+    C2, L2 = lumped_model_C_and_L(phase_vel, Z0, cpw__length2)
+
+    Zres_1_omega_f = Zres(C1, L1, omega_f)
+    Zres_2_omega_f = Zres(C2, L2, omega_f)
+
+    delta_omega = 10 * 2*np.pi # 10 Hz
+
+    Z_transfer_plus = Z_transfer_total(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f + delta_omega/2)
+    Z_transfer_minus = Z_transfer_total(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f - delta_omega/2)
+
+    grad_Ztransfer = (Z_transfer_plus - Z_transfer_minus)/(delta_omega)
+
+    val = np.real(1j*2*Zres_1_omega_f * Zres_2_omega_f / (omega_f * grad_Ztransfer))
+
+    return val
+
+
+
+def get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len):
+    phase_vel = 3*10**8/2.5
+    Z0 = 65
+    cpw__length1 = l_c + l_Gf + l_Gn
+    cpw__length2 = l_c + l_Rf + l_Rn
+    
+    C1, L1 = lumped_model_C_and_L(phase_vel, Z0, cpw__length1)
+    C2, L2 = lumped_model_C_and_L(phase_vel, Z0, cpw__length2)
+    Cg, Lg = lumped_model_Cg_and_Lg(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len)
+
+
+    
+    Cg_basic = Cm_per_len *l_c
+    Lg_basic = L1*L2/ (Lm_per_len * l_c)
+
+    return C1, L1, C2, L2, Cg, Lg
