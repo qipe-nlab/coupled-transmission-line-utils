@@ -284,7 +284,7 @@ def lumped_model_C_and_L(phase_vel, Z0, cpw__length):
 
     tl_C_val, tl_L_val = transmission_line_C_and_L(phase_vel, Z0)
 
-    C_val = (tl_C_val * cpw__length / 2)*(0.9e-3+1e-3*(3e-15/1e-3+tl_C_val)/tl_C_val+1.7e-3)/cpw__length
+    C_val = tl_C_val * cpw__length / 2
     L_val = 8 * tl_L_val * cpw__length / np.pi**2 
 
     return C_val, L_val
