@@ -465,9 +465,10 @@ def voltage_at_source_location(Z0, phase_vel, Cm_per_len, l_c, l_Gf, l_Gn, omega
 
     return val
 
+#1e9*2*np.pi, 10e9*2*np.pi, 5e4*2*np.pi
+#min_search=3*2*np.pi*10**9, max_search=12*2*np.pi*10**9, search_spacing=(0.01*2*np.pi*10**9)
+def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=119919602, Z0=65, min_search=1e9*2*np.pi, max_search=10e9*2*np.pi, search_spacing=5e4*2*np.pi):
 
-def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65, min_search=3*2*np.pi*10**9, max_search=12*2*np.pi*10**9, search_spacing=(0.01*2*np.pi*10**9)/(2*np.pi*1e9)):
-        
     # Define the two sides of the equation
     # We will find the zero crossing, to get the solution to the equation
     # Note: omega is the variable in which we want to find the crossing
@@ -496,7 +497,7 @@ def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3
     signchange = ((np.roll(asign, 1) - asign) != 0).astype(int)
     signchange[0] = 0
     idxs = np.array(np.nonzero(signchange))[0]
-    print("idxs -> ", idxs)
+    #print("idxs -> ", idxs)
 
     #plt.plot(omegas,  defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas) - defining_eq2(Z0, phase_vel, Lm, Cm), marker=".")
     #plt.plot(omegas[idxs], defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas[idxs]), color="red", marker="x")
@@ -507,7 +508,7 @@ def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3
     gaps = defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas[idxs + 1]) - defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas[idxs - 1])
     idx = idxs[(abs(gaps) < 1)]
     if idx.size == 0:
-        print('idxs:', idxs)
+        #print('idxs:', idxs)
         raise ValueError('No valid solution to notch frequency equation for given input parameters in specified frequency range. Therefore cannot proceed to finding Lg and Cg.')
 
     
@@ -530,11 +531,10 @@ def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3
     idx= np.nonzero(signchange)
 
     val  = omegas[idx][0]
-
     return val
 
 
-def Z_transfer_total(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega, phase_vel=3*10**8/2.5, Z0=65):
+def Z_transfer_total(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega, phase_vel=119919602, Z0=65):
 
     L_G = l_Gn + l_c + l_Gf
 
@@ -555,11 +555,20 @@ def Z_transfer_total(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega,
     return val
 
 
-def lamda_by_4_omega(phase_vel, L):
+def lambda_by_4_omega(L, phase_vel=119919602):
 
     lambda_line = 4 * L
     val = 2 * np.pi * phase_vel / lambda_line
 
+    return val
+
+def lambda_by_4_f(L, phase_vel=119919602):
+    lambda_line = 4 * L
+    val = phase_vel / lambda_line
+    return val
+
+def lambda_by_4_Ltot(L, phase_vel=119919602):
+    val = (phase_vel / f) / 4
     return val
 
 ############################
@@ -619,7 +628,7 @@ def lumped_model_resonator_coupling(L1, C1, L2, C2, Cg, Lg):
     return val
 
 
-def find_notch_filter_char_impedance(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f, phase_vel=3*10**8/2.5, Z0=65):
+def find_notch_filter_char_impedance(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f, phase_vel=119919602, Z0=65):
 
     cpw__length1 = l_c + l_Gf + l_Gn
     cpw__length2 = l_c + l_Rf + l_Rn
@@ -645,7 +654,7 @@ def find_notch_filter_char_impedance(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_
 ### User functions ###
 ######################
 
-def get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
+def get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=119919602, Z0=65):
         
     cpw__length1 = l_c + l_Gf + l_Gn
     cpw__length2 = l_c + l_Rf + l_Rn
@@ -660,11 +669,6 @@ def get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, pha
     return C1, L1, C2, L2, Cg, Lg
 
 
-def lambda_quarter_frequency(cpw_length, phase_vel=3*10**8/2.5):
-    # Small utility function to calculate the resonance frequency of an uncoupled lambda/4 resonator
-    return lamda_by_4_omega(phase_vel, cpw_length) / (2*np.pi*1e9)
-
-
 def lumped_element_Z21(omega, C1, L1, C2, L2, Cg, Lg):
     Z1 = 1/(1j*omega*C1 + 1/(1j*omega*L1))
     Z2 = 1/(1j*omega*Cg + 1/(1j*omega*Lg))
@@ -673,14 +677,21 @@ def lumped_element_Z21(omega, C1, L1, C2, L2, Cg, Lg):
     Z_tot = Z1 * Z3 / Z2 * 1/(1 + (Z1 + Z3)/Z2)
     return Z_tot
 
+def lumped_element_Z21_no_ind(omega, C1, L1, C2, L2, Cg, Lg):
+    Z1 = 1/(1j*omega*C1)
+    Z2 = 1/(1j*omega*Cg + 1/(1j*omega*Lg))
+    Z3 = 1/(1j*omega*C2)
+
+    Z_tot = Z1 * Z3 / Z2 * 1/(1 + (Z1 + Z3)/Z2)
+    return Z_tot
 
 def lumped_elements_j_formula(om1, om2, Z1, Z2, L1, L2):
-    return -0.25*np.sqrt(om1*om2/L1/L2)*np.imag(Z1/om1+Z2/om2)
+    return -0.25*np.sqrt(om1*om2/(L1*L2))*np.imag(Z1/om1+Z2/om2)
 
 
 def lumped_elements_get_j(om1, om2, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len):
     C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len)
-    Z1 = lumped_element_Z21(om1, C1, L1, C2, L2, Cg, Lg)
-    Z2 = lumped_element_Z21(om2, C1, L1, C2, L2, Cg, Lg)
-    j = j_coupling(om1, om2, Z1, Z2, L1, L2)
+    Z1 = lumped_element_Z21_no_ind(om1, C1, L1, C2, L2, Cg, Lg)
+    Z2 = lumped_element_Z21_no_ind(om2, C1, L1, C2, L2, Cg, Lg)
+    j = lumped_elements_j_formula(om1, om2, Z1, Z2, L1, L2)
     return j
