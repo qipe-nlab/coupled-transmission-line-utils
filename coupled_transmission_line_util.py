@@ -122,7 +122,7 @@ def propagation_eig(S_eig, omega):
 
     return eig
 
-def Z_char_mat(U_mat, S_mat, U_eig, S_eig, L_mat):
+def Z_char_mat(U_mat, S_mat, U_eig, S_eig):
 
     sqrt_U_eig = np.sqrt(U_eig)
 
