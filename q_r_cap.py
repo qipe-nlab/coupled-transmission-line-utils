@@ -68,6 +68,8 @@ def get_Cg(d):
     return np.vectorize(get_Cg_interpol)(d)
 
 
+print(get_Cq(159.2e-6))
+
 """
 # Demonstration
 

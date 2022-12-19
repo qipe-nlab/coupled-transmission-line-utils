@@ -1,10 +1,10 @@
-import scipy as sp
+
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
 
-from q_r_cap import get_Cq, get_Cg
 import common_formulas as cf
-b
+
 
 def lumped_model_Z21_no_ind(omega, C_q, L_q, C_r, L_r, C_g):
     Zq = 1/(1j*omega*C_q)
@@ -70,3 +70,10 @@ print("g_sim/2pi = ", g_sim/1e6/2/np.pi)
 print("r_calc = ", r/1e5)
 print("L_q = ", L_q)
 """
+
+r = 2.2e5
+om_q = 6e9*2*np.pi
+om_r = 8e9*2*np.pi
+c_q = 6e-14
+
+print(r2g(r, om_q, om_r, c_q)/1e6/2/np.pi)

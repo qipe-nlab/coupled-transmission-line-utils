@@ -177,8 +177,9 @@ def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=c
     gaps = defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas[idxs + 1]) - defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas[idxs - 1])
     idx = idxs[(abs(gaps) < 1)]
     if idx.size == 0:
+        return 1
         #print('idxs:', idxs)
-        raise ValueError('No valid solution to notch frequency equation for given input parameters in specified frequency range. Therefore cannot proceed to finding Lg and Cg.')
+        #raise ValueError('No valid solution to notch frequency equation for given input parameters in specified frequency range. Therefore cannot proceed to finding Lg and Cg.')
 
     
     Z_transfer_vals = np.abs(Z_transfer_total(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas[idx]))
@@ -274,9 +275,34 @@ def lumped_model_Z21_no_ind(omega, C1, L1, C2, L2, Cg, Lg):
     return Z_tot
 
 
-def lumped_model_get_j(om1, om2, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len):
-    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len)
+def lumped_model_get_j(C1, L1, C2, L2, Cg, Lg):
+    om1 = cf.omega_r(C1, L1)
+    om2 = cf.omega_r(C2, L2)
     Z1 = lumped_model_Z21_no_ind(om1, C1, L1, C2, L2, Cg, Lg)
     Z2 = lumped_model_Z21_no_ind(om2, C1, L1, C2, L2, Cg, Lg)
     j = cf.lumped_elements_j_formula(om1, om2, Z1, Z2, L1, L2)
     return j
+
+
+
+def lumped_model_transmission(L1, C1, L2, C2, Cg, Lg, omega):
+
+    Z_res1 = cf.Zres(C1, L1, omega)
+    Z_res2 = cf.Zres(C2, L2, omega)
+    Z_res_coupler = cf.Zres(Cg, Lg, omega)
+
+    val = Z_res1 * Z_res2 / Z_res_coupler * 1/(1 + (Z_res1 + Z_res2)/Z_res_coupler)
+
+    return val 
+
+def lumped_model_resonator_coupling(L1, C1, L2, C2, Cg, Lg):
+
+    omega_1 = cf.omega_r(C1, L1)
+    omega_2 = cf.omega_r(C2, L2)
+
+    Z21_omega_1 = lumped_model_transmission(1, C1, 1, C2, Cg, Lg, omega_1)
+    Z21_omega_2 = lumped_model_transmission(1, C1, 1, C2, Cg, Lg, omega_2)
+
+    val = -0.25*(omega_1**3*omega_2**3*C1*C2)**0.5*(np.imag(Z21_omega_1)/omega_1 + np.imag(Z21_omega_2)/omega_2)
+
+    return val

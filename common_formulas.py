@@ -74,6 +74,21 @@ def lumped_resonator_C_and_L(cpw__length, phase_vel=default_phase_vel, Z0=defaul
 
     return C_val, L_val
 
+#################
+# L/2 resonator #
+#################
+
+def lambda_by_2_omega(L, phase_vel=default_phase_vel):
+    lambda_line = 2 * L
+    val = 2 * np.pi * phase_vel / lambda_line
+    return val
+
+def lumped_l_2_resonator_C_and_L(cpw_length, phase_vel=default_phase_vel, Z0=default_Z0):
+    omega = lambda_by_2_omega(cpw_length, phase_vel)
+    C_val = np.pi/(2*omega*Z0)
+    L_val = 1/(omega*C_val) 
+
+    return C_val, L_val
 
 ######################
 # Coupled resonators #
@@ -84,3 +99,13 @@ def coupled_resonators_Z21(omega, Z1, Z2, Zc):
 
 def lumped_elements_j_formula(om1, om2, Z1, Z2, L1, L2):
     return -0.25*np.sqrt(om1*om2/(L1*L2))*np.imag(Z1/om1+Z2/om2)
+
+####################
+# Loaded resonator #
+####################
+
+def calc_Rs(om, Ck, RL):
+    return (1+(om**2)*(Ck**2)*(RL**2))/((om**2)*(Ck**2)*RL)
+
+def calc_Cs(om, Ck, RL):
+    return Ck/(1+om**2*Ck**2*RL**2)
