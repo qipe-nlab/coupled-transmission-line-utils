@@ -70,12 +70,11 @@ def get_Cg(d):
 
 print(get_Cq(159.2e-6))
 
+
+
+
+
 """
-# Demonstration
-
-print(generate_Cg())
-
-
 Cg_mat = generate_Cg()
 d = np.linspace(10e-6,59e-6,10000)
 

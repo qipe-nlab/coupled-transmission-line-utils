@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import sys
 
 import common_formulas as cf
-
+import cap_util as cap
 
 ########################################
 ### Distributed Element Calculations ###
@@ -172,12 +172,13 @@ def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=c
     #plt.plot(omegas[idxs], defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas[idxs]), color="red", marker="x")
     #plt.show()
     #quit()
-    
-    # added debugger - check for continuity of eq1 around idx:
+
+
+    ## added debugger - check for continuity of eq1 around idx:
     gaps = defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas[idxs + 1]) - defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas[idxs - 1])
     idx = idxs[(abs(gaps) < 1)]
     if idx.size == 0:
-        return 1
+        return 20e9
         #print('idxs:', idxs)
         #raise ValueError('No valid solution to notch frequency equation for given input parameters in specified frequency range. Therefore cannot proceed to finding Lg and Cg.')
 
@@ -270,7 +271,7 @@ def lumped_model_Z21_no_ind(omega, C1, L1, C2, L2, Cg, Lg):
     Z1 = 1/(1j*omega*C1)
     Zg = 1/(1j*omega*Cg + 1/(1j*omega*Lg))
     Z2 = 1/(1j*omega*C2)
-
+    
     Z_tot = cf.coupled_resonators_Z21(omega, Z1, Z2, Zg)
     return Z_tot
 
@@ -306,3 +307,7 @@ def lumped_model_resonator_coupling(L1, C1, L2, C2, Cg, Lg):
     val = -0.25*(omega_1**3*omega_2**3*C1*C2)**0.5*(np.imag(Z21_omega_1)/omega_1 + np.imag(Z21_omega_2)/omega_2)
 
     return val
+
+
+
+

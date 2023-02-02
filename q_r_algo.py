@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import scipy.optimize as opt
 
 import q_r_formulas as q_r
-import q_r_cap as cap
+import cap_util as cap
 import common_formulas as cf
 
 def function(inputs, target, f_r, L_q):

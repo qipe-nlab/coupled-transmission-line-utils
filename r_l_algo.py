@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.optimize as opt
 
-import r_l_cap as cap
+import cap_util as cap
 import r_l_formulas as r_l
 import common_formulas as cf
 
@@ -21,7 +21,7 @@ def function(inputs, target, RL):
     Rs = cf.calc_Rs(om, Ck, RL)
     Cs = cf.calc_Cs(om, Ck, RL)
 
-    oms = cf.omega_r(L, C+Ck)
+    oms = cf.omega_r(L, C+Cs)
     Q_ext = oms*Rs*C
 
     fs = oms/2/np.pi
