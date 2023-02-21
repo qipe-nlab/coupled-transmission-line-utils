@@ -9,6 +9,8 @@ import r_l_algo as r_l
 import r_r_algo as r_r
 import q_r_algo as q_r
 
+import r_r_formulas as r_r_f
+
 import cap_util as cap
 
 def solve_all(f_r1, f_r2, f_notch, J, f_q, g, kappa, show=0):
@@ -34,14 +36,13 @@ def solve_all(f_r1, f_r2, f_notch, J, f_q, g, kappa, show=0):
     # r_r
     #
     
-    r_r_x0 = [1000e-6, 1000e-6, 1000e-6, 1000e-6, 1000e-6, 5e-6] # [l_Gn, l_Gf, l_c, l_Rn, l_Rf, d]
-    r_r_x0 = [1400e-6, 1235e-6, 500e-6, 1400e-6, 1100e-6, 4e-6] # [l_Gn, l_Gf, l_c, l_Rn, l_Rf, d]
-    r_r_target = [f_r1, len_r2, f_notch, J]
+    r_r_x0 = [1300e-6, 300e-6, 1300e-6, 15e-6] # [l_Gn, l_Gf, l_c, l_Rn, l_Rf, d]
     calibration_len=400e-6
+    r_r_target = [cf.lambda_by_4_Ltot(f_r1), len_r2, f_notch, J]
     
-    sol2 = r_r.solve_for_r_r(r_r_target, r_r_x0, Cs, calibration_len, show=1, plot=1)
-    l_Gn, l_Gf, l_c, l_Rn, l_Rf, d = sol2.x
-    #l_Gn, l_Gf, l_c, l_Rn, l_Rf, d = [1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 5e-6]
+    
+    l_Gn, l_Gf, l_c, l_Rn, l_Rf, d = r_r.solve_for_r_r(r_r_target, r_r_x0, Cs)
+
     
     #
     # q_r
@@ -62,8 +63,14 @@ def solve_all(f_r1, f_r2, f_notch, J, f_q, g, kappa, show=0):
 
 
         # r-r calculations
-        res_fr1, trash0, res_fn, res_j, trash1, trash2 = r_r.function([l_Gn, l_Gf, l_c, l_Rn, l_Rf, d], [0,0,0,0], Cs, calibration_len, weighted_error=0)
+        res_fr1 = cf.lambda_by_4_f(l_Gn+l_Gf+l_c)
+        Cm_per_len = cap.get_Cm(d)
+        Lm_per_len = cap.get_Lm(d)
 
+        res_fn = r_r_f.find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len)/(2*np.pi)
+        
+        C1, L1, C2, L2, Cg, Lg = r_r_f.get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len)
+        res_j = r_r_f.lumped_model_get_j(C1, L1, C2+Cs, L2, Cg, Lg)
 
         # q-r calculations
         res_fq, res_g = q_r.function([R_q, Cc_deformation], [0,0], res_fr1, L_q)
@@ -98,8 +105,8 @@ def solve_all(f_r1, f_r2, f_notch, J, f_q, g, kappa, show=0):
         print(" kappa/2pi = ", int(res_kappa/2/np.pi*1e-3)/1000, "[MHz]")
         print("################################")
 
-        print("To fix:")
-        r_r.get_notch_frequency_derivative(l_c, l_Gf, l_Gn, l_Rf, l_Rn, d, 50e-6)
+        #print("To fix:")
+        #r_r.get_notch_frequency_derivative(l_c, l_Gf, l_Gn, l_Rf, l_Rn, d, 50e-6)
         
     return [Ck_angle, l_Gn, l_Gf, l_c, l_Rn, l_Rf, d, R_q, Cc_deformation]
 
