@@ -28,22 +28,25 @@ def plot_transmission(l_Rf, l_Rn, l_Gf, l_Gn, l_c, d):
     
     # notches
     notch_freq = rr_f.find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len)
-
+    print("notch_freq = " + str(int(notch_freq/1e6/2/np.pi)/1e3))
     #   l/2
     cpw_length1 = l_c + l_Gf + l_Gn
     cpw_length2 = l_c + l_Rf + l_Rn
     cpw1_freq = cf.lambda_by_4_f(cpw_length1)
     cpw2_freq = cf.lambda_by_4_f(cpw_length2)
-
+    
 
     plt.plot(omegas/2/np.pi/1e9, Zs)
-    plt.vlines(x=notch_freq/2/np.pi/1e9, ymax=5, ymin=-5, color="red")
+    plt.vlines(x=notch_freq/2/np.pi/1e9, ymax=5, ymin=-5, color="red", label="notch_freq = " + str(int(notch_freq/1e6/2/np.pi)/1e3))
     plt.vlines(x=[cpw1_freq/1e9, cpw2_freq/1e9], ymax=5, ymin=-5, color="green")
     plt.xlabel("f [GHz]")
     plt.ylabel("Z21 [$ \Omega $]")
     plt.yscale('log')
+    plt.legend()
     plt.show()
 
+
+    
 #
 # Qubit frequency
 #
@@ -89,8 +92,7 @@ frs = np.array([10.16, 10.5, 10.33, 10])*1e9
 
 
 chi_target = -10*np.pi*1e6
-
-
+"""
 for i in range(4):
     print("---------------")
     print(i)
@@ -103,6 +105,8 @@ for i in range(4):
     print("r/2/pi = ", r/1e5)
 
 quit()
+
+"""
 """
 #
 # J coupling
@@ -184,24 +188,24 @@ def residual(params, ind, lambdas):
     
 
 
-filename = "C:\\Users\\mluka\\work\\data\\j_coupling_mesh_fine.csv"
-#filename = "C:\\Users\\mluka\\work\\data\\transfer.csv"
+#filename = "C:\\Users\\mluka\\work\\data\\j_coupling_mesh_fine.csv"
+filename = "C:\\Users\\mluka\\work\\data\\transfer.csv"
 data = np.genfromtxt(filename,delimiter="," ,skip_header=5)
 #data = data[16:-20]
 
-filename = "C:\\Users\\mluka\\work\\data\\j_coupling_mesh_finer.csv"
+#filename = "C:\\Users\\mluka\\work\\data\\j_coupling_mesh_finer.csv"
 #filename = "C:\\Users\\mluka\\work\\data\\transfer.csv"
-data2 = np.genfromtxt(filename,delimiter="," ,skip_header=5)
+#data2 = np.genfromtxt(filename,delimiter="," ,skip_header=5)
 
 
-filename = "C:\\Users\\mluka\\work\\data\\j_coupling_mesh_extrafine.csv"
+#filename = "C:\\Users\\mluka\\work\\data\\j_coupling_mesh_extrafine.csv"
 #filename = "C:\\Users\\mluka\\work\\data\\transfer.csv"
-data3 = np.genfromtxt(filename,delimiter="," ,skip_header=5)
+#data3 = np.genfromtxt(filename,delimiter="," ,skip_header=5)
 
 
-filename = "C:\\Users\\mluka\\work\\data\\j_coupling_mesh_extraextra.csv"
+#filename = "C:\\Users\\mluka\\work\\data\\j_coupling_mesh_extraextra.csv"
 #filename = "C:\\Users\\mluka\\work\\data\\transfer.csv"
-data4 = np.genfromtxt(filename,delimiter="," ,skip_header=5)
+#data4 = np.genfromtxt(filename,delimiter="," ,skip_header=5)
 
 def get_J_method1(data):
     inds = data[::2,0]
@@ -227,46 +231,46 @@ def get_J_method2(data):
     return(result.x)
 
 J_fine, x_fine, y_fine = get_J_method1(data)
-J_finer, x_finer, y_finer = get_J_method1(data2)
-J_extrafine, x_extrafine, y_extrafine = get_J_method1(data3)
-J_extraextra, x_extraextra, y_extraextra = get_J_method1(data4)
+#J_finer, x_finer, y_finer = get_J_method1(data2)
+#J_extrafine, x_extrafine, y_extrafine = get_J_method1(data3)
+#J_extraextra, x_extraextra, y_extraextra = get_J_method1(data4)
 print(J_fine)
-print(J_finer)
-print(J_extrafine)
-print(J_extraextra)
+#print(J_finer)
+#print(J_extrafine)
+#print(J_extraextra)
 J_fine = get_J_method2(data)
-J_finer = get_J_method2(data2)
-J_extrafine = get_J_method2(data3)
-J_extraextra = get_J_method2(data4)
+#J_finer = get_J_method2(data2)
+#J_extrafine = get_J_method2(data3)
+#J_extraextra = get_J_method2(data4)
 print(J_fine)
-print(J_finer)
-print(J_extrafine)
-print(J_extraextra)
+#print(J_finer)
+#print(J_extrafine)
+#print(J_extraextra)
 
 #inds_continous = np.linspace(inds[0],inds[-1],1000)
 #lambs = ev_func(inds_continous, result.x[0], result.x[1], result.x[2], result.x[3])
 #lambs = ev_func(inds_continous, 0, om1, a, b)
 #print(lambs)
 
-"""
+
 #plt.plot(data[::2,0],differences,linestyle="none",marker="o")
 #plt.plot(ds_left,fitfunc0(ds_left, *left_popt))
 #plt.plot(ds_right,fitfunc0(ds_right, *right_popt))
 #plt.plot(x_min,y_min,linestyle="none",marker="*",color="red")
 #plt.plot(ds, np.vectorize(fitfunc)(ds,*popt))
 plt.plot(data[:,0],data[:,2], linestyle="none", marker="o", label="fine")
-plt.plot(data2[:,0],data2[:,2], linestyle="none", marker="o", label="finer")
-plt.plot(data3[:,0],data3[:,2], linestyle="none", marker="o", label="extrafine")
-plt.plot(data4[:,0],data4[:,2], linestyle="none", marker="o", label="extraextra")
+#plt.plot(data2[:,0],data2[:,2], linestyle="none", marker="o", label="finer")
+#plt.plot(data3[:,0],data3[:,2], linestyle="none", marker="o", label="extrafine")
+#plt.plot(data4[:,0],data4[:,2], linestyle="none", marker="o", label="extraextra")
 #plt.plot(inds_continous, linear(inds_continous, result.x[2], result.x[3]))
 #plt.plot(inds_continous,lambs[0])
 #plt.plot(inds_continous,lambs[1])
 #plt.plot(inds_continous,f1(inds_continous))
 #plt.plot(inds_continous,f2(inds_continous))
 plt.plot(x_fine, y_fine, linestyle="none", marker="x", color="red")
-plt.plot(x_finer, y_finer, linestyle="none", marker="x", color="red")
-plt.plot(x_extrafine, y_extrafine, linestyle="none", marker="x", color="red")
-plt.plot(x_extraextra, y_extraextra, linestyle="none", marker="x", color="red")
+#plt.plot(x_finer, y_finer, linestyle="none", marker="x", color="red")
+#plt.plot(x_extrafine, y_extrafine, linestyle="none", marker="x", color="red")
+#plt.plot(x_extraextra, y_extraextra, linestyle="none", marker="x", color="red")
 plt.xlabel("Lumped inductance [nH]")
 plt.ylabel("Eigenfrequencies [GHz]")
 plt.legend()
@@ -278,7 +282,7 @@ plt.show()
 #plt.xlabel("Targeted J [MHz]")
 #plt.ylabel("Simulated J [MHz]")
 #plt.show()
-"""
+
 """
 om_q = 8.1e9*2*np.pi
 c_q = 7.5e-14
@@ -307,20 +311,121 @@ for i in range(int(len(data)/2)):
     print(J/2/np.pi/1e6)
 
 
+
+
 """
-
-
 
 # Lumped element model
 calibration_len=400e-6
-
-#calibration_len = 0
+"""
+#peters q1
 Lgn =  1192e-6 +calibration_len/2
 Lgf =  1338e-6 +calibration_len/2
 Lc =  338e-6
 Lrn =  908e-6 +calibration_len/2
 Lrf =  1508e-6 +calibration_len/2
 d = 5e-6
+"""
+
+# # peters q2
+# Lgn =  1212e-6 +calibration_len/2
+# Lgf =  1279e-6 +calibration_len/2
+# Lc =  338e-6
+# Lrn =  926e-6 +calibration_len/2
+# Lrf =  1418e-6 +calibration_len/2
+# d = 5e-6
+
+
+
+# peters q4
+# Lgn =  1199e-6 +calibration_len/2
+# Lgf =  1383e-6 +calibration_len/2
+# Lc =  338e-6
+# Lrn =  908e-6 +calibration_len/2
+# Lrf =  1593e-6 +calibration_len/2
+# d = 5e-6
+
+
+
+# # peters q3
+#Lgn =  1203e-6 +calibration_len/2
+#Lgf =  1630e-6 +calibration_len/2
+#Lc =  338e-6
+#Lrn =  920e-6 +calibration_len/2
+#Lrf =  1468e-6 +calibration_len/2
+#d = 5e-6
+
+
+# #q1
+# Lgn =  770e-6 +calibration_len/2
+# Lgf =  1420e-6 +calibration_len/2
+# Lc =  304e-6
+# Lrn =  665e-6 +calibration_len/2
+# Lrf =  1390e-6 +calibration_len/2
+# d = 7e-6
+
+# #q1 mux2
+# Lgn =  720e-6 +calibration_len/2
+# Lgf =  1460e-6 +calibration_len/2
+# Lc =  304e-6
+# Lrn =  625e-6 +calibration_len/2
+# Lrf =  1430e-6 +calibration_len/2
+# d = 5e-6
+
+# q2
+Lgn =  780e-6 +calibration_len/2
+Lgf =  1325e-6 +calibration_len/2
+Lc =  363e-6
+Lrn =  665e-6 +calibration_len/2
+Lrf =  1290e-6 +calibration_len/2
+d = 7e-6
+
+# # mux 2 
+# # q2
+# Lgn =  1015e-6 +calibration_len/2
+# Lgf =  1090e-6 +calibration_len/2
+# Lc =  363e-6
+# Lrn =  880e-6 +calibration_len/2
+# Lrf =  1076e-6 +calibration_len/2
+# d = 3e-6
+
+
+
+
+# # q3
+# Lgn =  850e-6 +calibration_len/2
+# Lgf =  1330e-6 +calibration_len/2
+# Lc =  344e-6
+# Lrn =  710e-6 +calibration_len/2
+# Lrf =  1322e-6 +calibration_len/2
+# d = 5e-6
+
+# #mux 2
+# # q3
+# Lgn =  950e-6 +calibration_len/2
+# Lgf =  1230e-6 +calibration_len/2
+# Lc =  344e-6
+# Lrn =  810e-6 +calibration_len/2
+# Lrf =  1222e-6 +calibration_len/2
+# d = 3e-6
+
+# # q4
+# Lgn =  790e-6 +calibration_len/2
+# Lgf =  1470e-6 +calibration_len/2
+# Lc =  294e-6
+# Lrn =  685e-6 +calibration_len/2
+# Lrf =  1360e-6 +calibration_len/2
+# d = 8e-6
+
+# #mux 2
+# # q4
+# Lgn =  690e-6 +calibration_len/2
+# Lgf =  1570e-6 +calibration_len/2
+# Lc =  294e-6
+# Lrn =  625e-6 +calibration_len/2
+# Lrf =  1420e-6 +calibration_len/2
+# d = 5e-6
+
 
 Cs = 2.72e-14
 #Cs = 0
@@ -328,20 +433,26 @@ Cs = 2.72e-14
 #Lextra = 0.2e-9
 #Lextra=0
 
+
+
 Cm_per_len = cap.get_Cm(d)
 Lm_per_len = cap.get_Lm(d)
 
-C1, L1, C2, L2, Cg, Lg = rr_f.get_lumped_elements(Lc, Lgf, Lgn, Lrf, Lrn, Lm_per_len, Cm_per_len)
-print("C1 = ", C1)
-print("L1 = ", L1)
-print("C2 = ", C2)
-print("L2 = ", L2)
-print("Cg = ", Cg)
-print("Lg = ", Lg)
-    
-j_coupling = rr_f.lumped_model_get_j(C1, L1, C2+Cs, L2, Cg, Lg)
-plot_transmission(Lrf, Lrn, Lgf, Lgn, Lc, d)
-print(j_coupling/2/np.pi/1e6)
+for shift in [0]:
+
+    C1, L1, C2, L2, Cg, Lg = rr_f.get_lumped_elements(Lc, Lgf-shift, Lgn+shift, Lrf+shift, Lrn-shift, Lm_per_len, Cm_per_len)
+    # print("C1 = ", C1)
+    # print("L1 = ", L1)
+    # print("C2 = ", C2)
+    # print("L2 = ", L2)
+    # print("Cg = ", Cg)
+    # print("Lg = ", Lg)
+    print("shift: ", shift*1e6)
+    notch_freq = rr_f.find_notch_filter_frequency(Lc, Lgf-shift, Lgn+shift, Lrf+shift, Lrn-shift, Lm_per_len, Cm_per_len)
+    print("notch_freq = " + str(int(notch_freq/1e6/2/np.pi)/1e3))
+    j_coupling = rr_f.lumped_model_get_j(C1, L1, C2+Cs, L2, Cg, Lg)
+    #plot_transmission(Lrf, Lrn, Lgf, Lgn, Lc, d)
+    print(j_coupling/2/np.pi/1e6)
 
 
 
@@ -384,3 +495,4 @@ d=5e-6
 
 get_notch_fequency_derivative(Lc, Lgf+calibration/2, Lgn+calibration/2, Lrf+calibration/2, Lrn+calibration/2, d, 50e-6)
 """
+

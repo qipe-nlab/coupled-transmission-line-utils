@@ -46,13 +46,13 @@ def plot_transmission(l_Rf, l_Rn, l_Gf, l_Gn, l_c, d, Cs):
 
     
 
-def solve_for_r_r(target, x0, Cs):
+def solve_for_r_r(target, x0, Cs, calibration_len=250e-6):
     """
     target format: [len1, len2, fn, J]
     x format: [Lgf, Lc, Lrf, d] (Lgn and Lrn will be determined based on the targeted lengths)
     """
     maxiter=1000
-    len_stepsize=10e-6
+    len_stepsize=50e-6
     d_stepsize=0.2e-6
     reduced_len_stepsize=5e-6
     reduced_d_stepsize=0.1e-6
@@ -71,11 +71,11 @@ def solve_for_r_r(target, x0, Cs):
 
     
     while (iter<maxiter):
-        l_Gn = target[0]-x[0]-x[1]
-        l_Gf = x[0]
+        l_Gn = target[0]-x[0]-x[1]+calibration_len
+        l_Gf = x[0]+calibration_len
         l_c = x[1]
-        l_Rn = target[1]-x[2]-x[1]
-        l_Rf = x[2]
+        l_Rn = target[1]-x[2]-x[1]+calibration_len
+        l_Rf = x[2]+calibration_len
         d = x[3]
 
         
@@ -118,7 +118,7 @@ def solve_for_r_r(target, x0, Cs):
             else:
                 x[0]+=np.sign(notch_f-target[2])*len_stepsize
                 x[2]+=np.sign(notch_f-target[2])*len_stepsize
-            if np.abs(target[2]-notch_f)<2*f_tol and len_stepsize!=reduced_len_stepsize:
+            if np.abs(target[2]-notch_f)<5*f_tol and len_stepsize!=reduced_len_stepsize:
                 #print("reduced len_stepsize")
                 len_stepsize=reduced_len_stepsize
 
@@ -131,7 +131,7 @@ def solve_for_r_r(target, x0, Cs):
                     #print("\n\n switching to notch at ", iter)
                     state="notch"
             else:
-                if j_coupling>target[3] or d>=5e-6+d_stepsize:
+                if j_coupling>target[3] or d>=3e-6+d_stepsize:
                     x[3]+=np.sign(j_coupling-target[3])*d_stepsize
                 else:
                     x[1]+=np.sign(target[3]-j_coupling)*len_stepsize
@@ -148,8 +148,12 @@ def solve_for_r_r(target, x0, Cs):
 
         iter+=1
         
-    plt.plot(range(len(state_log)), fn_log)
-    plt.plot(range(len(state_log)), state_log)
+    plt.plot(range(len(state_log)), fn_log, label="notch_frequency")
+    #plt.plot(range(len(state_log)), J_log, label="j_coupling")
+    
+    plt.plot(range(len(state_log)), state_log, label="state")
+    plt.legend()
+    plt.xlabel("iteration")
     plt.show()
         
     print("----------")
@@ -176,17 +180,18 @@ def solve_for_r_r(target, x0, Cs):
 
 
 """
-len_r1 = 5500e-6
-len_r2 = 5300e-6
+len_r1 = 5000e-6
+len_r2 = 4800e-6
 fn = 4e9
-J = 20e6*2*np.pi
+J = 30e6*2*np.pi
 target = [len_r1, len_r2, fn, J]
 
 Cs = 2.7e-14
 
 
-x0 = [1300e-6, 300e-6, 1300e-6, 15e-6]
-l_Gn, l_Gf, l_c, l_Rn, l_Rf, d = find_r_r(target, x0, Cs)
+x0 = [1300e-6, 500e-6, 1300e-6, 15e-6]
+l_Gn, l_Gf, l_c, l_Rn, l_Rf, d = solve_for_r_r(target, x0, Cs)
 
-plot_transmission(l_Rf, l_Rn, l_Gf, l_Gn, l_c, d, Cs)
+plot_transmission(l_Rf+300e-6, l_Rn+300e-6, l_Gf+300e-6, l_Gn+300e-6, l_c, d, Cs)
+
 """
