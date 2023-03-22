@@ -10,7 +10,7 @@ import common_formulas as cf
 import r_r_formulas as r_r
 import cap_util as cap
 
-def plot_transmission(l_Rf, l_Rn, l_Gf, l_Gn, l_c, d, Cs):
+def plot_transmission(l_Rf, l_Rn, l_Gf, l_Gn, l_c, d, Cs, notch_target):
 
     omegas = np.linspace(3*2*np.pi*1e9, 10*2*np.pi*1e9, 10000)
     
@@ -31,17 +31,18 @@ def plot_transmission(l_Rf, l_Rn, l_Gf, l_Gn, l_c, d, Cs):
     #   l/2
     cpw_length1 = l_c + l_Gf + l_Gn
     cpw_length2 = l_c + l_Rf + l_Rn
-    cpw1_freq = cf.lambda_by_4_f(cpw_length1)
-    cpw2_freq = cf.lambda_by_4_f(cpw_length2)
+    #cpw1_freq = cf.lambda_by_4_f(cpw_length1)
+    #cpw2_freq = cf.lambda_by_4_f(cpw_length2)
     
 
     plt.plot(omegas/2/np.pi/1e9, Zs)
-    plt.vlines(x=notch_freq/2/np.pi/1e9, ymax=5, ymin=-5, color="red", label="notch_freq = " + str(int(notch_freq/1e6/2/np.pi)/1e3))
-    plt.vlines(x=[cpw1_freq/1e9, cpw2_freq/1e9], ymax=5, ymin=-5, color="green")
+    plt.vlines(x=notch_target/1e9, ymax=5, ymin=-5, color="red", label="notch_target = " + str(int(notch_target/1e6)/1e3)+"GHz")
+    #plt.vlines(x=[resonator_targets[0]/1e9, resonator_targets[1]/1e9], ymax=5, ymin=-5, color="green")
     plt.xlabel("f [GHz]")
     plt.ylabel("Z21 [$ \Omega $]")
     plt.yscale('log')
     plt.legend()
+    plt.grid()
     plt.show()
 
     
@@ -51,7 +52,7 @@ def solve_for_r_r(target, x0, Cs, calibration_len=250e-6):
     target format: [len1, len2, fn, J]
     x format: [Lgf, Lc, Lrf, d] (Lgn and Lrn will be determined based on the targeted lengths)
     """
-    maxiter=1000
+    maxiter=500
     len_stepsize=50e-6
     d_stepsize=0.2e-6
     reduced_len_stepsize=5e-6
@@ -69,6 +70,15 @@ def solve_for_r_r(target, x0, Cs, calibration_len=250e-6):
     J_log=[]
     state_log=[]
 
+    l_Gn = target[0]-x[0]-x[1]+calibration_len
+    l_Gf = x[0]+calibration_len
+    l_c = x[1]
+    l_Rn = target[1]-x[2]-x[1]+calibration_len
+    l_Rf = x[2]+calibration_len
+    d = x[3]
+    Cm_per_len = cap.get_Cm(d)
+    Lm_per_len = cap.get_Lm(d)
+    notch_f=r_r.find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len)/(2*np.pi)
     
     while (iter<maxiter):
         l_Gn = target[0]-x[0]-x[1]+calibration_len
@@ -77,12 +87,11 @@ def solve_for_r_r(target, x0, Cs, calibration_len=250e-6):
         l_Rn = target[1]-x[2]-x[1]+calibration_len
         l_Rf = x[2]+calibration_len
         d = x[3]
-
         
         Cm_per_len = cap.get_Cm(d)
         Lm_per_len = cap.get_Lm(d)
 
-        notch_f = r_r.find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len)/(2*np.pi)
+        notch_f = r_r.find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, min_search=notch_f*2*np.pi-3e9*2*np.pi, max_search=notch_f*2*np.pi+3e9*2*np.pi)/(2*np.pi)
         
         C1, L1, C2, L2, Cg, Lg = r_r.get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len)
         j_coupling = r_r.lumped_model_get_j(C1, L1, C2+Cs, L2, Cg, Lg)
@@ -148,14 +157,52 @@ def solve_for_r_r(target, x0, Cs, calibration_len=250e-6):
 
         iter+=1
         
-    plt.plot(range(len(state_log)), fn_log, label="notch_frequency")
+    #plt.plot(range(len(state_log)), fn_log, label="notch_frequency")
     #plt.plot(range(len(state_log)), J_log, label="j_coupling")
     
-    plt.plot(range(len(state_log)), state_log, label="state")
-    plt.legend()
-    plt.xlabel("iteration")
-    plt.show()
+    #plt.plot(range(len(state_log)), state_log, label="state")
+    #plt.legend()
+    #plt.xlabel("iteration")
+    #plt.show()
+    
+    # transfrom state_log
+    state_switches=[]
+    for i in range(len(state_log)-1):
+        if state_log[i]!=state_log[i+1]:
+            state_switches.append(i)
+    state_switches.insert(0,0)
+    state_switches.append(len(state_log)-1)
+    
+
+    # Create Plot
+    fig, ax1 = plt.subplots()
+    ax1.set_xlabel('Iteration')
+    ax1.set_ylabel('f_n [GHz]', color='black')
+    ax1.plot(range(len(state_log)), fn_log, label="f_n", color='red', linestyle="-")
+    ax1.tick_params(axis='y', labelcolor='black')
+    # Adding Twin Axes
+    ax2 = ax1.twinx()
+    ax2.set_ylabel('J/2pi [MHz]', color='black')
+    ax2.plot(range(len(state_log)), J_log, label="J", color='blue', linestyle="--")
+    ax2.tick_params(axis='y', labelcolor='black')
+    
+    col="r"
+    for i in range(len(state_switches)-1):
+        plt.axvspan(state_switches[i], state_switches[i+1],color=col, alpha=0.1)
+        if col=="r":
+            col="b"
+        else:
+            col="r"
+    
         
+    h1, l1 = ax1.get_legend_handles_labels()
+    h2, l2 = ax2.get_legend_handles_labels()
+    plt.legend(h1+h2, l1+l2)
+    #plt.grid(color='gray', linestyle='-', linewidth=0.5)
+    # Show plot
+    plt.show()
+    
+    
     print("----------")
     print("\n\n")
 

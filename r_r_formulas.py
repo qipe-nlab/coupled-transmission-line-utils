@@ -136,7 +136,7 @@ def Z_transfer_total(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega,
 
 #1e9*2*np.pi, 10e9*2*np.pi, 5e4*2*np.pi
 #min_search=3*2*np.pi*10**9, max_search=12*2*np.pi*10**9, search_spacing=(0.01*2*np.pi*10**9)
-def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=cf.default_phase_vel, Z0=cf.default_Z0, min_search=1e9*2*np.pi, max_search=13e9*2*np.pi, search_spacing=5e4*2*np.pi):
+def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=cf.default_phase_vel, Z0=cf.default_Z0, min_search=1e9*2*np.pi, max_search=9e9*2*np.pi, search_spacing=5e4*2*np.pi):
 
     # Define the two sides of the equation
     # We will find the zero crossing, to get the solution to the equation
@@ -181,9 +181,9 @@ def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=c
     gaps = defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas[idxs + 1]) - defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas[idxs - 1])
     idx = idxs[(abs(gaps) < 1)]
     if idx.size == 0:
-        return 100e9
-        #print('idxs:', idxs)
-        #raise ValueError('No valid solution to notch frequency equation for given input parameters in specified frequency range. Therefore cannot proceed to finding Lg and Cg.')
+        #return 100e9
+        print("ERROR")
+        raise ValueError('No valid solution to notch frequency equation for given input parameters in specified frequency range. Therefore cannot proceed to finding Lg and Cg.')
 
     
     Z_transfer_vals = np.abs(Z_transfer_total(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas[idx]))
@@ -203,7 +203,7 @@ def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=c
     signchange[0] = 0
 
     idx= np.nonzero(signchange)
-
+    #print(omegas[idx])
     val  = omegas[idx][0]
     return val
 
