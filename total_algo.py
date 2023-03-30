@@ -2,6 +2,11 @@ import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
 
+import sys
+sys.path.append('./r_l')
+sys.path.append('./r_r')
+sys.path.append('./q_r')
+
 
 import common_formulas as cf
 
@@ -111,10 +116,10 @@ def solve_all(f_r1, f_r2, f_notch, J, f_q, g, kappa, show=0):
     return [Ck_angle, l_Gn, l_Gf, l_c, l_Rn, l_Rf, d, R_q, Cc_deformation]
 
 
-f_r1 = 10e9
+f_r1 = 6e9
 f_r2 = f_r1
-f_notch = 8e9
-J = 40e6 *2*np.pi
+f_notch = 4e9
+J = 30e6 *2*np.pi
 
 
 f_q = f_notch
