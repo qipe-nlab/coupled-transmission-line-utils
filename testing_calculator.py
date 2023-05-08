@@ -59,7 +59,6 @@ def get_Ej(L):
     phi0 = 2.0678e-15
     return ((phi0/2/np.pi)**2)/L
 
-
 def omega_q(L, C):
     hbar = 1.05457182e-34
     Ec = get_Ec(C)
@@ -69,7 +68,6 @@ def omega_q(L, C):
     return om/hbar
 
 #print(omega_q(5.5e-9, 65e-15)/2/np.pi/1e9)
-
 
 def chi(g, Ec, fq, fr):
     hbar = 1.05457182e-34
@@ -151,9 +149,6 @@ quit()
 """
 
 
-
-
-
 def linear(x, a, b):
     return x*a+b
 
@@ -184,10 +179,6 @@ def residual(params, ind, lambdas):
         errors[i] = (lambdas[i,0]-l1)**2 + (lambdas[i,1]-l2)**2
     return errors
         
-
-    
-
-
 #filename = "C:\\Users\\mluka\\work\\data\\j_coupling_mesh_fine.csv"
 filename = "C:\\Users\\mluka\\work\\data\\transfer.csv"
 data = np.genfromtxt(filename,delimiter="," ,skip_header=5)
@@ -197,11 +188,9 @@ data = np.genfromtxt(filename,delimiter="," ,skip_header=5)
 #filename = "C:\\Users\\mluka\\work\\data\\transfer.csv"
 #data2 = np.genfromtxt(filename,delimiter="," ,skip_header=5)
 
-
 #filename = "C:\\Users\\mluka\\work\\data\\j_coupling_mesh_extrafine.csv"
 #filename = "C:\\Users\\mluka\\work\\data\\transfer.csv"
 #data3 = np.genfromtxt(filename,delimiter="," ,skip_header=5)
-
 
 #filename = "C:\\Users\\mluka\\work\\data\\j_coupling_mesh_extraextra.csv"
 #filename = "C:\\Users\\mluka\\work\\data\\transfer.csv"
