@@ -1,3 +1,5 @@
+from cmath import phase
+import re
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
@@ -78,7 +80,7 @@ def S_mat_and_eig(U_mat, U_eig, L_mat):
 
     # for diagonalizing L
 
-    sqrt_U_eig = np.sqrt(U_eig)
+    sqrt_U_eig = np.emath.sqrt(U_eig)
 
     sqrt_U_eig_mat = np.diag(sqrt_U_eig)
 
@@ -92,7 +94,7 @@ def T_mat(U_mat, S_mat, U_eig):
 
     # for diagonalizing CL matrix
 
-    sqrt_U_eig = np.sqrt(U_eig)
+    sqrt_U_eig = np.emath.sqrt(U_eig)
 
     mat = U_mat@np.diag(sqrt_U_eig)@S_mat
 
@@ -102,7 +104,7 @@ def T_v_mat(U_mat, S_mat, U_eig):
 
     # for diagonalizing CL matrix
 
-    sqrt_U_eig = np.sqrt(U_eig)
+    sqrt_U_eig = np.emath.sqrt(U_eig)
 
     mat = U_mat@np.diag(1/sqrt_U_eig)@S_mat
 
@@ -118,15 +120,20 @@ def propagation_eig(S_eig, omega):
 
     # diagonalized YZ matrix elements
 
-    eig = 1j*omega*np.sqrt(S_eig)
+    # print('omega:', omega)
+    # print('S_eig:', S_eig)
+
+    eig = 1j*omega*np.emath.sqrt(S_eig)
+
+    #  print('eig:', eig)
 
     return eig
 
 def Z_char_mat(U_mat, S_mat, U_eig, S_eig):
 
-    sqrt_U_eig = np.sqrt(U_eig)
+    sqrt_U_eig = np.emath.sqrt(U_eig)
 
-    sqrt_S_eig = np.sqrt(S_eig)
+    sqrt_S_eig = np.emath.sqrt(S_eig)
 
     mat = U_mat@np.diag(1/sqrt_U_eig)@S_mat@np.diag(sqrt_S_eig)@(S_mat.T)@np.diag(1/sqrt_U_eig)@(U_mat.T)
 
@@ -223,8 +230,8 @@ def T_mat_sym_three():
 
 def Z_char_mat_sym_three(Z_mat, Y_mat):
 
-    Z_char_plus = np.sqrt((Z_mat[0,0] + Z_mat[0,1])/(Y_mat[0,0] + Y_mat[0,1]))
-    Z_char_minus =  np.sqrt((Z_mat[0,0] - Z_mat[0,1])/(Y_mat[0,0] - Y_mat[0,1]))
+    Z_char_plus = np.emath.sqrt((Z_mat[0,0] + Z_mat[0,1])/(Y_mat[0,0] + Y_mat[0,1]))
+    Z_char_minus =  np.emath.sqrt((Z_mat[0,0] - Z_mat[0,1])/(Y_mat[0,0] - Y_mat[0,1]))
 
     mat = 0.5 * np.array([[Z_char_plus + Z_char_minus, Z_char_plus - Z_char_minus],[Z_char_plus - Z_char_minus, Z_char_plus + Z_char_minus]])
 
@@ -234,9 +241,9 @@ def propagation_eig_sym_three(Z_mat, Y_mat):
 
     # diagonalized YZ matrix elements
 
-    eig1 = np.sqrt((Z_mat[0,0] + Z_mat[0,1])*(Y_mat[0,0] + Y_mat[0,1]))
+    eig1 = np.emath.sqrt((Z_mat[0,0] + Z_mat[0,1])*(Y_mat[0,0] + Y_mat[0,1]))
     
-    eig2 = np.sqrt((Z_mat[0,0] - Z_mat[0,1])*(Y_mat[0,0] - Y_mat[0,1]))
+    eig2 = np.emath.sqrt((Z_mat[0,0] - Z_mat[0,1])*(Y_mat[0,0] - Y_mat[0,1]))
 
     eig = np.array([eig1, eig2])
 
@@ -263,6 +270,12 @@ def Z_open_tl(Z0, phase_vel, L, omega):
     val = -1j*Z0/np.tan(tau * omega)
 
     return val
+
+def Z_input_tl(Z0, Zload, phase_vel, L, omega ):
+
+    phi = L * omega/phase_vel
+
+    return Z0*(Zload+1j*Z0*np.tan(phi))/(Z0+1j*Zload*np.tan(phi))
 
 def voltage_at_source_location_exact(Z0, Zinput_Gn, phase_vel, l_Gn, omega):
 
@@ -294,7 +307,7 @@ def V_I_solutions_general(C_mat, L_mat, Z_nb, Z_fb, Vs_nb, Vs_fb, len, omega):
 
     propagation_eig_sol = propagation_eig(S_eig_sol, omega)
 
-    Z_char_mat_sol = Z_char_mat(U_mat_sol, S_mat_sol, U_eig_sol, S_eig_sol, L_mat)
+    Z_char_mat_sol = Z_char_mat(U_mat_sol, S_mat_sol, U_eig_sol, S_eig_sol) # L_mat
 
     defining_mat_sol = defining_mat(Z_char_mat_sol, Z_nb, Z_fb, T_mat_sol, propagation_eig_sol, len)
 
@@ -356,6 +369,7 @@ def reflection_ceofficient(ZL, Z0):
     return (ZL - Z0)/(ZL + Z0)
 
 def F_val(gamma1, gamma2, tau, omega):
+
     return 1/(1-gamma1*gamma2*np.exp(-1j*omega*2*tau))
 
 def Z_short_tl(Z0, phase_vel, L, omega):
@@ -383,9 +397,7 @@ def voltage_transmission_coupled_lines(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_R
     tau_c = l_c / phase_vel_c
 
     Z_Rn = Z_open_tl(Z0, phase_vel, l_Rn, omega)
-    
     Z_Rf = Z_short_tl(Z0, phase_vel, l_Rf, omega)
-    
     Z_Gf = Z_short_tl(Z0, phase_vel, l_Gf, omega)
 
     l_G = l_c +l_Gf + l_Gn
@@ -456,7 +468,7 @@ def voltage_at_source_location(Z0, phase_vel, Cm_per_len, l_c, l_Gf, l_Gn, omega
 
     return val
 
-def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65, min_search=3*2*np.pi*10**9, max_search=12*2*np.pi*10**9, search_spacing=(0.01*2*np.pi*10**9)/(2*np.pi*1e9)):
+def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65, min_search=3*2*np.pi*10**9, max_search=12*2*np.pi*10**9, search_spacing=(0.01*2*np.pi*10**9)):
         
     # Define the two sides of the equation
     # We will find the zero crossing, to get the solution to the equation
@@ -480,29 +492,29 @@ def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3
     # Define vector containing results of equation for different omega values
     omegas = np.arange(min_search, max_search, search_spacing)
     results = defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas) - defining_eq2(Z0, phase_vel, Lm, Cm)
-    
+
     # The equation will have a zero crossing once the sign of the difference changes
     asign = np.sign(results)
     signchange = ((np.roll(asign, 1) - asign) != 0).astype(int)
     signchange[0] = 0
     idxs = np.array(np.nonzero(signchange))[0]
-    print("idxs -> ", idxs)
+    # print("idxs -> ", idxs)
 
-    #plt.plot(omegas,  defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas) - defining_eq2(Z0, phase_vel, Lm, Cm), marker=".")
-    #plt.plot(omegas[idxs], defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas[idxs]), color="red", marker="x")
-    #plt.show()
+    # plt.plot(omegas,  defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas) - defining_eq2(Z0, phase_vel, Lm, Cm), marker=".")
+    # plt.plot(omegas[idxs], defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas[idxs]), color="red", marker="x")
+    # plt.show()
     #quit()
     
     # added debugger - check for continuity of eq1 around idx:
     gaps = defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas[idxs + 1]) - defining_eq1(Z0, phase_vel, Cm, l_c, l_Gf, l_Rf, omegas[idxs - 1])
-    idx = idxs[(abs(gaps) < 1)]
+
+    # print('gaps:', gaps)
+    idx = idxs[(abs(gaps) < 30)]
     if idx.size == 0:
         print('idxs:', idxs)
         raise ValueError('No valid solution to notch frequency equation for given input parameters in specified frequency range. Therefore cannot proceed to finding Lg and Cg.')
 
-    
-    Z_transfer_vals = np.abs(Z_transfer_total(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas[idx]))
-
+    Z_transfer_vals = np.abs(Z_transfer_weak_coupling(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas[idx]))
 
     min_idx = np.argmin(Z_transfer_vals)
 
@@ -523,33 +535,6 @@ def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3
 
     return val
 
-def Z_transfer_total(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega, phase_vel=3*10**8/2.5, Z0=65):
-
-    L_G = l_Gn + l_c + l_Gf
-
-    #L_G = l_c + l_Gf
-
-    #Z_trans_along_shorted_tr_val = Z_trans_along_shorted_tl(Z0, phase_vel, L_G, l_Gn, omega)
-
-    Z_trans_along_shorted_tr_val = voltage_at_source_location(Z0, phase_vel, Cm_per_len, l_c, l_Gf, l_Gn, omega)
-
-    voltage_transmission_coupled_lines_val = voltage_transmission_coupled_lines(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega)
-
-    tau_Rn = l_Rn/phase_vel
-
-    Rn_tl_voltage_scale_factor = 1/np.cos(tau_Rn*omega)
-
-    val = Z_trans_along_shorted_tr_val * voltage_transmission_coupled_lines_val * Rn_tl_voltage_scale_factor
-
-    return val
-
-def lamda_by_4_omega(phase_vel, L):
-
-    lambda_line = 4 * L
-    val = 2 * np.pi * phase_vel / lambda_line
-
-    return val
-
 ############################
 ### Lumped Element Model ###
 ############################
@@ -560,6 +545,14 @@ def transmission_line_C_and_L(phase_vel, Z0):
     L_val = Z0 / phase_vel
 
     return C_val, L_val
+
+def transmission_line_Zchar_phase_vel(Lmutual, Cmutual):
+
+    Zchar = np.sqrt(Lmutual/ Cmutual)
+
+    phasevel = 1/np.sqrt(Lmutual * Cmutual)
+
+    return Zchar, phasevel
 
 def lumped_model_C_and_L(phase_vel, Z0, cpw__length):
 
@@ -580,23 +573,37 @@ def lumped_model_Cg_and_Lg(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_le
 
     return Cg, Lg
 
-def lumped_model_transmission(L1, C1, L2, C2, Cg, Lg, omega):
+def get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
+        
+    cpw__length1 = l_c + l_Gf + l_Gn
+    cpw__length2 = l_c + l_Rf + l_Rn
+    
+    C1, L1 = lumped_model_C_and_L(phase_vel, Z0, cpw__length1)
+    C2, L2 = lumped_model_C_and_L(phase_vel, Z0, cpw__length2)
+    Cg, Lg = lumped_model_Cg_and_Lg(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len)
+    
+    Cg_basic = Cm_per_len *l_c
+    Lg_basic = L1*L2/ (Lm_per_len * l_c)
+
+    return C1, L1, C2, L2, Cg, Lg
+
+def lumped_model_Z_transmission(omega, C1, L1, C2, L2, Cg, Lg):
 
     Z_res1 = Zres(C1, L1, omega)
-    Z_res2 = Zres(C2, L2, omega)
     Z_res_coupler = Zres(Cg, Lg, omega)
+    Z_res2 = Zres(C2, L2, omega)
 
     val = Z_res1 * Z_res2 / Z_res_coupler * 1/(1 + (Z_res1 + Z_res2)/Z_res_coupler)
 
     return val 
 
-def lumped_model_resonator_coupling(L1, C1, L2, C2, Cg, Lg):
+def lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg):
 
     omega_1 = omega_r(C1, L1)
     omega_2 = omega_r(C2, L2)
 
-    Z21_omega_1 = lumped_model_transmission(1, C1, 1, C2, Cg, Lg, omega_1)
-    Z21_omega_1 = lumped_model_transmission(1, C1, 1, C2, Cg, Lg, omega_2)
+    Z21_omega_1 = lumped_model_Z_transmission(omega_1, C1, 1, C2, 1, Cg, Lg)
+    Z21_omega_1 = lumped_model_Z_transmission(omega_2, C1, 1, C2, 1, Cg, Lg)
 
     val = -0.25*(omega_1**3*omega_2**3*C1*C2)**0.5*(np.imag(Z21_omega_1)/omega_1 + np.imag(Z21_omega_1)/omega_2)
 
@@ -615,8 +622,8 @@ def find_notch_filter_char_impedance(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_
 
     delta_omega = 10 * 2*np.pi # 10 Hz
 
-    Z_transfer_plus = Z_transfer_total(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f + delta_omega/2, phase_vel=phase_vel, Z0=Z0)
-    Z_transfer_minus = Z_transfer_total(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f - delta_omega/2, phase_vel=phase_vel, Z0=Z0)
+    Z_transfer_plus = Z_transfer_weak_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f + delta_omega/2, phase_vel=phase_vel, Z0=Z0)
+    Z_transfer_minus = Z_transfer_weak_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f - delta_omega/2, phase_vel=phase_vel, Z0=Z0)
 
     grad_Ztransfer = (Z_transfer_plus - Z_transfer_minus)/(delta_omega)
 
@@ -624,42 +631,439 @@ def find_notch_filter_char_impedance(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_
 
     return val
 
+###################################
+### Z matrix transfer functions ###
+###################################
+
+def Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omegas, phase_vel=3*10**8/2.5, Z0=65):
+
+    C_val, L_val = transmission_line_C_and_L(phase_vel, Z0)
+
+    Cm = Cm_per_len
+
+    Lm = Lm_per_len
+
+    C_mutual_test = np.array([[C_val, Cm], [Cm, C_val]])
+
+    C_Maxwell_test = C_mutual_to_Maxwell(C_mutual_test)
+
+    L_test = np.array([[L_val, Lm],[Lm, L_val]])
+
+    V_sols_n_arr = []
+    V_sols_f_arr = []
+    I_sols_n_arr = []
+    I_sols_f_arr = []
+    V_from_input_I_arr = []
+    Rn_tl_voltage_scale_factor_arr = []
+    Z_input_exact_arr = []
+
+    if len(omegas) == 0:
+        omegas = [omegas]
+
+    for omega in omegas:
+
+        Z_nb = np.diag(np.array([0, Z_open_tl(Z0, phase_vel, l_Rn, omega)]))
+        Z_fb = np.diag(np.array([Z_short_tl(Z0, phase_vel, l_Gf, omega), Z_short_tl(Z0, phase_vel, l_Rf, omega)]))
+
+        Vs_nb = np.array([1,0])
+        Vs_fb = np.array([0,0])
+
+        V_sols_n, V_sols_f, I_sols_n, I_sols_f = V_I_solutions_sym_three(C_Maxwell_test, L_test, Z_nb, Z_fb, Vs_nb, Vs_fb, l_c, omega)
+
+        V_sols_n_arr.append(V_sols_n)
+        V_sols_f_arr.append(V_sols_f)
+
+        I_sols_n_arr.append(I_sols_n)
+        I_sols_f_arr.append(I_sols_f)
+
+        Z_input_exact = V_sols_n[0] / I_sols_n[0]
+
+        Z_input_exact_arr.append(Z_input_exact)
+
+        #print('Z_input_exact:', Z_input_exact)
+
+        V_from_input_I = voltage_at_source_location_exact(Z0, Z_input_exact, phase_vel, l_Gn, omega)
+
+        #print('V_from_input_I:', V_from_input_I)
+
+        V_from_input_I_arr.append(V_from_input_I)
+
+        tau_Rn = l_Rn/phase_vel
+
+        Rn_tl_voltage_scale_factor = 1/np.cos(tau_Rn*omega)
+
+        Rn_tl_voltage_scale_factor_arr.append(Rn_tl_voltage_scale_factor)
+
+    # print('V_sols_n_arr:', V_sols_n_arr)
+    # print('V_sols_f_arr:', V_sols_f_arr)
+
+    V_sols_n_arr = np.array(V_sols_n_arr)
+    V_sols_f_arr = np.array(V_sols_f_arr)
+    V_from_input_I_arr = np.array(V_from_input_I_arr)
+    Rn_tl_voltage_scale_factor_arr = np.array(Rn_tl_voltage_scale_factor_arr)
+
+    Z_input_exact_arr = np.array(Z_input_exact_arr)
+
+    ## take the imag part to remove tiny numerical errors
+
+    Z_transfer_exact = np.imag(Rn_tl_voltage_scale_factor_arr * V_from_input_I_arr * V_sols_n_arr[:, -1])
+
+    return Z_transfer_exact
+
+def Z_transfer_weak_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega, phase_vel=3*10**8/2.5, Z0=65):
+
+    L_G = l_Gn + l_c + l_Gf
+
+    #L_G = l_c + l_Gf
+
+    #Z_trans_along_shorted_tr_val = Z_trans_along_shorted_tl(Z0, phase_vel, L_G, l_Gn, omega)
+
+    Z_trans_along_shorted_tr_val = voltage_at_source_location(Z0, phase_vel, Cm_per_len, l_c, l_Gf, l_Gn, omega)
+
+    voltage_transmission_coupled_lines_val = voltage_transmission_coupled_lines(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega)
+
+    tau_Rn = l_Rn/phase_vel
+
+    Rn_tl_voltage_scale_factor = 1/np.cos(tau_Rn*omega)
+
+    val = Z_trans_along_shorted_tr_val * voltage_transmission_coupled_lines_val * Rn_tl_voltage_scale_factor
+
+    return val
+
+def Z_transfer_equivalent_LE_circuit(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega, phase_vel=3*10**8/2.5, Z0=65):
+
+    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
+
+    val = lumped_model_Z_transmission(omega, C1, L1, C2, L2, Cg, Lg)
+
+    return val
+
+#######################################
+### qubit radiative decay functions ###
+#######################################
+
+def qubit_radiative_decay_sym_3_lines_exact(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50):
+
+    C_val, L_val = transmission_line_C_and_L(phase_vel, Z0)
+
+    Cm = Cm_per_len
+
+    Lm = Lm_per_len
+
+    C_mutual_test = np.array([[C_val, Cm], [Cm, C_val]])
+
+    C_Maxwell_test = C_mutual_to_Maxwell(C_mutual_test)
+
+    L_test = np.array([[L_val, Lm],[Lm, L_val]])
+
+    V_sols_n_arr = []
+    V_sols_f_arr = []
+    I_sols_n_arr = []
+    I_sols_f_arr = []
+    Z_input_exact_arr = []
+
+    if len(omegas) == 0:
+        omegas = [omegas]
+
+    for omega in omegas:
+
+        Z_env = Zline + Zcap(C_ext, omega)
+
+        Z_nb = np.diag(np.array([0, Z_input_tl(Z0, Z_env, phase_vel, l_Rn, omega)]))
+        Z_fb = np.diag(np.array([Z_short_tl(Z0, phase_vel, l_Gf, omega), Z_short_tl(Z0, phase_vel, l_Rf, omega)]))
+
+        Vs_nb = np.array([1,0])
+        Vs_fb = np.array([0,0])
+
+        V_sols_n, V_sols_f, I_sols_n, I_sols_f = V_I_solutions_sym_three(C_Maxwell_test, L_test, Z_nb, Z_fb, Vs_nb, Vs_fb, l_c, omega)
+
+        V_sols_n_arr.append(V_sols_n)
+        V_sols_f_arr.append(V_sols_f)
+
+        I_sols_n_arr.append(I_sols_n)
+        I_sols_f_arr.append(I_sols_f)
+
+        Z_input_exact = V_sols_n[0] / I_sols_n[0]
+
+        Z_input_exact_arr.append(Z_input_exact)
+
+    Z_input_total_exact = np.array([Z_input_tl(Z0, Z_input_exact_arr[i], phase_vel, l_Gn, omega) for i, omega in enumerate(omegas)])
+
+    Zq_env = Zcap(C_g, omegas) + Z_input_total_exact
+
+    T1 = qubit_radiative_T1(C_q, Zq_env)
+
+    return T1
+
+def qubit_radiative_decay_equivalent_LE_circuit(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50):
+
+    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
+
+    Z1 = 1/(1j*omegas*C1 + 1/(1j*omegas*L1))
+    Z2 = 1/(1j*omegas*Cg + 1/(1j*omegas*Lg))
+    Z3 = 1/(1j*omegas*C2 + 1/(1j*omegas*L2))
+
+    Zg = Zcap(C_g, omegas)
+    Z_ext = Zcap(C_ext, omegas) + Zline 
+
+    Zq_env = Zg + Zpara(Z1, Z2 + Zpara(Z3, Z_ext)) 
+
+    T1 = qubit_radiative_T1(C_q, Zq_env)
+
+    return T1
+
+def qubit_radiative_decay_equivalent_LE_circuit_without_notch(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50):
+    
+    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
+
+    J_val = lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg)
+
+    eff_Cg = get_eff_Cf_from_J(l_c, l_Gf, l_Gn, l_Rf, l_Rn, J_val, phase_vel, Z0)
+
+    Z1 = 1/(1j*omegas*C1 + 1/(1j*omegas*L1))
+    Z2 = 1/(1j*omegas*eff_Cg)
+    Z3 = 1/(1j*omegas*C2 + 1/(1j*omegas*L2))
+
+    Zg = Zcap(C_g, omegas)
+    Z_ext = Zcap(C_ext, omegas) + Zline 
+
+    Zq_env = Zg + Zpara(Z1, Z2 + Zpara(Z3, Z_ext)) 
+
+    T1 = qubit_radiative_T1(C_q, Zq_env)
+
+    return T1
+
+def qubit_radiative_decay_equivalent_LE_circuit_single_resonator(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50):
+    
+    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
+
+    eff_k = k_readout(C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0, Zline)
+
+    eff_C_ext = get_eff_C_ext_from_k(C1, L1, Zline, eff_k)
+
+    Z1 = 1/(1j*omegas*C1 + 1/(1j*omegas*L1))
+
+    Zg = Zcap(C_g, omegas)
+
+    Z_ext = Zcap(eff_C_ext, omegas) + Zline 
+
+    Zq_env = Zg + Zpara(Z1, Z_ext) 
+
+    T1 = qubit_radiative_T1(C_q, Zq_env)
+
+    return T1
+
+#####################
+### get ham terms ###
+#####################
+
+def g_coupling(omega_q, C_q, C_g, l_c, l_Gf, l_Gn, phase_vel=3*10**8/2.5, Z0=65):
+
+    ### approx value for qubit readout resonator coupling
+
+    cpw_length = l_c + l_Gf + l_Gn
+
+    C1, L1 = lumped_model_C_and_L(phase_vel, Z0, cpw_length)
+
+    omega_r_val = omega_r(C1, L1)
+
+    val = 0.25 * np.sqrt(omega_q * omega_r_val / (C_q * C1)) * C_g * (omega_q/omega_r_val + omega_r_val/omega_q)
+
+    return val
+
+def J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
+
+    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
+    J = lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg)
+
+    return J
+
+def k_readout(C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65, Zline = 50):
+
+    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
+
+    J_val = lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg)
+
+    k_ext_val = k_ext_from_LE_model(C2, L2, C_ext, Zline)
+
+    print('C2 (fF):', C2 * 1e15)
+    print('k_ext_val (MHz):', k_ext_val / (2*np.pi * 1e6))
+
+    omega_1 = omega_r(C1, L1)
+    omega_2 = omega_r(C2, L2)
+
+    val = k_readout_from_ham(omega_1, omega_2, k_ext_val, J_val)
+
+    return val
+
 ######################
 ### User functions ###
 ######################
 
-def get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
-        
-    cpw__length1 = l_c + l_Gf + l_Gn
-    cpw__length2 = l_c + l_Rf + l_Rn
-    
-    C1, L1 = lumped_model_C_and_L(phase_vel, Z0, cpw__length1)
-    C2, L2 = lumped_model_C_and_L(phase_vel, Z0, cpw__length2)
-    Cg, Lg = lumped_model_Cg_and_Lg(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len)
-    
-    Cg_basic = Cm_per_len *l_c
-    Lg_basic = L1*L2/ (Lm_per_len * l_c)
-
-    return C1, L1, C2, L2, Cg, Lg
-
-def lambda_quarter_frequency(cpw_length, phase_vel=3*10**8/2.5):
+def lambda_quarter_omega(cpw_length, phase_vel=3*10**8/2.5):
     # Small utility function to calculate the resonance frequency of an uncoupled lambda/4 resonator
-    return lamda_by_4_omega(phase_vel, cpw_length) / (2*np.pi*1e9)
 
-def lumped_element_Z21(omega, C1, L1, C2, L2, Cg, Lg):
-    Z1 = 1/(1j*omega*C1 + 1/(1j*omega*L1))
-    Z2 = 1/(1j*omega*Cg + 1/(1j*omega*Lg))
-    Z3 = 1/(1j*omega*C2 + 1/(1j*omega*L2))
+    lambda_line = 4 * cpw_length
+    val = 2 * np.pi * phase_vel / lambda_line
 
-    Z_tot = Z1 * Z3 / Z2 * 1/(1 + (Z1 + Z3)/Z2)
-    return Z_tot
+    return val
 
-def lumped_elements_j_formula(om1, om2, Z1, Z2, L1, L2):
+def lumped_elements_J_formula(om1, om2, Z1, Z2, L1, L2):
+
     return -0.25*np.sqrt(om1*om2/L1/L2)*np.imag(Z1/om1+Z2/om2)
 
-def lumped_elements_get_j(om1, om2, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len):
-    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len)
-    Z1 = lumped_element_Z21(om1, C1, L1, C2, L2, Cg, Lg)
-    Z2 = lumped_element_Z21(om2, C1, L1, C2, L2, Cg, Lg)
-    j = j_coupling(om1, om2, Z1, Z2, L1, L2)
-    return j
+def k_ext_from_LE_model(Cr, Lr, C_ext, Zline = 50):
+
+    k_ext = C_ext**2 * Zline / (Cr**2 * Lr)
+
+    return k_ext
+
+def k_readout_from_ham(omega_1, omega_2, k_ext, J):
+
+    delta = omega_2 - omega_1
+
+    sqrt_term = (k_ext - 2j*delta)**2 - 16*J**2
+
+    val = 0.5 * k_ext * (1 - np.real(np.emath.sqrt(sqrt_term))/k_ext)
+
+    return val
+
+def qubit_radiative_T1(Cq, Zq_env):
+
+    ### using the expression for the radiative decay time found in ref: Houck et al., Phys. Rev. Lett. 101, 080502 (2008)
+
+    Yq_env = 1/Zq_env
+
+    R = 1/ np.abs(np.real(Yq_env))
+
+    T1 = R * Cq
+
+    return T1
+
+def get_eff_Cf_from_J(l_c, l_Gf, l_Gn, l_Rf, l_Rn, J, phase_vel=3*10**8/2.5, Z0=65):
+
+    ### function for getting the value of the coupling capacitance between the resonators, Cf, 
+    ### given a particular value of J and assuming that there is no shunt impedance Lf in parallel with Cf
+
+    cpw_length1 = l_c + l_Gf + l_Gn
+    cpw_length2 = l_c + l_Rf + l_Rn
+
+    C1, L1 = lumped_model_C_and_L(phase_vel, Z0, cpw_length1)
+
+    C2, L2 = lumped_model_C_and_L(phase_vel, Z0, cpw_length2)
+
+    omega1 = omega_r(C1, L1)
+    omega2 = omega_r(C2, L2)
+
+    val = 4 * J * np.sqrt(C1 * C2/(omega1 * omega2)) / (omega1/omega2 + omega2/omega1)
+
+    return val
+
+def get_eff_C_ext_from_k(Cr, Lr, Zline, k_readout):
+
+    val =  np.sqrt(k_readout / (Zline / (Cr**2 * Lr)))
+    
+    return val
+
+####
+
+### example solutions
+
+### param set 1: for high freq range
+
+phase_vel = 3*10**8/2.5
+Z0 = 65
+
+Lm = 1.31e-9*1e1*1.8
+Cm = 5e-15*1e3*1.8
+l_Rf = 1.2e-3
+l_Rn = 1.2e-3
+l_Gf = 1.2e-3
+l_Gn = 1.2e-3
+l_c = 0.5e-3
+
+### param set 2: for low freq range
+
+# scale_fac = 1.6
+
+# Lm = 1.31e-9*1e1*2.2
+# Cm = 5e-15*1e3*2.2
+# l_Rf = 1.15e-3 * scale_fac
+# l_Rn = 1.45e-3 * scale_fac
+# l_Gf = 1.7e-3 * scale_fac
+# l_Gn = 0.9e-3 * scale_fac
+# l_c = 0.5e-3 * scale_fac
+
+test_notch_freq = find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65)
+
+test_omega_1 = lambda_quarter_omega(l_c + l_Gf + l_Gn, phase_vel=3*10**8/2.5)
+
+test_omega_2 = lambda_quarter_omega(l_c + l_Rf + l_Rn, phase_vel=3*10**8/2.5)
+
+test_J_val = J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm)
+
+print('test_notch_freq (GHz):', test_notch_freq/(2*np.pi*1e9))
+print('test_omega_1 (GHz):', test_omega_1/(2*np.pi*1e9))
+print('test_omega_2 (GHz):', test_omega_2/(2*np.pi*1e9))
+print('test_J_val (MHz):', test_J_val/(2*np.pi*1e6))
+
+omegas = np.arange(6, 11, 0.02) * 1e9 * 2*np.pi
+
+test_Z_transfer_exact = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65)
+
+test_Z_transfer_weak_coupling = Z_transfer_weak_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65)
+
+test_Z_equiv_LE_circuit = Z_transfer_equivalent_LE_circuit(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65)
+
+# print('test_Z_transfer_exact:', test_Z_transfer_exact[:10])
+# print('test_Z_transfer_weak_coupling:', test_Z_transfer_weak_coupling[:10])
+# print('test_Z_transfer_equiv_LE_circuit:', test_Z_equiv_LE_circuit[:10])
+
+plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_exact), color = 'k', label = 'Z transfer exact multiconductor TL model')
+plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_weak_coupling), color = 'r', linestyle = '--', label = 'Z transfer weak coupling model')
+plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit), color = 'b', linestyle = '-.', label = 'Z transfer equivalent circuit model')
+plt.yscale('log')
+plt.legend()
+plt.xlabel('frequency (GHz)')
+plt.ylabel('Z transfer (Ohm)')
+plt.title('Z transfer function for different models')
+plt.show()
+
+C_q = 50e-15
+
+### param set 1: for high freq range
+C_g = 5e-15 #3.65e-15
+C_ext = 23.5e-15
+
+### param set 2: for low freq range
+# C_g = 8e-15
+# C_ext = 52.5e-15
+
+omega_q = test_notch_freq 
+
+test_g_val = g_coupling(omega_q, C_q, C_g, l_c, l_Gf, l_Gn, phase_vel=3*10**8/2.5, Z0=65)
+test_J_val = J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65)
+test_k_val = k_readout(C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
+
+print('test_g_val (MHz):', test_g_val/(2*np.pi*1e6))
+print('test_J_val (MHz):', test_J_val/(2*np.pi*1e6))
+print('test_k_val (MHz):', test_k_val/(2*np.pi*1e6))
+
+omegas = np.arange(6, 11, 0.02) * 1e9 * 2*np.pi
+
+test_T1_radiative_exact = qubit_radiative_decay_sym_3_lines_exact(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
+test_T1_radiative_equivalent_LE_circuit = qubit_radiative_decay_equivalent_LE_circuit(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
+test_T1_radiative_equivalent_LE_circuit_without_notch = qubit_radiative_decay_equivalent_LE_circuit_without_notch(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
+test_T1_radiative_equivalent_LE_circuit_single_resonator = qubit_radiative_decay_equivalent_LE_circuit_single_resonator(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
+
+plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_exact * 1e3, color = 'k', label = 'solution with inductive-capacitive coupling')
+#plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_equivalent_LE_circuit * 1e6, color = 'r', linestyle = '--')
+plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_equivalent_LE_circuit_without_notch * 1e3, color = 'r', linestyle = '--', label = 'solution w/o inductive-capacitive coupling')
+# plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_equivalent_LE_circuit_single_resonator * 1e3, color = 'b', linestyle = '--', label = 'equiv. single resonator circuit')
+
+plt.yscale('log')
+plt.xlabel('Frequency (GHz)')
+plt.ylabel(r'$T_1$ (ms)')
+plt.legend()
+plt.title('Radiative T1 limit through detector line')
+plt.show()
