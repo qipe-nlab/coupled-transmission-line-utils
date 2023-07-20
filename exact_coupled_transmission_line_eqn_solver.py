@@ -468,8 +468,48 @@ def voltage_at_source_location(Z0, phase_vel, Cm_per_len, l_c, l_Gf, l_Gn, omega
 
     return val
 
-def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65, min_search=3*2*np.pi*10**9, max_search=12*2*np.pi*10**9, search_spacing=(0.01*2*np.pi*10**9)):
-        
+def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65, min_search=3*2*np.pi*10**9, max_search=10*2*np.pi*10**9, search_spacing=(10*2*np.pi*10**6)):
+
+    ## find notch frequency by directly solving for the zeros of the transfer impedance
+
+    # Define vector containing results of equation for different omega values
+    omegas = np.arange(min_search, max_search, search_spacing)
+
+    Z_vals = np.imag(Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0))
+
+    # The transmission will have a zero crossing at the notch
+    asign = np.sign(Z_vals)
+    signchange = ((np.roll(asign, 1) - asign) != 0).astype(int)
+    signchange[0] = 0
+    idxs = np.array(np.nonzero(signchange))[0]
+
+    # plt.plot(omegas/(2*np.pi*1e9), Z_vals)
+    # plt.plot(omegas[idxs]/(2*np.pi*1e9),[0]*len(idxs), marker = 'x')
+    # plt.show()
+
+    # print("idxs -> ", idxs)
+
+    #quit()
+    
+    # added debugger - check for continuity of transmission around idx:
+    gaps = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas[idxs + 1], phase_vel=phase_vel, Z0=Z0) -  Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas[idxs - 1], phase_vel=phase_vel, Z0=Z0)
+    
+    #print('idxs:', idxs)
+    #print('gaps:', gaps)
+    
+    idx = idxs[(abs(gaps) < 30)]
+    if idx.size == 0:
+        print('idxs:', idxs)
+        raise ValueError('No valid solution to notch frequency equation for given input parameters in specified frequency range. Therefore cannot proceed to finding Lg and Cg.')
+
+    val  = omegas[idx][0]
+
+    return val
+
+def find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65, min_search=3*2*np.pi*10**9, max_search=12*2*np.pi*10**9, search_spacing=(10*2*np.pi*10**6)):
+    
+    # find the filter frequency by solving the analytic equation using the weak coupling assumption
+
     # Define the two sides of the equation
     # We will find the zero crossing, to get the solution to the equation
     # Note: omega is the variable in which we want to find the crossing
@@ -565,8 +605,10 @@ def lumped_model_C_and_L(phase_vel, Z0, cpw__length):
 
 def lumped_model_Cg_and_Lg(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len):
 
-    omega_f = find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0, 1e9*2*np.pi, 10e9*2*np.pi, 5e4*2*np.pi)
+    omega_f = find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0, 1e9*2*np.pi, 10e9*2*np.pi, 1e6*2*np.pi)
+    print('omega_f/2pi (GHz):', omega_f/(2*np.pi*1e9))
     Z0_f = find_notch_filter_char_impedance(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega_f, phase_vel=phase_vel, Z0=Z0)
+    print('Z0_f:', Z0_f)
 
     Cg = 1/(omega_f*Z0_f)
     Lg =  Z0_f / omega_f
@@ -622,8 +664,8 @@ def find_notch_filter_char_impedance(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_
 
     delta_omega = 10 * 2*np.pi # 10 Hz
 
-    Z_transfer_plus = Z_transfer_weak_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f + delta_omega/2, phase_vel=phase_vel, Z0=Z0)
-    Z_transfer_minus = Z_transfer_weak_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f - delta_omega/2, phase_vel=phase_vel, Z0=Z0)
+    Z_transfer_plus = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f + delta_omega/2, phase_vel=phase_vel, Z0=Z0)
+    Z_transfer_minus = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f - delta_omega/2, phase_vel=phase_vel, Z0=Z0)
 
     grad_Ztransfer = (Z_transfer_plus - Z_transfer_minus)/(delta_omega)
 
@@ -657,8 +699,16 @@ def Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per
     Rn_tl_voltage_scale_factor_arr = []
     Z_input_exact_arr = []
 
-    if len(omegas) == 0:
+    # if type(omegas) is not list() or type(omegas) is not np.array():
+    #     omegas = [omegas]
+
+    #print(np.size(omegas))
+    if np.size(omegas) ==1:
         omegas = [omegas]
+
+    # if len(omegas) == 0:
+    #     #if type(omegas) != list() or type(omegas) != np.array():
+    #     omegas = [omegas]
 
     for omega in omegas:
 
@@ -697,7 +747,7 @@ def Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per
     # print('V_sols_n_arr:', V_sols_n_arr)
     # print('V_sols_f_arr:', V_sols_f_arr)
 
-    V_sols_n_arr = np.array(V_sols_n_arr)
+    V_sols_n_arr = np.array(V_sols_n_arr)    
     V_sols_f_arr = np.array(V_sols_f_arr)
     V_from_input_I_arr = np.array(V_from_input_I_arr)
     Rn_tl_voltage_scale_factor_arr = np.array(Rn_tl_voltage_scale_factor_arr)
@@ -706,7 +756,7 @@ def Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per
 
     ## take the imag part to remove tiny numerical errors
 
-    Z_transfer_exact = np.imag(Rn_tl_voltage_scale_factor_arr * V_from_input_I_arr * V_sols_n_arr[:, -1])
+    Z_transfer_exact = 1j*np.imag(Rn_tl_voltage_scale_factor_arr * V_from_input_I_arr * V_sols_n_arr[:, -1])
 
     return Z_transfer_exact
 
