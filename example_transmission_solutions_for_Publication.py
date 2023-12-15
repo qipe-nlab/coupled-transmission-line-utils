@@ -1,22 +1,37 @@
 ### example solutions
 
 from exact_coupled_transmission_line_eqn_solver import *
+import cap_util as cap
 
 ### param set 1: for high freq range
 
 phase_vel = 3*10**8/2.5
 Z0 = 65
 
-Lm = 1.31e-9*1e1*1.8
-Cm = 5e-15*1e3*1.8
-l_Rf = 1.2e-3
-l_Rn = 1.2e-3
-l_Gf = 1.2e-3
-l_Gn = 1.2e-3
-l_c = 0.5e-3
+d_val = 12.5*1e-6 # separation between the coupled sections
 
-omega = 8 * 2*np.pi*1e9
-C = 100 * 1e-15
+Cm = cap.get_Cm(d_val)
+Lm = cap.get_Lm(d_val)
+
+l_Rf = 1.5e-3
+l_Rn = 1.16e-3
+l_Gf = 1.65e-3
+l_Gn = 1e-3
+l_c = 0.35e-3
+
+L_readout = l_Gn + l_c + l_Gf
+
+readout_omega = lambda_quarter_omega(L_readout, phase_vel=phase_vel)
+
+L_purcell = l_Rn + l_c + l_Rf
+
+purcell_omega = lambda_quarter_omega(L_purcell, phase_vel=phase_vel)
+
+print('readout_omega:', readout_omega / (2*np.pi*1e9))
+print('purcell_omega:', purcell_omega / (2*np.pi*1e9))
+
+# omega = 8 * 2*np.pi*1e9
+#C = 100 * 1e-15
 
 # L = 1/(C*omega**2)
 
@@ -53,9 +68,9 @@ test_notch_freq = find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, C
 
 test_notch_freq_analytic = find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65)
 
-notch_freq_agreement_percent = 100*(test_notch_freq_analytic - test_notch_freq )/ test_notch_freq
+# notch_freq_agreement_percent = 100*(test_notch_freq_analytic - test_notch_freq )/ test_notch_freq
 
-print('notch_freq_agreement_percent:', notch_freq_agreement_percent)
+# print('notch_freq_agreement_percent:', notch_freq_agreement_percent)
 
 # testing LE coupling between TLs
 # Cc = 250*1e-15
@@ -92,20 +107,20 @@ print('notch_freq_agreement_percent:', notch_freq_agreement_percent)
 # plt.show()
 # print('test_Zvals:', test_Zvals)
 
-#sys.exit()
+# #sys.exit()
 
 test_omega_1 = lambda_quarter_omega(l_c + l_Gf + l_Gn, phase_vel=3*10**8/2.5)
 
 test_omega_2 = lambda_quarter_omega(l_c + l_Rf + l_Rn, phase_vel=3*10**8/2.5)
 
-test_J_val = J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm)
+# test_J_val = J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm)
 
-print('test_notch_freq (GHz):', test_notch_freq/(2*np.pi*1e9))
+# print('test_notch_freq (GHz):', test_notch_freq/(2*np.pi*1e9))
 print('test_omega_1 (GHz):', test_omega_1/(2*np.pi*1e9))
 print('test_omega_2 (GHz):', test_omega_2/(2*np.pi*1e9))
-print('test_J_val (MHz):', test_J_val/(2*np.pi*1e6))
+# print('test_J_val (MHz):', test_J_val/(2*np.pi*1e6))
 
-omegas = np.arange(2, 10, 0.02) * 1e9 * 2*np.pi
+omegas = np.arange(7, 11, 0.02) * 1e9 * 2*np.pi
 
 test_Z_transfer_exact = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65)
 
@@ -125,7 +140,19 @@ plt.yscale('log')
 plt.legend(loc = 'lower right')
 plt.xlabel('Frequency (GHz)')
 plt.ylabel('Z transfer (Ohm)')
-plt.title('Z transfer function for different models')
+#plt.title('Z transfer function for different models')
+# Customize the border settings
+ax = plt.gca()
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['bottom'].set_linewidth(2.5)
+ax.spines['left'].set_linewidth(2.5)
+
+# Adjust tick thickness and label size
+ax.tick_params(axis='both', which='both', width=2.5)
+ax.tick_params(axis='both', labelsize=25)
+
+
 plt.show()
 
 #sys.exit()
@@ -133,8 +160,8 @@ plt.show()
 C_q = 50e-15
 
 ### param set 1: for high freq range
-C_g = 5e-15 #3.65e-15
-C_ext = 50.5e-15 #23.5e-15
+C_g = 5.5e-15 #3.65e-15
+C_ext = 24e-15
 
 ### param set 2: for low freq range
 # C_g = 6e-15
@@ -150,21 +177,39 @@ print('test_g_val (MHz):', test_g_val/(2*np.pi*1e6))
 print('test_J_val (MHz):', test_J_val/(2*np.pi*1e6))
 print('test_k_val (MHz):', test_k_val/(2*np.pi*1e6))
 
-omegas = np.arange(3, 7, 0.02) * 1e9 * 2*np.pi
+omegas = np.arange(6, 11, 0.02) * 1e9 * 2*np.pi
 
 test_T1_radiative_exact = qubit_radiative_decay_sym_3_lines_exact(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
 test_T1_radiative_equivalent_LE_circuit = qubit_radiative_decay_equivalent_LE_circuit(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
 test_T1_radiative_equivalent_LE_circuit_without_notch = qubit_radiative_decay_equivalent_LE_circuit_without_notch(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
 test_T1_radiative_equivalent_LE_circuit_single_resonator = qubit_radiative_decay_equivalent_LE_circuit_single_resonator(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
 
-plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_exact * 1e3, color = 'k', label = 'Multi-conductor TL filter')
+plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_exact * 1e3, color = 'k', label = 'with intrinsic notch')
 #plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_equivalent_LE_circuit * 1e6, color = 'r', linestyle = '--')
-plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_equivalent_LE_circuit_without_notch * 1e3, color = 'r', linestyle = '--', label = 'Capacitive coupled filter')
+plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_equivalent_LE_circuit_without_notch * 1e3, color = 'r', linestyle = '--', label = 'without intrinsic notch')
 # plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_equivalent_LE_circuit_single_resonator * 1e3, color = 'b', linestyle = '--', label = 'equiv. single resonator circuit')
 
 plt.yscale('log')
-plt.xlabel('Frequency (GHz)')
-plt.ylabel(r'$T_1$ (ms)')
+plt.xlabel('Frequency (GHz)', size = 20)
+plt.ylabel(r'Purcell decay $T_1$ limit', size = 20)
 plt.legend()
-plt.title('Radiative T1 limit through detector line')
+#plt.title('Radiative T1 limit through detector line')
+
+ax = plt.gca()
+
+ax.tick_params(axis='both', which='major', labelsize=15)
+
+ax.set_yticks([1e-6,1e-3,1,1e3]) 
+ax.set_yticklabels(['1 ns','1 us','1 ms', '1 s'])
+ax.set_ylim([0.5e-6, 5e3])
+
+# plt.yticks([1e-5,1e-4,1e-2,1e-1,1e1, 1e2],
+#            ['',"", "", "", '', ''], minor=True)
+
+for axis in ['top','bottom','left','right']:
+    ax.spines[axis].set_linewidth(2)
+
+ax.tick_params(width=3)
+plt.tight_layout()
+
 plt.show()

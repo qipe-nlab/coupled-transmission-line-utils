@@ -7,32 +7,42 @@ from exact_coupled_transmission_line_eqn_solver import *
 phase_vel = 3*10**8/2.5
 Z0 = 65
 
-Lm = 1.31e-9*1e1*1.8
-Cm = 5e-15*1e3*1.8
-l_Rf = 1.2e-3
-l_Rn = 1.2e-3
-l_Gf = 1.2e-3
-l_Gn = 1.2e-3
+# Lm = 1.31e-9*1e1*1.8
+# Cm = 5e-15*1e3*1.8
+# l_Rf = 1.2e-3
+# l_Rn = 1.2e-3
+# l_Gf = 1.2e-3
+# l_Gn = 1.2e-3
+# l_c = 0.5e-3
+
+## param high v2
+
+Lm = 1.31e-9*1e1*2.2 
+Cm = 5e-15*1e3*2.2
+l_Rf = 0.99e-3 
+l_Rn = 1.5e-3
+l_Gf = 1.54e-3
+l_Gn = 0.95e-3 
 l_c = 0.5e-3
 
 omega = 8 * 2*np.pi*1e9
 C = 100 * 1e-15
 
-# L = 1/(C*omega**2)
+L = 1/(C*omega**2)
 
-# print('L:', L)
+print('L:', L)
 
-# L = 10 * 1e-9
+L = 10 * 1e-9
 
-# C = 1/(L*omega**2)
+C = 1/(L*omega**2)
 
-# print('C:', C)
+print('C:', C)
 
 ### param set 2: for low freq range
 
 # scale_fac = 1.6
 
-# Lm = 1.31e-9*1e1*2.2
+# Lm = 1.31e-9*1e1*2.2 
 # Cm = 5e-15*1e3*2.2
 # l_Rf = 1.15e-3 * scale_fac
 # l_Rn = 1.45e-3 * scale_fac
@@ -51,7 +61,7 @@ print('l_c:', l_c)
 
 test_notch_freq = find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65)
 
-test_notch_freq_analytic = find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65)
+test_notch_freq_analytic = find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65, min_search=3*2*np.pi*10**9, max_search=14*2*np.pi*10**9, search_spacing=(0.5*2*np.pi*10**6))
 
 notch_freq_agreement_percent = 100*(test_notch_freq_analytic - test_notch_freq )/ test_notch_freq
 
@@ -100,12 +110,12 @@ test_omega_2 = lambda_quarter_omega(l_c + l_Rf + l_Rn, phase_vel=3*10**8/2.5)
 
 test_J_val = J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm)
 
-print('test_notch_freq (GHz):', test_notch_freq/(2*np.pi*1e9))
+#print('test_notch_freq (GHz):', test_notch_freq/(2*np.pi*1e9))
 print('test_omega_1 (GHz):', test_omega_1/(2*np.pi*1e9))
 print('test_omega_2 (GHz):', test_omega_2/(2*np.pi*1e9))
 print('test_J_val (MHz):', test_J_val/(2*np.pi*1e6))
 
-omegas = np.arange(2, 10, 0.02) * 1e9 * 2*np.pi
+omegas = np.arange(6, 12, 0.02) * 1e9 * 2*np.pi
 
 test_Z_transfer_exact = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65)
 
@@ -117,15 +127,29 @@ test_Z_equiv_LE_circuit = Z_transfer_equivalent_LE_circuit(l_c, l_Gf, l_Gn, l_Rf
 # print('test_Z_transfer_weak_coupling:', test_Z_transfer_weak_coupling[:10])
 # print('test_Z_transfer_equiv_LE_circuit:', test_Z_equiv_LE_circuit[:10])
 
-plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_exact), color = 'k', label = 'Multi-conductor TL filter')
+import matplotlib as mpl
+
+mpl.rcParams['axes.linewidth'] = 2
+
+fig = plt.figure(figsize = (7,6))
+
+plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_exact), color = 'k', label = 'Multi-conductor TL circuit', linewidth = 2)
 #plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_weak_coupling), color = 'r', linestyle = '--', label = 'Z transfer weak coupling model')
-plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit), color = 'r', linestyle = '-.', label = 'Capacitive-inductive coupled filter')
-plt.vlines(test_notch_freq_analytic/(2*np.pi*1e9), 0.01, 10, color = 'b', linestyle = '--')
+plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit), color = 'r', linestyle = '--', label = 'Equivalent circuit', linewidth = 2)
+plt.vlines(test_notch_freq_analytic/(2*np.pi*1e9), 0.01, 10, color = 'b', linestyle = '-.', linewidth = 2.5, label = 'Analytic notch prediction')
 plt.yscale('log')
-plt.legend(loc = 'lower right')
-plt.xlabel('Frequency (GHz)')
-plt.ylabel('Z transfer (Ohm)')
-plt.title('Z transfer function for different models')
+plt.xticks(size = 20)
+#plt.yticks([0.01, 0.1, 1, 10, 100, 1e3, 1e4, 1e5],['', r'$10^{-1}$', '', r'$10^{0}$', '', r'$10^{3}$', '', r'$10^{5}$'],size = 20)
+plt.yticks(size = 20)
+plt.legend(loc = 'lower right', fontsize = 13)
+plt.xlabel('Frequency (GHz)', size = 20)
+plt.ylabel(r'Transfer impedance $Z_{21}$ ' + r'($\Omega $)', size = 20)
+#plt.title('Z transfer function for different models')
+ax = plt.gca()
+ax.tick_params(direction='out', width=3, length = 4)
+ax.tick_params(direction='out', which='minor', width=1.5, length = 3)
+plt.tight_layout()
+plt.savefig('Z_transfer_Munich.svg')
 plt.show()
 
 #sys.exit()
@@ -133,12 +157,12 @@ plt.show()
 C_q = 50e-15
 
 ### param set 1: for high freq range
-C_g = 5e-15 #3.65e-15
-C_ext = 50.5e-15 #23.5e-15
+# C_g = 5e-15 #3.65e-15
+# C_ext = 50.5e-15 #23.5e-15
 
 ### param set 2: for low freq range
-# C_g = 6e-15
-# C_ext = 52.5e-15
+C_g = 6e-15
+C_ext = 52.5e-15
 
 omega_q = test_notch_freq 
 

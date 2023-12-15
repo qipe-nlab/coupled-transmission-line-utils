@@ -45,7 +45,6 @@ def plot_transmission(l_Rf, l_Rn, l_Gf, l_Gn, l_c, d, Cs, notch_target):
     plt.grid()
     plt.show()
 
-    
 
 def solve_for_r_r(target, x0, Cs, calibration_len=250e-6):
     """

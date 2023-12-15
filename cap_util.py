@@ -5,8 +5,6 @@ import matplotlib.pyplot as plt
 import numpy.linalg as lin
 import scipy.interpolate as interpol
 
-
-
 ######
 # Cq #
 ######
@@ -28,8 +26,6 @@ def generate_Cq(filename):
 def get_Cq(d):
     f = interpol.interp1d(Cq_mat[:,0]/1e6, Cq_mat[:,1]/1e15, "quadratic", fill_value="extrapolate")
     return f(d)
-
-
 
 ######
 # Cg #
@@ -108,6 +104,15 @@ def get_Lm(d):
     f = interpol.interp1d(Lm_mat[:,0]/1e6, Lm_mat[:,1], "quadratic")
     return f(d)
 
+def get_Zm(d):
+
+    Lm_val = get_Lm(d)
+    Cm_val = get_Cm(d)
+
+    Zm_val = np.sqrt(Lm_val/Cm_val)
+
+    return Zm_val 
+
 ######
 # Ck #
 ######
@@ -126,7 +131,6 @@ def generate_Ck(filename):
 
     return Ck_mat
 
-
 def get_Ck(d):
     f = interpol.interp1d(Ck_mat[:,0], Ck_mat[:,1]/1e15, "linear", fill_value="extrapolate")
     return f(d)
@@ -141,14 +145,13 @@ def get_Ck(d):
 ##################
 
 
-Cq_file = "C:\\Users\\mluka\\work\\dimensioning_algo\\cap_files\\cq_140-185.csv"
-Cg_file = "C:\\Users\\mluka\\work\\dimensioning_algo\\cap_files\\cg_q-r-160_5-50.csv"
+Cq_file = ".\\cap_files\\cq_140-185.csv"
+Cg_file = ".\\cap_files\\cg_q-r-160_5-50.csv"
 
-Cm_file = "C:\\Users\\mluka\\work\\dimensioning_algo\\cap_files\\capacitance_d-1-50-100_l-1000.csv"
-Lm_file = "C:\\Users\\mluka\\work\\dimensioning_algo\\cap_files\\mcapacitance_d-1-50-100_l-1000.csv"
+Cm_file = ".\\cap_files\\capacitance_d-1-50-100_l-1000.csv"
+Lm_file = ".\\cap_files\\mcapacitance_d-1-50-100_l-1000.csv"
 
-Ck_file = "C:\\Users\\mluka\\work\\dimensioning_algo\\cap_files\\ck_rd-20_5-75.csv"
-
+Ck_file = ".\\cap_files\\ck_rd-20_5-75.csv"
 
 Cg_mat = generate_Cg(Cg_file)
 Cq_mat = generate_Cq(Cq_file)
@@ -157,9 +160,6 @@ Cm_mat = generate_Cm(Cm_file)
 Lm_mat = generate_Lm(Lm_file)
 
 Ck_mat = generate_Ck(Ck_file)
-
-
-
 
 
 """

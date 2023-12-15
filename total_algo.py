@@ -7,7 +7,6 @@ sys.path.append('./r_l')
 sys.path.append('./r_r')
 sys.path.append('./q_r')
 
-
 import common_formulas as cf
 
 import r_l_algo as r_l
@@ -23,8 +22,9 @@ def solve_all(f_r1, f_r2, f_notch, J, f_q, g, kappa, show=0):
     #
     # r_l
     #
+
     RL = 34
-    r_l_x0 = [70, 2813e-6] # [Ck angle, len_r2]  
+    r_l_x0 = [70, 2813e-6] # [Ck angle, len_r2]
     r_l_target = [kappa, f_r2]
     
     sol1 = r_l.solve_for_r_l(r_l_target, r_l_x0, RL, show=1)
@@ -44,7 +44,6 @@ def solve_all(f_r1, f_r2, f_notch, J, f_q, g, kappa, show=0):
     r_r_x0 = [1300e-6, 300e-6, 1300e-6, 15e-6] # [l_Gn, l_Gf, l_c, l_Rn, l_Rf, d]
     calibration_len=400e-6
     r_r_target = [cf.lambda_by_4_Ltot(f_r1), len_r2, f_notch, J]
-    
     
     l_Gn, l_Gf, l_c, l_Rn, l_Rf, d = r_r.solve_for_r_r(r_r_target, r_r_x0, Cs)
 
@@ -115,17 +114,28 @@ def solve_all(f_r1, f_r2, f_notch, J, f_q, g, kappa, show=0):
         
     return [Ck_angle, l_Gn, l_Gf, l_c, l_Rn, l_Rf, d, R_q, Cc_deformation]
 
+# Luka example parameters
 
-f_r1 = 6e9
+# f_r1 = 6e9
+# f_r2 = f_r1
+# f_notch = 4e9
+# J = 30e6 *2*np.pi
+
+# f_q = f_notch
+# g = 345e6 *2*np.pi
+
+# kappa = 100e6 *2*np.pi
+
+# new params
+
+f_r1 = 10e9
 f_r2 = f_r1
-f_notch = 4e9
-J = 30e6 *2*np.pi
-
+f_notch = 8e9
+J = 5e6 *2*np.pi
 
 f_q = f_notch
-g = 345e6 *2*np.pi
+g = 100e6 *2*np.pi
 
-kappa = 100e6 *2*np.pi
+kappa = 10e6 *2*np.pi
 
-
-solve_all(f_r1, f_r2, f_notch, J, f_q, g, kappa,show=1)
+solve_all(f_r1, f_r2, f_notch, J, f_q, g, kappa, show=1)
