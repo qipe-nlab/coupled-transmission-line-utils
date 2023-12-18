@@ -1109,9 +1109,6 @@ def Z_transfer_differential_test5(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f, 
 
 def Z_transfer_differential_test6(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f, phase_vel=3*10**8/2.5, Z0=65, delta_omega = 15 * 2*np.pi):
     
-    Lm_tot = Lm * l_c
-    Cm_tot = Cm * l_c
-
     #### testing using exact expressions:
     C_tl, L_tl = transmission_line_C_and_L(phase_vel, Z0)
     phase_vel_c = omega_r(C_tl + Cm, L_tl)
@@ -1121,13 +1118,6 @@ def Z_transfer_differential_test6(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f, 
 
     L_G = l_Gn + l_c + l_Gf
     L_R = l_Rf + l_Rn + l_c
-
-    ## tau = L/phase_vel
-
-    tau_Rn = l_Rn/phase_vel
-    tau_Rf = l_Rf/phase_vel
-    tau_Gf = l_Gf/phase_vel
-    tau_Gn = l_Gn/phase_vel
 
     # print('test_lenR:', l_Rf + l_Rn + l_c)
     # print('test_lenG:', l_Gf + l_Gn + l_c)
@@ -1575,21 +1565,6 @@ def k_readout(C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_
 
     return val
 
-def J_coupling_guess(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
-
-    ## Scaled dimensional guess. Sort of works.
-
-    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
-    
-    #J = lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg)
-
-    omega_r = 1/np.sqrt(L1 * C1)
-    omega_n = 1/np.sqrt(Lg * Cg)
-
-    J_test = 250 * np.pi/8 * omega_r * (omega_r - omega_n)*(omega_r/omega_n - omega_n/omega_r)**2 * l_c *np.sqrt(Lm_per_len * Cm_per_len)
-
-    return J_test
-
 def J_coupling_testing(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
 
     ## Scaled dimensional guess. Sort of works.
@@ -1606,6 +1581,8 @@ def J_coupling_testing(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phas
     print('Z_transfer_differential_exact_val:', Z_transfer_differential_val)
 
     J_test = 1j * np.pi/8 * omega_r * (omega_r - omega_n) * (omega_r/omega_n - omega_n/omega_r)**2 * Z_transfer_differential_val / Z0
+
+    #J_test = 1j * np.pi/8 * omega_r * omega_n * (omega_r/omega_n - omega_n/omega_r)**2 * Z_transfer_differential_val / Z0
 
     return J_test
 
@@ -1627,10 +1604,6 @@ def J_coupling_testing2(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, pha
     return J_test
 
 def J_coupling_testing3(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
-
-    ## Scaled dimensional guess. Sort of works.
-
-    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
     
     #J = lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg)
 
@@ -1650,11 +1623,14 @@ def J_coupling_testing3(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, pha
 
     #print('Z_transfer_differential_test_val:', Z_transfer_differential_val)
 
-
     #omega_r = 1/np.sqrt(L1 * C1)
     #omega_n = 1/np.sqrt(Lg * Cg)
 
-    J_test = np.pi **2 /16 * omega_r * (omega_r/omega_n - 1) * (omega_r/omega_n - omega_n/omega_r)**2 * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r))**2)
+    print('(omega_r/omega_n - 1):', (omega_r/omega_n - 1))
+
+    #J_test = np.pi **2 /16 * omega_r * (omega_r/omega_n - 1) * (omega_r/omega_n - omega_n/omega_r)**2 * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r))**2)
+
+    J_test = np.pi **2 /16 * omega_r *(omega_r/omega_n - omega_n/omega_r)**3 / (3-2*(omega_n/omega_r)**2) * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r))**2)
 
     return J_test
 

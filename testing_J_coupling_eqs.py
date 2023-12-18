@@ -61,11 +61,11 @@ Ll = default_Z0/default_phase_vel
 Cm_per_len = cap.get_Cm(15e-6)
 Lm_per_len = cap.get_Lm(15e-6)
 
-l_Rf = 1.15e-3
-l_Rn = 1.45e-3
-l_Gf = 1.7e-3
-l_Gn = 0.925e-3
-l_c = 0.325e-3 * 1
+l_Rf = 1.45e-3
+l_Rn = 1.05e-3
+l_Gf = 1.9e-3
+l_Gn = 0.525e-3
+l_c = 0.45e-3 * 1
 
 # phase_vel_c = 1/(np.sqrt(Ll*(Cl + Cm_per_len)))
 
@@ -88,7 +88,7 @@ print('d_vals', d_vals)
 # plt.plot(d_vals, J_vals_test/(2*np.pi * 1e6))
 # plt.show()
 
-l_c_vals = np.linspace(100, 500, 10) * 1e-6
+l_c_vals = np.linspace(20, 600, 15) * 1e-6
 
 # notch_vals = np.array([find_notch_filter_frequency_analytic(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, Z0 = Z0, search_span = 3 * 2*np.pi*1e9, search_spacing=(10*2*np.pi*10**6))  for l_c_val in l_c_vals]) 
 
@@ -129,20 +129,20 @@ print('Z_diff5:', Z_diff5)
 print('Z_diff6:', Z_diff6)
 print('Z_diff7:', Z_diff7)
 
-J_vals_test = np.array([J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(d_val), cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0) for d_val in d_vals])
+#J_vals_test = np.array([J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(d_val), cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0) for d_val in d_vals])
 #J_vals_test1 = np.array([J_coupling_testing2(l_c, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(d_val), cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0) for d_val in d_vals])
-J_vals_test1 = np.array([J_coupling_testing(l_c, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(d_val), cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0) for d_val in d_vals])
+#J_vals_test1 = np.array([J_coupling_testing(l_c, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(d_val), cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0) for d_val in d_vals])
 J_vals_test2 = np.array([J_coupling_testing3(l_c, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(d_val), cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0) for d_val in d_vals])
 
 # J_vals_test2 = np.array([J_coupling_testing2(l_c*1.5, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(d_val), cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0) for d_val in d_vals])
 
-print('J_vals_test:', J_vals_test)
-print('J_vals_test1:', J_vals_test1)
+#print('J_vals_test:', J_vals_test)
+#print('J_vals_test1:', J_vals_test1)
 print('J_vals_test2:', J_vals_test2)
 #sys.exit()
 
-plt.plot(d_vals * 1e6, J_vals_test/(2*np.pi * 1e6), color = 'r')
-plt.plot(d_vals * 1e6, J_vals_test1/(2*np.pi * 1e6), color = 'b')
+#plt.plot(d_vals * 1e6, J_vals_test/(2*np.pi * 1e6), color = 'r')
+#plt.plot(d_vals * 1e6, J_vals_test1/(2*np.pi * 1e6), color = 'b')
 plt.plot(d_vals * 1e6, J_vals_test2/(2*np.pi * 1e6), color = 'g')
 
 #plt.plot(l_c_vals, J_vals_test2/(2*np.pi * 1e6))
@@ -150,12 +150,12 @@ plt.plot(d_vals * 1e6, J_vals_test2/(2*np.pi * 1e6), color = 'g')
 plt.show()
 #sys.exit()
 
-J_vals_test = np.array([J_coupling(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(10e-6), cap.get_Cm(10e-6), phase_vel=phase_vel, Z0=Z0) for l_c_val in l_c_vals])
-J_vals_test1 = np.array([J_coupling_testing2(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(10e-6), cap.get_Cm(10e-6), phase_vel=phase_vel, Z0=Z0) for l_c_val in l_c_vals])
+#J_vals_test = np.array([J_coupling(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(10e-6), cap.get_Cm(10e-6), phase_vel=phase_vel, Z0=Z0) for l_c_val in l_c_vals])
+#J_vals_test1 = np.array([J_coupling_testing(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(10e-6), cap.get_Cm(10e-6), phase_vel=phase_vel, Z0=Z0) for l_c_val in l_c_vals])
 J_vals_test2 = np.array([J_coupling_testing3(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(10e-6), cap.get_Cm(10e-6), phase_vel=phase_vel, Z0=Z0) for l_c_val in l_c_vals])
 
-plt.plot(l_c_vals, J_vals_test/(2*np.pi * 1e6))
-plt.plot(l_c_vals, J_vals_test1/(2*np.pi * 1e6))
+#plt.plot(l_c_vals, J_vals_test/(2*np.pi * 1e6), color = 'r')
+#plt.plot(l_c_vals, J_vals_test1/(2*np.pi * 1e6), color = 'b')
 plt.plot(l_c_vals, J_vals_test2/(2*np.pi * 1e6), color = 'g')
 plt.show()
 
