@@ -140,10 +140,10 @@ print('d_vals', d_vals)
 
 l_c_vals = np.linspace(100, 500, 10) * 1e-6
 
-notch_vals = np.array([find_notch_filter_frequency_analytic(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, Z0 = Z0, search_span = 3 * 2*np.pi*1e9, search_spacing=(10*2*np.pi*10**6))  for l_c_val in l_c_vals]) 
+# notch_vals = np.array([find_notch_filter_frequency_analytic(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, Z0 = Z0, search_span = 3 * 2*np.pi*1e9, search_spacing=(10*2*np.pi*10**6))  for l_c_val in l_c_vals]) 
 
-plt.plot(l_c_vals, notch_vals/(2*np.pi * 1e9))
-plt.show()
+# plt.plot(l_c_vals, notch_vals/(2*np.pi * 1e9))
+# plt.show()
 
 J_vals_test = np.array([J_coupling(l_c*1.5, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(d_val), cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0) for d_val in d_vals])
 

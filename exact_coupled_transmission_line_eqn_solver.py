@@ -412,7 +412,8 @@ def voltage_transmission_coupled_lines_debug(phase_vel, Z0, l_c, l_Gf, l_Gn, l_R
     tau_G = l_G / phase_vel
     tau_Gn = l_Gn / phase_vel
 
-    Z_Gn = 0 # 1j * Z0 * (np.tan(tau_G*omega)*np.cos(tau_Gn*omega) - np.sin(tau_Gn*omega))  / (np.tan(tau_G*omega)*np.sin(tau_Gn*omega) + np.cos(tau_Gn*omega)) 
+    ## test changes
+    Z_Gn = 0 # 0 # 1j * Z0 * (np.tan(tau_G*omega)*np.cos(tau_Gn*omega) - np.sin(tau_Gn*omega))  / (np.tan(tau_G*omega)*np.sin(tau_Gn*omega) + np.cos(tau_Gn*omega)) 
 
     gamma_Rn = reflection_ceofficient(Z_Rn, Z0)
 
@@ -466,7 +467,8 @@ def voltage_transmission_coupled_lines(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_R
     tau_G = l_G / phase_vel
     tau_Gn = l_Gn / phase_vel
 
-    Z_Gn = 0 # 1j * Z0 * (np.tan(tau_G*omega)*np.cos(tau_Gn*omega) - np.sin(tau_Gn*omega))  / (np.tan(tau_G*omega)*np.sin(tau_Gn*omega) + np.cos(tau_Gn*omega)) 
+    # test changes
+    Z_Gn = 0 #0 # 1j * Z0 * (np.tan(tau_G*omega)*np.cos(tau_Gn*omega) - np.sin(tau_Gn*omega))  / (np.tan(tau_G*omega)*np.sin(tau_Gn*omega) + np.cos(tau_Gn*omega)) 
 
     gamma_Rn = reflection_ceofficient(Z_Rn, Z0)
 
@@ -687,8 +689,8 @@ def lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg):
     omega_1 = omega_r(C1, L1)
     omega_2 = omega_r(C2, L2)
 
-    Z21_omega_1 = lumped_model_Z_transmission(omega_1, C1, 1, C2, 1, Cg, Lg)
-    Z21_omega_1 = lumped_model_Z_transmission(omega_2, C1, 1, C2, 1, Cg, Lg)
+    Z21_omega_1 = lumped_model_Z_transmission(omega_1, C1, 1e3, C2, 1e3, Cg, Lg)
+    Z21_omega_1 = lumped_model_Z_transmission(omega_2, C1, 1e3, C2, 1e3, Cg, Lg)
 
     val = -0.25*(omega_1**3*omega_2**3*C1*C2)**0.5*(np.imag(Z21_omega_1)/omega_1 + np.imag(Z21_omega_1)/omega_2)
 
@@ -740,6 +742,407 @@ def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3
 
     return val
 
+def Z_transfer_differential(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f, phase_vel=3*10**8/2.5, Z0=65, delta_omega = 15 * 2*np.pi):
+
+    # delta_omega is 15 Hz by default
+
+    Z_transfer_plus = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f + delta_omega/2, phase_vel=phase_vel, Z0=Z0)
+    Z_transfer_minus = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f - delta_omega/2, phase_vel=phase_vel, Z0=Z0)
+
+    grad_Ztransfer = (Z_transfer_plus - Z_transfer_minus)/(delta_omega)
+
+    grad_Ztransfer = grad_Ztransfer[0]
+
+    return grad_Ztransfer
+
+def Z_transfer_differential_test(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f, phase_vel=3*10**8/2.5, Z0=65, delta_omega = 15 * 2*np.pi):
+
+    ## differentiate using the weak coupling assumption
+
+    # delta_omega is 15 Hz by default
+
+    # Z_transfer_plus = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f + delta_omega/2, phase_vel=phase_vel, Z0=Z0)
+    # Z_transfer_minus = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f - delta_omega/2, phase_vel=phase_vel, Z0=Z0)
+
+    #####
+    # def Z_transfer_weak_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega, phase_vel=3*10**8/2.5, Z0=65):
+
+    L_G = l_Gn + l_c + l_Gf
+
+    I_dummy_in = 1
+
+    # L_G = l_c + l_Gf
+
+    ## approximate solution
+    Z_trans_along_shorted_tr_val = Z_trans_along_shorted_tl(Z0, phase_vel, L_G, l_Gn, omega_f)
+
+    ## more accurate solution
+    #Z_trans_along_shorted_tr_val = voltage_at_source_location(Z0, phase_vel, Cm, l_c, l_Gf, l_Gn, omega_f) / I_dummy_in
+
+    voltage_transmission_coupled_lines_plus = voltage_transmission_coupled_lines(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f + delta_omega/2)
+    voltage_transmission_coupled_lines_minus = voltage_transmission_coupled_lines(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f - delta_omega/2)
+
+    tau_Rn = l_Rn/phase_vel
+
+    Rn_tl_voltage_scale_factor = 1/np.cos(tau_Rn*omega_f)
+
+    grad_voltage_transmission_coupled_lines = (voltage_transmission_coupled_lines_plus - voltage_transmission_coupled_lines_minus)/(delta_omega)
+
+    #grad_voltage_transmission_coupled_lines = grad_voltage_transmission_coupled_lines[0]
+
+    val = Z_trans_along_shorted_tr_val * Rn_tl_voltage_scale_factor * grad_voltage_transmission_coupled_lines
+
+    return val
+
+def Z_transfer_differential_test2(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f, phase_vel=3*10**8/2.5, Z0=65, delta_omega = 15 * 2*np.pi):
+
+    ## testing - no clear conclusions
+
+    def seperated_terms(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega, phase_vel=phase_vel, Z0=Z0):
+
+        Lm_tot = Lm * l_c
+        Cm_tot = Cm * l_c
+
+        #### testing using exact expressions:
+        C_tl, L_tl = transmission_line_C_and_L(phase_vel, Z0)
+        Z0_c = Zchar(C_tl + Cm, L_tl)
+        phase_vel_c = omega_r(C_tl + Cm, L_tl)
+
+        k_plus = Lm_tot/Z0_c + Cm_tot*Z0_c
+
+        k_minus = Lm_tot/Z0_c - Cm_tot*Z0_c
+
+        tau_c = l_c / phase_vel_c
+
+        Z_Rn = Z_open_tl(Z0, phase_vel, l_Rn, omega)
+        Z_Rf = Z_short_tl(Z0, phase_vel, l_Rf, omega)
+        Z_Gf = Z_short_tl(Z0, phase_vel, l_Gf, omega)
+
+        l_G = l_c +l_Gf + l_Gn
+
+        tau_G = l_G / phase_vel
+        tau_Gn = l_Gn / phase_vel
+
+        # test changes
+        Z_Gn = 0#0 # 1j * Z0 * (np.tan(tau_G*omega)*np.cos(tau_Gn*omega) - np.sin(tau_Gn*omega))  / (np.tan(tau_G*omega)*np.sin(tau_Gn*omega) + np.cos(tau_Gn*omega)) 
+
+        gamma_Rn = reflection_ceofficient(Z_Rn, Z0)
+
+        gamma_Rf = reflection_ceofficient(Z_Rf, Z0)
+
+        gamma_Gn = reflection_ceofficient(Z_Gn, Z0)
+
+        gamma_Gf = reflection_ceofficient(Z_Gf, Z0)
+
+        K_plus_term =  k_plus/(2*tau_c) * (1-np.exp(-1j*omega*2*tau_c)) + gamma_Gf * k_plus/(2*tau_c) * (1-np.exp(-1j*omega*2*tau_c)) * np.exp(-1j*omega*tau_c) * gamma_Rf * np.exp(-1j*(omega)*tau_c)
+        
+        K_minus_term = k_minus * gamma_Gf * np.exp(-1j*omega*2*tau_c) * 1j*omega - k_minus * 1j*omega * np.exp(-1j*omega*tau_c) * gamma_Rf * np.exp(-1j*(omega)*tau_c)
+
+        K_plus_term_1 =  k_plus/(2*tau_c) * (1-np.exp(-1j*omega*2*tau_c))
+        K_plus_term_2 = gamma_Gf * k_plus/(2*tau_c) * (1-np.exp(-1j*omega*2*tau_c)) * np.exp(-1j*omega*tau_c) * gamma_Rf * np.exp(-1j*(omega)*tau_c)
+
+        return K_plus_term, K_minus_term, K_plus_term_1, K_plus_term_2
+
+    plus_terms_K_plus, plus_terms_K_minus, plus_terms_K_plus_term_1, plus_terms_K_plus_term_2 = seperated_terms(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f + delta_omega/2, phase_vel=phase_vel, Z0=Z0)
+    minus_terms_K_plus, minus_terms_K_minus, minus_terms_K_plus_term_1, minus_terms_K_plus_term_2 = seperated_terms(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f - delta_omega/2, phase_vel=phase_vel, Z0=Z0)
+
+    grad_K_plus = plus_terms_K_plus - minus_terms_K_plus
+    grad_K_minus = plus_terms_K_minus - minus_terms_K_minus
+    grad_K_plus_term1 =  plus_terms_K_plus_term_1 - minus_terms_K_plus_term_1
+    grad_K_plus_term2 = plus_terms_K_plus_term_2 - minus_terms_K_plus_term_2
+    
+    def grad_guess(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega, phase_vel=phase_vel, Z0=Z0):
+
+        Lm_tot = Lm * l_c
+        Cm_tot = Cm * l_c
+
+        #### testing using exact expressions:
+        C_tl, L_tl = transmission_line_C_and_L(phase_vel, Z0)
+        Z0_c = Zchar(C_tl + Cm, L_tl)
+        phase_vel_c = omega_r(C_tl + Cm, L_tl)
+
+        k_plus = Lm_tot/Z0_c + Cm_tot*Z0_c
+
+        k_minus = Lm_tot/Z0_c - Cm_tot*Z0_c
+
+        tau_c = l_c / phase_vel_c
+
+        tau_G = l_Gf / phase_vel
+        tau_R = l_Rf / phase_vel
+
+        grad_plus_guess_val = 1j* k_plus / tau_c * ((tau_G + tau_R + tau_c) * (1 - np.exp(-2*1j*omega * tau_c)))
+
+        return grad_plus_guess_val
+
+    grad_plus_guess_val = grad_guess(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f, phase_vel=phase_vel, Z0=Z0)
+
+    # print('grad_K_plus:', grad_K_plus)
+    # print('grad_K_minus:', grad_K_minus)
+
+    # print('grad_K_plus:', grad_K_plus / (delta_omega))
+    # print('grad_plus_guess_val:', grad_plus_guess_val)
+
+    C_tl, L_tl = transmission_line_C_and_L(phase_vel, Z0)
+    Z0_c = Zchar(C_tl + Cm, L_tl)
+    phase_vel_c = omega_r(C_tl + Cm, L_tl)
+
+    L_G = l_Gn + l_c + l_Gf
+
+    Z_trans_along_shorted_tr_val = Z_trans_along_shorted_tl(Z0, phase_vel, L_G, l_Gn, omega_f)
+
+    tau_Rn = l_Rn/phase_vel
+    Rn_tl_voltage_scale_factor = 1/np.cos(tau_Rn*omega_f)
+
+    tau_c = l_c / phase_vel_c
+
+    Z_Rn = Z_open_tl(Z0, phase_vel, l_Rn, omega_f)
+    Z_Rf = Z_short_tl(Z0, phase_vel, l_Rf, omega_f)
+    Z_Gf = Z_short_tl(Z0, phase_vel, l_Gf, omega_f)
+
+    # test changes
+    Z_Gn = 0
+
+    gamma_Rn = reflection_ceofficient(Z_Rn, Z0)
+
+    gamma_Rf = reflection_ceofficient(Z_Rf, Z0)
+
+    gamma_Gn = reflection_ceofficient(Z_Gn, Z0)
+
+    gamma_Gf = reflection_ceofficient(Z_Gf, Z0)
+
+    F_G = F_val(gamma_Gn, gamma_Gf, tau_c, omega_f)
+
+    F_R = F_val(gamma_Rn, gamma_Rf, tau_c, omega_f)
+
+    val_grad = (Z_Rn/(Z_Rn + Z0_c)) * F_G * F_R * grad_plus_guess_val
+
+    val = Z_trans_along_shorted_tr_val * Rn_tl_voltage_scale_factor * val_grad
+
+    return val
+
+def Z_transfer_differential_test3(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f, phase_vel=3*10**8/2.5, Z0=65, delta_omega = 15 * 2*np.pi):
+    
+    def grad_simple_sol(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega, phase_vel=phase_vel, Z0=Z0):
+
+        Lm_tot = Lm * l_c
+        Cm_tot = Cm * l_c
+
+        #### testing using exact expressions:
+        C_tl, L_tl = transmission_line_C_and_L(phase_vel, Z0)
+        Z0_c = Zchar(C_tl + Cm, L_tl)
+        phase_vel_c = omega_r(C_tl + Cm, L_tl)
+
+        k_plus = Lm_tot/Z0_c + Cm_tot*Z0_c
+
+        k_minus = Lm_tot/Z0_c - Cm_tot*Z0_c
+
+        tau_c = l_c / phase_vel_c
+
+        tau_G = l_Gf / phase_vel
+        tau_R = l_Rf / phase_vel
+
+        grad_plus_guess_val = 1j* k_plus * np.pi / (2*omega*tau_c) *  (1 - np.exp(-2*1j*omega * tau_c))
+
+        return grad_plus_guess_val
+
+    grad_plus_guess_val = grad_simple_sol(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f, phase_vel=phase_vel, Z0=Z0)
+
+    C_tl, L_tl = transmission_line_C_and_L(phase_vel, Z0)
+    Z0_c = Zchar(C_tl + Cm, L_tl)
+    phase_vel_c = omega_r(C_tl + Cm, L_tl)
+
+    L_G = l_Gn + l_c + l_Gf
+
+    Z_trans_along_shorted_tr_val = Z_trans_along_shorted_tl(Z0, phase_vel, L_G, l_Gn, omega_f)
+
+    tau_Rn = l_Rn/phase_vel
+    tau_Rf = l_Rf/phase_vel
+    tau_Gf = l_Gf/phase_vel
+
+    Rn_tl_voltage_scale_factor = 1/np.cos(tau_Rn*omega_f)
+
+    tau_c = l_c / phase_vel_c
+
+    Z_Rn = Z_open_tl(Z0, phase_vel, l_Rn, omega_f)
+    Z_Rf = Z_short_tl(Z0, phase_vel, l_Rf, omega_f)
+    Z_Gf = Z_short_tl(Z0, phase_vel, l_Gf, omega_f)
+
+    Z_Gn = 0
+
+    gamma_Rn = reflection_ceofficient(Z_Rn, Z0)
+
+    #print('gamma_Rn:', gamma_Rn)
+    #print('gamma_Rn_test:', np.exp(-2*1j*omega_f*tau_Rn))
+
+    gamma_Rf = reflection_ceofficient(Z_Rf, Z0)
+
+    #print('gamma_Rf:', gamma_Rf)
+    #print('gamma_Rf_test:', -np.exp(-2*1j*omega_f*tau_Rf))
+
+    gamma_Gn = reflection_ceofficient(Z_Gn, Z0)
+
+    #print('gamma_Gn:', gamma_Gn)
+
+    gamma_Gf = reflection_ceofficient(Z_Gf, Z0)
+    
+    # print('gamma_Gf:', gamma_Gf)
+    # print('gamma_Gf_test:', -np.exp(-2*1j*omega_f*tau_Gf))
+
+    F_G = F_val(gamma_Gn, gamma_Gf, tau_c, omega_f)
+
+    F_R = F_val(gamma_Rn, gamma_Rf, tau_c, omega_f)
+
+    print('F_G:', F_G) 
+    print('F_G_expression:', 1/(1+np.exp(-1j*omega_f*2*(tau_c + tau_Gf)))) 
+
+    print('F_R:', F_R) 
+    print('F_R_expression:', 1/(1+np.exp(-1j*omega_f*2*(tau_c + tau_Rf + tau_Rn)))) 
+
+    omega_res = lambda_quarter_omega(l_Rf + l_Rn + l_c, phase_vel=phase_vel)
+
+    #F_R = 1/(1 + np.exp(-1j*(omega_f/omega_res)*np.pi))
+
+    val_grad = np.exp(-1j*tau_Rn * omega_f) * F_G * F_R * grad_plus_guess_val
+
+    print('np.exp(-1j*tau_Rn * omega_f) * F_G * F_R *  (1 - np.exp(-2*1j*omega * tau_c)):', np.exp(-1j*tau_Rn * omega_f) * (1 - np.exp(-2*1j*omega_f * tau_c)) * F_G * F_R)
+    
+    print('np.exp(-1j*tau_Rn * omega_f) * F_G * F_R *  (1 - np.exp(-2*1j*omega * tau_c))22:', np.exp(-1j*tau_Rn * omega_f) * (1 - np.exp(-2*1j*omega_f * tau_c)) * (1/(1-np.exp(-1j*omega_f*2*(tau_c + tau_Gf)))) *  (1/(1+np.exp(-1j*omega_f*2*(tau_c + tau_Rf + tau_Rn)))))
+
+    print('test_sol:', np.exp(1j*(tau_Rf + tau_Gf + tau_c ) * omega_f) * np.sin(omega_f * tau_c) * 1/(2*np.cos(omega_f*(tau_c + tau_Rf + tau_Rn))) * 1/np.sin(omega_f*(tau_c + tau_Gf)))
+
+    # print('Z_trans_along_shorted_tr_val:', Z_trans_along_shorted_tr_val)
+    # print('val_grad:', val_grad)
+
+    val = Z_trans_along_shorted_tr_val * val_grad
+
+    return val
+
+def Z_transfer_differential_test4(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f, phase_vel=3*10**8/2.5, Z0=65, delta_omega = 15 * 2*np.pi):
+    
+    Lm_tot = Lm * l_c
+    Cm_tot = Cm * l_c
+
+    #### testing using exact expressions:
+    C_tl, L_tl = transmission_line_C_and_L(phase_vel, Z0)
+    Z0_c = Zchar(C_tl + Cm, L_tl)
+    phase_vel_c = omega_r(C_tl + Cm, L_tl)
+
+    k_plus = Lm_tot/Z0_c + Cm_tot*Z0_c
+
+    tau_c = l_c / phase_vel_c
+    #tau_c = l_c / phase_vel
+
+    sol1 = 1j* k_plus * np.pi / (2*omega_f*tau_c)
+
+    L_G = l_Gn + l_c + l_Gf
+
+    Z_trans_along_shorted_tr_val = Z_trans_along_shorted_tl(Z0, phase_vel, L_G, l_Gn, omega_f)
+
+    ## tau = L/phase_vel
+
+    ### Z_trans_along_shorted_tr_val = 1j * Z0 * (np.tan(tau*omega)*np.cos(tau*z/L * omega) - np.sin(tau*z/L * omega)) 
+
+    tau_Rn = l_Rn/phase_vel
+    tau_Rf = l_Rf/phase_vel
+    tau_Gf = l_Gf/phase_vel
+
+    omega_res = lambda_quarter_omega(l_Rf + l_Rn + l_c, phase_vel=phase_vel)
+
+    sol2 = 1j * np.sin(omega_f * tau_c) * 1/(2*np.cos(omega_f*np.pi/(2*omega_res))) * 1/np.sin(omega_f*(tau_c + tau_Gf))
+
+    val = Z_trans_along_shorted_tr_val * sol1 * sol2
+
+    return val
+
+def Z_transfer_differential_test5(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f, phase_vel=3*10**8/2.5, Z0=65, delta_omega = 15 * 2*np.pi):
+    
+    Lm_tot = Lm * l_c
+    Cm_tot = Cm * l_c
+
+    #### testing using exact expressions:
+    C_tl, L_tl = transmission_line_C_and_L(phase_vel, Z0)
+    Z0_c = Zchar(C_tl + Cm, L_tl)
+    phase_vel_c = omega_r(C_tl + Cm, L_tl)
+
+    k_plus = Lm_tot/Z0_c + Cm_tot*Z0_c
+
+    tau_c = l_c / phase_vel_c
+    #tau_c = l_c / phase_vel
+
+    sol1 = 1j* k_plus * np.pi / (2*omega_f*tau_c)
+
+    L_G = l_Gn + l_c + l_Gf
+    L_R = l_Rf + l_Rn + l_c
+    Z_trans_along_shorted_tr_val = Z_trans_along_shorted_tl(Z0, phase_vel, L_G, l_Gn, omega_f)
+
+    ## tau = L/phase_vel
+
+    tau_Rn = l_Rn/phase_vel
+    tau_Rf = l_Rf/phase_vel
+    tau_Gf = l_Gf/phase_vel
+    tau_Gn = l_Gn/phase_vel
+
+    print('test_lenR:', l_Rf + l_Rn + l_c)
+    print('test_lenG:', l_Gf + l_Gn + l_c)
+
+    omega_res = lambda_quarter_omega(L_G, phase_vel=phase_vel)
+
+    sol0 = 1j * Z0 * (np.tan(omega_f*np.pi/(2*omega_res))*np.cos(tau_Gn * omega_f) - np.sin(tau_Gn * omega_f))
+
+    print('sol0:', sol0)
+    print('Z_trans_along_shorted_tr_val:', Z_trans_along_shorted_tr_val)
+
+    #omega_res2 = lambda_quarter_omega(L_R, phase_vel=phase_vel)
+    omega_res2 = omega_res
+
+    sol2 = 1j * np.sin(omega_f * tau_c) * 1/(2*np.cos(omega_f*np.pi/(2*omega_res2))) * 1/np.sin(omega_f*(tau_c + tau_Gf))
+
+    #val = sol0 * sol1 * sol2
+
+    #val = -1j * Z0 * (np.tan(omega_f*np.pi / (2*omega_res))*np.cos(tau_Gn * omega_f) - np.sin(tau_Gn * omega_f)) * k_plus * np.pi / (2*omega_f*tau_c) * np.sin(omega_f * tau_c) * 1/(2*np.cos(omega_f*np.pi/(2*omega_res))) * 1/np.sin(omega_f*(tau_c + tau_Gf))
+
+    #val = -1j * Z0 * k_plus * np.pi / (2*omega_f*tau_c) * (np.tan(omega_f*np.pi/(2*omega_res))*np.cos(tau_Gn * omega_f) - np.sin(tau_Gn * omega_f))* np.sin(omega_f * tau_c) * 1/(2*np.cos(omega_f*np.pi/(2*omega_res2))) * 1/np.sin(omega_f*(tau_c + tau_Gf))
+
+    val = -1j * Z0 **2 * phase_vel * Cm * np.pi / (2*omega_f) * (np.tan(omega_f*np.pi/(2*omega_res))*np.cos(tau_Gn * omega_f) - np.sin(tau_Gn * omega_f))* np.sin(omega_f * tau_c) * 1/(np.cos(omega_f*np.pi/(2*omega_res2))) * 1/np.sin(omega_f*(tau_c + tau_Gf))
+
+    return val
+
+def Z_transfer_differential_test6(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f, phase_vel=3*10**8/2.5, Z0=65, delta_omega = 15 * 2*np.pi):
+    
+    Lm_tot = Lm * l_c
+    Cm_tot = Cm * l_c
+
+    #### testing using exact expressions:
+    C_tl, L_tl = transmission_line_C_and_L(phase_vel, Z0)
+    phase_vel_c = omega_r(C_tl + Cm, L_tl)
+
+    tau_c = l_c / phase_vel_c
+    #tau_c = l_c / phase_vel
+
+    L_G = l_Gn + l_c + l_Gf
+    L_R = l_Rf + l_Rn + l_c
+
+    ## tau = L/phase_vel
+
+    tau_Rn = l_Rn/phase_vel
+    tau_Rf = l_Rf/phase_vel
+    tau_Gf = l_Gf/phase_vel
+    tau_Gn = l_Gn/phase_vel
+
+    # print('test_lenR:', l_Rf + l_Rn + l_c)
+    # print('test_lenG:', l_Gf + l_Gn + l_c)
+
+    omega_res = lambda_quarter_omega(L_G, phase_vel=phase_vel)
+
+    #omega_res2 = lambda_quarter_omega(L_R, phase_vel=phase_vel)
+    omega_res2 = omega_res
+
+    C_l = 1/(Z0 * phase_vel)
+
+    val = -1j * Z0 * (Cm/C_l) * np.pi / (2*omega_f) * np.sin(omega_f * tau_c) *  1/(np.cos(omega_f*np.pi/(2*omega_res2)))**2
+
+    return val
+
 def find_notch_filter_char_impedance(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f, phase_vel=3*10**8/2.5, Z0=65):
 
     cpw__length1 = l_c + l_Gf + l_Gn
@@ -751,14 +1154,11 @@ def find_notch_filter_char_impedance(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_
     Zres_1_omega_f = Zres(C1, L1, omega_f)
     Zres_2_omega_f = Zres(C2, L2, omega_f)
 
-    delta_omega = 10 * 2*np.pi # 10 Hz
+    grad_Ztransfer_val = Z_transfer_differential(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f, phase_vel=phase_vel, Z0=Z0)
 
-    Z_transfer_plus = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f + delta_omega/2, phase_vel=phase_vel, Z0=Z0)
-    Z_transfer_minus = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f - delta_omega/2, phase_vel=phase_vel, Z0=Z0)
+    print('grad_Ztransfer_val:', grad_Ztransfer_val)
 
-    grad_Ztransfer = (Z_transfer_plus - Z_transfer_minus)/(delta_omega)
-
-    val = np.real(1j*2*Zres_1_omega_f * Zres_2_omega_f / (omega_f * grad_Ztransfer))
+    val = np.real(1j*2*Zres_1_omega_f * Zres_2_omega_f / (omega_f * grad_Ztransfer_val))
 
     return val
 
@@ -1174,6 +1574,89 @@ def k_readout(C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_
     val = k_readout_from_ham(omega_1, omega_2, k_ext_val, J_val)
 
     return val
+
+def J_coupling_guess(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
+
+    ## Scaled dimensional guess. Sort of works.
+
+    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
+    
+    #J = lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg)
+
+    omega_r = 1/np.sqrt(L1 * C1)
+    omega_n = 1/np.sqrt(Lg * Cg)
+
+    J_test = 250 * np.pi/8 * omega_r * (omega_r - omega_n)*(omega_r/omega_n - omega_n/omega_r)**2 * l_c *np.sqrt(Lm_per_len * Cm_per_len)
+
+    return J_test
+
+def J_coupling_testing(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
+
+    ## Scaled dimensional guess. Sort of works.
+
+    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
+    
+    #J = lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg)
+
+    omega_r = 1/np.sqrt(L1 * C1)
+    omega_n = 1/np.sqrt(Lg * Cg)
+
+    Z_transfer_differential_val = Z_transfer_differential(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega_n, phase_vel=phase_vel, Z0=Z0, delta_omega = 15 * 2*np.pi)
+
+    print('Z_transfer_differential_exact_val:', Z_transfer_differential_val)
+
+    J_test = 1j * np.pi/8 * omega_r * (omega_r - omega_n) * (omega_r/omega_n - omega_n/omega_r)**2 * Z_transfer_differential_val / Z0
+
+    return J_test
+
+def J_coupling_testing2(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
+
+    ## Scaled dimensional guess. Sort of works.
+
+    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
+    
+    #J = lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg)
+
+    omega_r = 1/np.sqrt(L1 * C1)
+    omega_n = 1/np.sqrt(Lg * Cg)
+
+    Z_transfer_differential_val = Z_transfer_differential_test6(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega_n, phase_vel=3*10**8/2.5, Z0=65, delta_omega = 15 * 2*np.pi)
+
+    J_test =  1j *np.pi/8 * omega_r * (omega_r - omega_n) * (omega_r/omega_n - omega_n/omega_r)**2 * Z_transfer_differential_val / Z0
+
+    return J_test
+
+def J_coupling_testing3(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
+
+    ## Scaled dimensional guess. Sort of works.
+
+    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
+    
+    #J = lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg)
+
+    #omega_r = 1/np.sqrt(L1 * C1)
+
+    C_l = 1/(Z0 * phase_vel)
+
+    #omega_n = 1/np.sqrt(Cg * Lg)
+
+    #omega_r = 1/np.sqrt(L1 * C1)
+
+    L_G = l_c + l_Gf + l_Gn
+
+    omega_r = lambda_quarter_omega(L_G, phase_vel=phase_vel)
+
+    omega_n = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm_per_len, phase_vel=phase_vel, Z0=Z0)
+
+    #print('Z_transfer_differential_test_val:', Z_transfer_differential_val)
+
+
+    #omega_r = 1/np.sqrt(L1 * C1)
+    #omega_n = 1/np.sqrt(Lg * Cg)
+
+    J_test = np.pi **2 /16 * omega_r * (omega_r/omega_n - 1) * (omega_r/omega_n - omega_n/omega_r)**2 * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r))**2)
+
+    return J_test
 
 ######################
 ### User functions ###

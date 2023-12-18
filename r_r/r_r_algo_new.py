@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import scipy.optimize as opt
 
 import common_formulas as cf
-import r_r_formulas as r_r
+from exact_coupled_transmission_line_eqn_solver import *
 import cap_util as cap
 
 def plot_transmission(l_Rf, l_Rn, l_Gf, l_Gn, l_c, d, Cs, notch_target):
@@ -17,13 +17,13 @@ def plot_transmission(l_Rf, l_Rn, l_Gf, l_Gn, l_c, d, Cs, notch_target):
     Cm_per_len = cap.get_Cm(d)
     Lm_per_len = cap.get_Lm(d)
 
-    C1, L1, C2, L2, Cg, Lg = r_r.get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len)
-    Zs = r_r.lumped_model_transmission(C1, L1, C2, L2, Cg, Lg, omegas)
+    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len)
+    Zs = lumped_model_transmission(C1, L1, C2, L2, Cg, Lg, omegas)
     Zs = np.abs(Zs)
-    j_coupling = r_r.lumped_model_get_j(C1, L1, C2+Cs, L2, Cg, Lg)
+    j_coupling = lumped_model_get_j(C1, L1, C2+Cs, L2, Cg, Lg)
     
     # notches
-    notch_freq = r_r.find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len)
+    notch_freq = find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len)
 
     
     print(f'notch_f = {notch_freq/2/np.pi*1e-9:.2f} GHz')
@@ -78,7 +78,7 @@ def solve_for_r_r(target, x0, Cs, calibration_len=250e-6):
     d = x[3]
     Cm_per_len = cap.get_Cm(d)
     Lm_per_len = cap.get_Lm(d)
-    notch_f=r_r.find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len)/(2*np.pi)
+    notch_f=find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len)/(2*np.pi)
     
     while (iter<maxiter):
         l_Gn = target[0]-x[0]-x[1]+calibration_len
@@ -91,10 +91,10 @@ def solve_for_r_r(target, x0, Cs, calibration_len=250e-6):
         Cm_per_len = cap.get_Cm(d)
         Lm_per_len = cap.get_Lm(d)
 
-        notch_f = r_r.find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, min_search=notch_f*2*np.pi-3e9*2*np.pi, max_search=notch_f*2*np.pi+3e9*2*np.pi)/(2*np.pi)
+        notch_f = find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len)/(2*np.pi)
         
-        C1, L1, C2, L2, Cg, Lg = r_r.get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len)
-        j_coupling = r_r.lumped_model_get_j(C1, L1, C2+Cs, L2, Cg, Lg)
+        C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len)
+        j_coupling = lumped_model_get_j(C1, L1, C2+Cs, L2, Cg, Lg)
 
         fn_log.append(notch_f/1e9)
         J_log.append(j_coupling/np.pi/2/1e6)

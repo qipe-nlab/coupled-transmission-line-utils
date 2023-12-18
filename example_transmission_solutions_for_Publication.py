@@ -64,9 +64,11 @@ print('l_Gn:', l_Gn)
 print('l_c:', l_c)
 #sys.exit()
 
-test_notch_freq = find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65)
+test_notch_freq = find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=phase_vel, Z0=Z0)
 
-test_notch_freq_analytic = find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65)
+test_notch_freq_analytic = find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=phase_vel, Z0=Z0)
+
+test_notch_freq_rule_of_thumb = notch_filter_frequency_rule_of_thumb(l_c, l_Gf,l_Rf, Cm, phase_vel=phase_vel, Z0=Z0)
 
 # notch_freq_agreement_percent = 100*(test_notch_freq_analytic - test_notch_freq )/ test_notch_freq
 
@@ -109,9 +111,9 @@ test_notch_freq_analytic = find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn,
 
 # #sys.exit()
 
-test_omega_1 = lambda_quarter_omega(l_c + l_Gf + l_Gn, phase_vel=3*10**8/2.5)
+test_omega_1 = lambda_quarter_omega(l_c + l_Gf + l_Gn, phase_vel=phase_vel)
 
-test_omega_2 = lambda_quarter_omega(l_c + l_Rf + l_Rn, phase_vel=3*10**8/2.5)
+test_omega_2 = lambda_quarter_omega(l_c + l_Rf + l_Rn, phase_vel=phase_vel)
 
 # test_J_val = J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm)
 
@@ -120,38 +122,59 @@ print('test_omega_1 (GHz):', test_omega_1/(2*np.pi*1e9))
 print('test_omega_2 (GHz):', test_omega_2/(2*np.pi*1e9))
 # print('test_J_val (MHz):', test_J_val/(2*np.pi*1e6))
 
-omegas = np.arange(7, 11, 0.02) * 1e9 * 2*np.pi
+omegas = np.arange(7.5, 11, 0.02) * 1e9 * 2*np.pi
 
-test_Z_transfer_exact = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65)
+test_Z_transfer_exact = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
 
-test_Z_transfer_weak_coupling = Z_transfer_weak_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65)
+test_Z_transfer_weak_coupling = Z_transfer_weak_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
 
-test_Z_equiv_LE_circuit = Z_transfer_equivalent_LE_circuit(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65)
+test_Z_equiv_LE_circuit = Z_transfer_equivalent_LE_circuit(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
 
 # print('test_Z_transfer_exact:', test_Z_transfer_exact[:10])
 # print('test_Z_transfer_weak_coupling:', test_Z_transfer_weak_coupling[:10])
 # print('test_Z_transfer_equiv_LE_circuit:', test_Z_equiv_LE_circuit[:10])
 
-plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_exact), color = 'k', label = 'Multi-conductor TL filter')
+import seaborn as sns
+hex_codes = sns.color_palette().as_hex()
+hex_codes2 = sns.color_palette('husl', 9).as_hex()
+
+from matplotlib.colors import ListedColormap
+
+#flatui = ["#9b59b6", "#3498db", "#95a5a6", "#e74c3c", "#34495e", "#2ecc71"]
+my_cmap = ListedColormap(hex_codes)
+my_cmap2 = ListedColormap(hex_codes2)
+my_cmap3 = ListedColormap(["#9b59b6", "#34495e"])
+
+# my_cmap2(7)
+
+plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_exact), color = my_cmap3(1), label = 'Distributed circuit', linewidth = 3)
 #plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_weak_coupling), color = 'r', linestyle = '--', label = 'Z transfer weak coupling model')
-plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit), color = 'r', linestyle = '-.', label = 'Capacitive-inductive coupled filter')
-plt.vlines(test_notch_freq_analytic/(2*np.pi*1e9), 0.01, 10, color = 'b', linestyle = '--')
+plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit), color = my_cmap2(7), label = 'Equivalent circuit', linewidth = 3, alpha = 0.85)
+
+#plt.vlines(test_notch_freq_analytic/(2*np.pi*1e9), 0.008, 2, color = my_cmap(7), linestyle = 'dotted', linewidth = 3)
+plt.vlines(test_notch_freq_rule_of_thumb/(2*np.pi*1e9), 0.008, 2, color = my_cmap(7), linestyle = 'dotted', linewidth = 3, label = 'Notch eq. (x)',zorder=10)
+
 plt.yscale('log')
-plt.legend(loc = 'lower right')
-plt.xlabel('Frequency (GHz)')
-plt.ylabel('Z transfer (Ohm)')
+plt.legend(loc = 'lower right', fontsize = 16)
+plt.xlabel('Frequency (GHz)', size = 20)
+plt.ylabel(r'$Z_{21}$ ($\Omega$)', size = 20)
 #plt.title('Z transfer function for different models')
 # Customize the border settings
 ax = plt.gca()
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
-ax.spines['bottom'].set_linewidth(2.5)
-ax.spines['left'].set_linewidth(2.5)
+ax.spines['bottom'].set_linewidth(3)
+ax.spines['left'].set_linewidth(3)
+
+ax.set_xticks([8, 9, 10, 11])
+
+ax.set_yticks([1e-2, 1, 100, 1e4])
+#ax2.set_yticklabels(['0', '5', '10', '15'])
 
 # Adjust tick thickness and label size
 ax.tick_params(axis='both', which='both', width=2.5)
-ax.tick_params(axis='both', labelsize=25)
-
+ax.tick_params(axis='both', labelsize=20)
+plt.tight_layout()
 
 plt.show()
 
