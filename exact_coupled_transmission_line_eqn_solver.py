@@ -722,18 +722,16 @@ def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3
     # plt.show()
 
     # print("idxs -> ", idxs)
-
-    #quit()
     
     # added debugger - check for continuity of transmission around idx:
     gaps = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas[idxs + 1], phase_vel=phase_vel, Z0=Z0) -  Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas[idxs - 1], phase_vel=phase_vel, Z0=Z0)
     
     gaps = gaps.ravel()
 
-    # print('idxs:', idxs)
-    # print('gaps:', gaps)
+    print('idxs:', idxs)
+    print('gaps:', gaps)
     
-    idx = idxs[(abs(gaps) < 30)]
+    idx = idxs[(abs(gaps) < 10000)]
     if idx.size == 0:
         print('idxs:', idxs)
         raise ValueError('No valid solution to notch frequency equation for given input parameters in specified frequency range. Therefore cannot proceed to finding Lg and Cg.')
@@ -1603,13 +1601,11 @@ def J_coupling_testing2(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, pha
 
     return J_test
 
-def J_coupling_testing3(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
+def J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
     
     #J = lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg)
 
     #omega_r = 1/np.sqrt(L1 * C1)
-
-    C_l = 1/(Z0 * phase_vel)
 
     #omega_n = 1/np.sqrt(Cg * Lg)
 
@@ -1621,12 +1617,7 @@ def J_coupling_testing3(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, pha
 
     omega_n = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm_per_len, phase_vel=phase_vel, Z0=Z0)
 
-    #print('Z_transfer_differential_test_val:', Z_transfer_differential_val)
-
-    #omega_r = 1/np.sqrt(L1 * C1)
-    #omega_n = 1/np.sqrt(Lg * Cg)
-
-    print('(omega_r/omega_n - 1):', (omega_r/omega_n - 1))
+    C_l = 1/(Z0 * phase_vel)
 
     #J_test = np.pi **2 /16 * omega_r * (omega_r/omega_n - 1) * (omega_r/omega_n - omega_n/omega_r)**2 * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r))**2)
 
