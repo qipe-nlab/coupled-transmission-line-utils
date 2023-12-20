@@ -5,6 +5,22 @@ import matplotlib.pyplot as plt
 import sys
 import cap_util as cap
 
+def f(x):
+
+    numerator = (1/x - x)**3
+    denominator = (3 - 2*x**2) * (np.cos(np.pi * x/2))**2
+
+    val = numerator/denominator
+
+    return val
+
+x_vals = np.linspace(0.5, 0.999, 50)
+
+f_vals = f(x_vals)
+
+plt.plot(x_vals, f_vals)
+plt.show()
+
 d_vals = np.linspace(1, 40, 20) * 1e-6
 
 # print('d_vals:', d_vals)

@@ -192,7 +192,8 @@ def defining_mat(Zchar, Z_nb, Z_fb, T, prop_eigs, len):
 
 def uc_I_sols(defining_matrix, Vs_nb, Vs_fb):
 
-    # solve for the diagonalized currents
+    # solve for the diagonalized directional currents along the lines given the source voltages
+    # achieved by inverting the defining matrix (eq. 7.90)
 
     # print('defining_matrix:', defining_matrix)
     # print('type(defining_matrix):', type(defining_matrix))
@@ -212,7 +213,8 @@ def uc_I_sols(defining_matrix, Vs_nb, Vs_fb):
 
 def V_I_sols(Z_char_mat_sol, T_mat_sol, forward_uc_I_sols, backward_uc_I_sols, prop_eigs, pos):
 
-    # solve for the voltage and current solutions in the original (undiagonalized) frame
+    # solve for the voltage and current solutions along the lines in the original (undiagonalized) frame
+    # achieved by subbing in the directional current solutions into eqs. 7.86
     # uc : uncoupled
 
     forward_prop_mat, backward_prop_mat = prop_exp_mats(prop_eigs, pos)
@@ -608,15 +610,22 @@ def find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, ph
 
     return val
 
-def notch_filter_frequency_rule_of_thumb(l_c, l_Gf,l_Rf, Cm, phase_vel=3*10**8/2.5, Z0=65):
+def notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm, phase_vel=3*10**8/2.5, Z0=65, scale_phase_c = True):
 
     Cl, Ll= transmission_line_C_and_L(phase_vel, Z0)
-    phase_vel_c = omega_r(Cl + Cm, Ll)
-    tau_c = l_c / phase_vel_c
-    tau_G_dash = (l_Gf / phase_vel + l_c / phase_vel_c / 2) 
-    tau_R_dash = (l_Rf / phase_vel + l_c / phase_vel_c / 2) 
 
-    omega = np.pi/(2*(tau_G_dash + tau_R_dash))
+    if scale_phase_c:
+
+        phase_vel_c = omega_r(Cl + Cm, Ll)
+
+    else:
+        phase_vel_c = phase_vel
+
+    tau_c = l_c / phase_vel_c
+    tau_G = l_Gf / phase_vel 
+    tau_R = l_Rf / phase_vel
+
+    omega = np.pi/(2*(tau_G + tau_R + tau_c))
 
     return omega
 
@@ -728,8 +737,8 @@ def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3
     
     gaps = gaps.ravel()
 
-    print('idxs:', idxs)
-    print('gaps:', gaps)
+    #print('idxs:', idxs)
+    #print('gaps:', gaps)
     
     idx = idxs[(abs(gaps) < 10000)]
     if idx.size == 0:
@@ -1615,7 +1624,7 @@ def J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, Cm_per_len, phase_vel=3*10**8/2.5
 
     omega_r = lambda_quarter_omega(L_G, phase_vel=phase_vel)
 
-    omega_n = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm_per_len, phase_vel=phase_vel, Z0=Z0)
+    omega_n = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm_per_len, phase_vel=phase_vel, Z0=Z0, scale_phase_c = False)
 
     C_l = 1/(Z0 * phase_vel)
 
