@@ -1,5 +1,6 @@
 import numpy as np
 import scipy as sp
+from scipy import constants
 import matplotlib.pyplot as plt
 
 import sys
@@ -9,9 +10,9 @@ d_vals = np.linspace(1, 40, 20) * 1e-6
 
 # print('d_vals:', d_vals)
 
-test_Cm_vals = cap.get_Cm(d_vals)
-test_Lm_vals = cap.get_Lm(d_vals)
-test_Zm_vals = cap.get_Zm(d_vals)
+Cm_vals = cap.get_Cm(d_vals)
+Lm_vals = cap.get_Lm(d_vals)
+Zm_vals = cap.get_Zm(d_vals)
 
 # print('test_Cm_vals:', test_Cm_vals)
 # print('test_Lm_vals:', test_Lm_vals)
@@ -30,16 +31,16 @@ test_Zm_vals = cap.get_Zm(d_vals)
 
 #     return val
 
-default_phase_vel = 119919602
-default_Z0 = 65
+default_phase_vel = constants.c / np.sqrt(6.351)
+default_Z0 = 65.62
 
 Cl = 1/(default_phase_vel * default_Z0)
 Ll = default_Z0/default_phase_vel
 
-Zc_vals = np.sqrt(Ll/(Cl + test_Cm_vals))
+Zc_vals = np.sqrt(Ll/(Cl + Cm_vals))
 
 plt.plot(d_vals* 1e6, Zc_vals, color = 'r', label = r'$Z_c$', marker = 'o', markersize = 9, linestyle = 'None')
-plt.plot(d_vals* 1e6, test_Zm_vals, color = 'purple', label = r'$Z_m$', marker = 'o', markersize = 9, linestyle = 'None')
+plt.plot(d_vals* 1e6, Zm_vals, color = 'purple', label = r'$Z_m$', marker = 'o', markersize = 9, linestyle = 'None')
 # plt.xlabel(r'$d$ (um)')
 # plt.ylabel(r'$Z$ ($\Omega$)',)
 #plt.legend(loc = 'lower right')
@@ -65,7 +66,7 @@ ax.set_ylabel(r'$Z$ ($\Omega$)', fontsize=30)
 
 # Create a second y-axis for the new dataset
 ax2 = ax.twinx()
-line_c, = ax2.plot(d_vals* 1e6, test_Cm_vals * 1e12, label=r'$C_m$', marker = '>', markersize = 9,  color='g', linestyle = 'None')
+line_c, = ax2.plot(d_vals* 1e6, Cm_vals * 1e12, label=r'$C_m$', marker = '>', markersize = 9,  color='g', linestyle = 'None')
 ax2.spines['top'].set_visible(False)
 ax2.spines['left'].set_visible(False)
 ax2.spines['right'].set_linewidth(2.5)
@@ -83,6 +84,15 @@ ax.legend(loc = 'upper right', fontsize=25)
 ax.set_xlim(0, 20)
 ax.set_ylim(60, 68)
 plt.tight_layout()
+plt.show()
+
+
+print('Cl:', Cl)
+print('Ll:', Ll)
+
+coupling_coefficient = cap.get_Lm(d_vals)/Ll
+
+plt.plot(d_vals* 1e6, coupling_coefficient)
 plt.show()
 
 # RHS_test_vals = np.array([RHS_eq(Zm, Zc) for Zm, Zc in zip(test_Zm_vals, Zc_vals)])

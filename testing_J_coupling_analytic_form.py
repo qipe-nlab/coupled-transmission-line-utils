@@ -5,21 +5,21 @@ import matplotlib.pyplot as plt
 import sys
 import cap_util as cap
 
-def f(x):
+# def f(x):
 
-    numerator = (1/x - x)**3
-    denominator = (3 - 2*x**2) * (np.cos(np.pi * x/2))**2
+#     numerator = (1/x - x)**3
+#     denominator = (np.cos(np.pi * x/2))**2
 
-    val = numerator/denominator
+#     val = numerator/denominator
 
-    return val
+#     return val
 
-x_vals = np.linspace(0.5, 0.999, 50)
+# x_vals = np.linspace(0.5, 0.999, 50)
 
-f_vals = f(x_vals)
+# f_vals = f(x_vals)
 
-plt.plot(x_vals, f_vals)
-plt.show()
+# plt.plot(x_vals, f_vals)
+# plt.show()
 
 d_vals = np.linspace(1, 40, 20) * 1e-6
 
@@ -69,19 +69,25 @@ from exact_coupled_transmission_line_eqn_solver import *
 #Z0 = 65
 
 phase_vel = 119919602
-Z0 = 65 #65
+Z0 = 65.6 #65
 
 Cl = 1/(default_phase_vel * default_Z0)
 Ll = default_Z0/default_phase_vel
 
-Cm_per_len = cap.get_Cm(15e-6)
-Lm_per_len = cap.get_Lm(15e-6)
+Cm_per_len = cap.get_Cm(10e-6)
+Lm_per_len = cap.get_Lm(10e-6)
+
+# l_Rf = 1.65e-3
+# l_Rn = 0.75e-3
+# l_Gf = 2.2e-3
+# l_Gn = 0.21e-3
+# l_c = 0.45e-3 * 1
 
 l_Rf = 1.65e-3
-l_Rn = 0.75e-3
+l_Rn = 0.6e-3
 l_Gf = 2.2e-3
-l_Gn = 0.21e-3
-l_c = 0.45e-3 * 1
+l_Gn = 0.06e-3
+l_c = 0.45e-3*1
 
 # phase_vel_c = 1/(np.sqrt(Ll*(Cl + Cm_per_len)))
 
@@ -95,7 +101,7 @@ l_c = 0.45e-3 * 1
 # print('notch_val:', notch_val)
 # print('test_simple_notch_val:', test_simple_notch_val)
 
-d_vals = np.linspace(2, 25, 10) * 1e-6
+d_vals = np.linspace(2, 4, 3) * 1e-6
 
 print('d_vals', d_vals)
 
@@ -129,8 +135,44 @@ print('omega_p:', omega_p/(2*np.pi*1e9))
 print('omega_f_rule_of_thumb_scaled:', omega_f_rule_of_thumb_scaled/(2*np.pi*1e9))
 print('omega_f_rule_of_thumb_basic:', omega_f_rule_of_thumb_basic/(2*np.pi*1e9))
 
+J_vals_solve_eq_c = np.array([J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(d), cap.get_Cm(d), phase_vel=phase_vel, Z0=Z0) for d in d_vals])
+print('J_vals_solve_eq_c:', J_vals_solve_eq_c/(2*np.pi*1e9))
+
 J_vals_analytic = np.array([J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0) for d_val in d_vals])
 print('J_vals_analytic:', J_vals_analytic/(2*np.pi*1e9))
+
+sys.exit()
+
+l_c_exp = 340e-6 
+s_exp = 5e-6
+## SW Q0:
+# omega_n_exp = 8.270*2*np.pi*1e9
+# omega_r_exp = 10.264*2*np.pi*1e9
+## SW Q1:
+# omega_n_exp = 8.960*2*np.pi*1e9
+# omega_r_exp = 10.672*2*np.pi*1e9
+## SW Q2:
+omega_n_exp = 8.690*2*np.pi*1e9
+omega_r_exp = 10.479*2*np.pi*1e9
+## SW Q3:
+# omega_n_exp = 8.270*2*np.pi*1e9
+# omega_r_exp = 10.04*2*np.pi*1e9
+
+## CD36 device design
+
+## U1 Q1
+s_exp = 3.8e-6
+l_c_exp = 330e-6 
+omega_n_exp = 9.1*2*np.pi*1e9
+omega_r_exp = 10.650*2*np.pi*1e9
+
+Cm_per_len_exp = cap.get_Cm(s_exp)
+
+exp_J_analytic_prediction = J_coupling_analytic_by_freqs(omega_r_exp, omega_n_exp, l_c_exp, Cm_per_len_exp, phase_vel=phase_vel, Z0=Z0)
+
+print('exp_J_analytic_prediction (MHz):', exp_J_analytic_prediction / (2*np.pi*1e6))
+
+sys.exit()
 
 ####
 # delta_omega = 10 * 2*np.pi
@@ -141,18 +183,18 @@ print('J_vals_analytic:', J_vals_analytic/(2*np.pi*1e9))
 # print('Z_diff:', Z_diff)
 # print('Z_diff7:', Z_diff7)
 
-# J_vals_exact_circuit = np.array([J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(d_val), cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0) for d_val in d_vals])
-# J_vals_analytic = np.array([J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0) for d_val in d_vals])
+J_vals_exact_circuit = np.array([J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(d_val), cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0) for d_val in d_vals])
+J_vals_analytic = np.array([J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0) for d_val in d_vals])
 
-# plt.plot(d_vals * 1e6, J_vals_exact_circuit/(2*np.pi * 1e6), color = 'r')
-# plt.plot(d_vals * 1e6, J_vals_analytic/(2*np.pi * 1e6), color = 'g')
-# plt.show()
+plt.plot(d_vals * 1e6, J_vals_exact_circuit/(2*np.pi * 1e6), color = 'r')
+plt.plot(d_vals * 1e6, J_vals_analytic/(2*np.pi * 1e6), color = 'g')
+plt.show()
 
-# plt.plot(d_vals * 1e6, 100*(J_vals_analytic-J_vals_exact_circuit)/(J_vals_exact_circuit), color = 'r')
-# plt.show()
+plt.plot(d_vals * 1e6, 100*(J_vals_analytic-J_vals_exact_circuit)/(J_vals_exact_circuit), color = 'r')
+plt.show()
 
-J_vals_exact_circuit = np.array([J_coupling(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(5e-6), cap.get_Cm(5e-6), phase_vel=phase_vel, Z0=Z0) for l_c_val in l_c_vals])
-J_vals_analytic = np.array([J_coupling_analytic(l_c_val, l_Gf, l_Gn, l_Rf, cap.get_Cm(5e-6), phase_vel=phase_vel, Z0=Z0) for l_c_val in l_c_vals])
+J_vals_exact_circuit = np.array([J_coupling(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(10e-6), cap.get_Cm(10e-6), phase_vel=phase_vel, Z0=Z0) for l_c_val in l_c_vals])
+J_vals_analytic = np.array([J_coupling_analytic(l_c_val, l_Gf, l_Gn, l_Rf, cap.get_Cm(10e-6), phase_vel=phase_vel, Z0=Z0) for l_c_val in l_c_vals])
 
 plt.plot(l_c_vals, J_vals_exact_circuit/(2*np.pi * 1e6), color = 'r')
 plt.plot(l_c_vals, J_vals_analytic/(2*np.pi * 1e6), color = 'g')
