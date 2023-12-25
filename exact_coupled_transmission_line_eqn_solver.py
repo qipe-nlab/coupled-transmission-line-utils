@@ -361,7 +361,7 @@ def V_I_solutions_sym_three(C_mat, L_mat, Z_nb, Z_fb, Vs_nb, Vs_fb, len, omega):
 ########################################
 
 ### For 2 coupled transmission lines under the assumption of weak coupling
-### See: Solution of the Transmission-Line Equations Under the Weak-Coupling Assumption
+### See: Solution of the Transmission-Line Equations Under the Weak-Coupling Assumption - C.R. Paul
 
 def transmission_line_voltage_current_out(Z0, electric_length, voltage_in, current_in):
 
@@ -490,10 +490,6 @@ def voltage_transmission_coupled_lines(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_R
 
     val = (Z_Rn/(Z_Rn + Z0_c)) * (A_value + B_value * gamma_Rf * np.exp(-1j*omega*tau_c)) * F_G * F_R * (Z0_c/(Z0_c + Z_Gn))
     
-    #val = (A_value + B_value * gamma_Rf * np.exp(1j*omega*tau_c))
-
-    #val = (A_value + B_value * gamma_Rf * np.exp(1j*omega*tau_c)) *  F_G * F_R
-
     return val
 
 def Z_trans_along_shorted_tl(Z0, phase_vel, L, z, omega):
@@ -648,12 +644,17 @@ def transmission_line_Zchar_phase_vel(Lmutual, Cmutual):
 
     return Zchar, phasevel
 
-def lumped_model_C_and_L(phase_vel, Z0, cpw__length):
+def lumped_model_C_and_L(phase_vel, Z0, cpw__length, res_type = 'lambda/4'):
 
     tl_C_val, tl_L_val = transmission_line_C_and_L(phase_vel, Z0)
 
-    C_val = tl_C_val * cpw__length / 2
-    L_val = 8 * tl_L_val * cpw__length / np.pi**2 
+    if res_type == 'lambda/4':
+        C_val = tl_C_val * cpw__length / 2
+        L_val = 8 * tl_L_val * cpw__length / np.pi**2 
+
+    elif res_type == 'lambda/2':
+        L_val = tl_L_val * cpw__length / 2
+        C_val = 2*tl_C_val * cpw__length / np.pi**2 
 
     return C_val, L_val
 
@@ -1410,6 +1411,229 @@ def Z_transfer_equivalent_LE_circuit_LE_coupling(l_Gf, l_Gn, l_Rf, l_Rn,  Lc, Cc
     val = lumped_model_Z_transmission(omega, C1, L1, C2, L2, Cg, Lg)
 
     return val
+
+#################################################
+###      Distributed Element Calculations     ###
+### 2 capacitively coupled transmission lines ###
+#################################################
+
+### For 2 lamdbda/4 transmission lines coupled by a lumped element capacitor
+
+# def Z_transfer_direct_cap_exact(l_Gf, l_Gn, l_Rf, l_Rn, Cm, omega, phase_vel=3*10**8/2.5, Z0=65):
+
+#     I_dummy = 1
+
+#     Z_Gf = Z_short_tl(Z0, phase_vel, l_Gf, omega)
+
+#     Z_cap = Zcap(Cm, omega)
+
+#     Z_Rn = Z_open_tl(Z0, phase_vel, l_Rn, omega)
+#     Z_Rf = Z_short_tl(Z0, phase_vel, l_Rf, omega) #Z_short_tl(Z0, phase_vel, l_Rf, omega)
+
+#     Z_2 = Z_cap + Zpara(Z_Rn, Z_Rf)
+
+#     Ztot = Zpara(Z_Gf, Z_2)
+
+#     ## approximate solution
+#     #Z_trans_along_shorted_tr_val = Z_trans_along_shorted_tl(Z0, phase_vel, L_G, l_Gn, omega)
+
+#     ## more accurate solution
+#     Ztot_in = Zinput(Z0, Ztot, omega*l_Gn/phase_vel)
+
+#     V_in = Ztot_in * I_dummy
+
+#     V_out, I_out = transmission_line_voltage_current_out(Z0, omega*l_Gn/phase_vel, V_in, I_dummy)
+
+#     #V0 = I_dummy * Ztot
+
+#     I2 = I_out * Ztot/Z_2
+
+#     V1 = V_out - Z_cap*I2
+
+#     #I_3 = I2*Zpara(Z_Rn, Z_Rf)/Z_Rn
+
+#     tau_Rn = l_Rn/phase_vel
+
+#     Rn_tl_voltage_scale_factor = 1/np.cos(tau_Rn*omega)
+
+#     Vout = Rn_tl_voltage_scale_factor * V1
+
+#     return Vout/I_dummy
+
+# def Z_transfer_differential_direct_cap(l_Gf, l_Gn, l_Rf, l_Rn, Cm, omega_f, phase_vel=3*10**8/2.5, Z0=65, delta_omega = 10 * 2*np.pi):
+
+#     # delta_omega is 15 Hz by default
+
+#     Z_transfer_0 = Z_transfer_direct_cap_exact(l_Gf, l_Gn, l_Rf, l_Rn, Cm, omega_f+delta_omega/200, phase_vel=phase_vel, Z0=Z0)
+#     Z_transfer_1 = Z_transfer_direct_cap_exact(l_Gf, l_Gn, l_Rf, l_Rn, Cm, omega_f + delta_omega, phase_vel=phase_vel, Z0=Z0)
+#     Z_transfer_2 = Z_transfer_direct_cap_exact(l_Gf, l_Gn, l_Rf, l_Rn, Cm, omega_f + delta_omega*2, phase_vel=phase_vel, Z0=Z0)
+#     Z_transfer_3 = Z_transfer_direct_cap_exact(l_Gf, l_Gn, l_Rf, l_Rn, Cm, omega_f + delta_omega*3, phase_vel=phase_vel, Z0=Z0)
+
+#     grad_Ztransfer_0 = (Z_transfer_1 - Z_transfer_0) / delta_omega
+#     grad_Ztransfer_1 = (Z_transfer_2 - Z_transfer_1) / delta_omega
+#     grad_Ztransfer_2 = (Z_transfer_3 - Z_transfer_2) / delta_omega
+
+#     grad_grad_Ztransfer_0 = (grad_Ztransfer_1 - grad_Ztransfer_0) / delta_omega
+#     grad_grad_Ztransfer_1 = (grad_Ztransfer_2 - grad_Ztransfer_1) / delta_omega
+
+#     grad_grad_grad_Ztransfer = (grad_grad_Ztransfer_1- grad_grad_Ztransfer_0) / delta_omega
+
+#     return grad_grad_grad_Ztransfer
+
+# def find_coupling_cap_direct_cap(l_Gf, l_Gn, l_Rf, l_Rn, Cm, phase_vel=3*10**8/2.5, Z0=65):
+
+#     cpw__length1 = l_Gf + l_Gn
+#     cpw__length2 = l_Rf + l_Rn
+
+#     C1, L1 = lumped_model_C_and_L(phase_vel, Z0, cpw__length1, res_type = 'lambda/4')
+#     C2, L2 = lumped_model_C_and_L(phase_vel, Z0, cpw__length2, res_type = 'lambda/4')
+
+#     # omega_1 = np.sqrt(1/(L1*C1))
+#     # omega_2 = np.sqrt(1/(L2*C2))
+
+#     # Zchar_1 = np.sqrt(L1/C1)
+#     # Zchar_2 = np.sqrt(L2/C2)
+
+#     #grad_grad_grad_Ztransfer_val = Z_transfer_differential_direct_cap(l_Gf, l_Gn, l_Rf, l_Rn, Cm, 0, phase_vel=phase_vel, Z0=Z0)
+
+#     #print('grad_grad_grad_Ztransfer_val:', grad_grad_grad_Ztransfer_val)
+
+#     #val = 1j * omega_1 * omega_2 / (Zchar_1 * Zchar_2) * grad_grad_grad_Ztransfer_val / 6
+
+#     omega_test = 5000 * 2*np.pi *1e6
+
+#     Z21 = Z_transfer_direct_cap_exact(l_Gf, l_Gn, l_Rf, l_Rn, Cm, omega_test, phase_vel=phase_vel, Z0=Z0)
+
+#     ZR1 = Zres(C1, L1, omega_test)
+#     ZR2 = Zres(C2, L2, omega_test)
+
+#     val = -1j * Z21 / ( omega_test * ZR1*ZR2 )
+
+#     return val
+
+# def lumped_model_Cg_and_Lg_direct_cap(phase_vel, Z0, l_Gf, l_Gn, l_Rf, l_Rn, Cm):
+
+#     # omega_f1 = np.pi*phase_vel / l_Gf
+#     # omega_f2 = np.pi*phase_vel / l_Rf
+
+#     # print('omega_f1(GHz):', omega_f1 / (2*np.pi*1e9))
+
+#     Cc = find_coupling_cap_direct_cap(l_Gf, l_Gn, l_Rf, l_Rn, Cm, phase_vel=phase_vel, Z0=Z0)
+
+#     Ln = 1e3 
+
+#     return Cc, Ln
+
+# def get_lumped_elements_direct_cap(l_Gf, l_Gn, l_Rf, l_Rn, Cm, phase_vel=3*10**8/2.5, Z0=65):
+        
+#     cpw__length1 = l_Gf + l_Gn
+#     cpw__length2 = l_Rf + l_Rn
+    
+#     C1, L1 = lumped_model_C_and_L(phase_vel, Z0, cpw__length1, res_type = 'lambda/4')
+#     C2, L2 = lumped_model_C_and_L(phase_vel, Z0, cpw__length2, res_type = 'lambda/4')
+#     Cn, Ln = lumped_model_Cg_and_Lg_direct_cap(phase_vel, Z0, l_Gf, l_Gn, l_Rf, l_Rn, Cm)
+
+#     return C1, L1, C2, L2, Cn, Ln
+
+### For one lamdbda/2 and one lambda/4 transmission lines coupled by a lumped element capacitor
+
+def Z_transfer_direct_cap_exact(l_Gf, l_Gn, l_Rf, l_Rn, Cm, omega, phase_vel=3*10**8/2.5, Z0=65):
+
+    I_dummy = 1
+
+    Z_Gf = Z_short_tl(Z0, phase_vel, l_Gf, omega)
+
+    Z_cap = Zcap(Cm, omega)
+
+    Z_Rn = Z_open_tl(Z0, phase_vel, l_Rn, omega)
+    Z_Rf = Z_open_tl(Z0, phase_vel, l_Rf, omega) #Z_short_tl(Z0, phase_vel, l_Rf, omega)
+
+    Z_2 = Z_cap + Zpara(Z_Rn, Z_Rf)
+
+    Ztot = Zpara(Z_Gf, Z_2)
+
+    ## approximate solution
+    #Z_trans_along_shorted_tr_val = Z_trans_along_shorted_tl(Z0, phase_vel, L_G, l_Gn, omega)
+
+    ## more accurate solution
+    Ztot_in = Zinput(Z0, Ztot, omega*l_Gn/phase_vel)
+
+    V_in = Ztot_in * I_dummy
+
+    V_out, I_out = transmission_line_voltage_current_out(Z0, omega*l_Gn/phase_vel, V_in, I_dummy)
+
+    #V0 = I_dummy * Ztot
+
+    I2 = I_out * Ztot/Z_2
+
+    V1 = V_out - Z_cap*I2
+
+    #I_3 = I2*Zpara(Z_Rn, Z_Rf)/Z_Rn
+
+    tau_Rn = l_Rn/phase_vel
+
+    Rn_tl_voltage_scale_factor = 1/np.cos(tau_Rn*omega)
+
+    Vout = Rn_tl_voltage_scale_factor * V1
+
+    return Vout/I_dummy
+
+def Z_transfer_differential_direct_cap(l_Gf, l_Gn, l_Rf, l_Rn, Cm, omega_f, phase_vel=3*10**8/2.5, Z0=65, delta_omega = 15 * 2*np.pi):
+
+    # delta_omega is 15 Hz by default
+
+    Z_transfer_0 = Z_transfer_direct_cap_exact(l_Gf, l_Gn, l_Rf, l_Rn, Cm, omega_f-delta_omega/2, phase_vel=phase_vel, Z0=Z0)
+    Z_transfer_1 = Z_transfer_direct_cap_exact(l_Gf, l_Gn, l_Rf, l_Rn, Cm, omega_f+delta_omega/2, phase_vel=phase_vel, Z0=Z0)
+
+    grad_Ztransfer = (Z_transfer_1 - Z_transfer_0) / delta_omega
+
+    return grad_Ztransfer
+
+def find_notch_filter_char_impedance_direct_cap(l_Gf, l_Gn, l_Rf, l_Rn, Cm, omega_f, phase_vel=3*10**8/2.5, Z0=65):
+
+    cpw__length1 = l_Gf + l_Gn
+    cpw__length2 = l_Rf + l_Rn
+
+    C1, L1 = lumped_model_C_and_L(phase_vel, Z0, cpw__length1, res_type='lambda/4')
+    C2, L2 = lumped_model_C_and_L(phase_vel, Z0, cpw__length2, res_type='lambda/2')
+
+    Zres_1_omega_f = Zres(C1, L1, omega_f)
+    Zres_2_omega_f = Zres(C2, L2, omega_f)
+
+    grad_Ztransfer_val = Z_transfer_differential_direct_cap(l_Gf, l_Gn, l_Rf, l_Rn, Cm, omega_f, phase_vel=phase_vel, Z0=Z0)
+
+    print('grad_Ztransfer_val:', grad_Ztransfer_val)
+
+    val = np.real(1j*2*Zres_1_omega_f * Zres_2_omega_f / (omega_f * grad_Ztransfer_val))
+
+    return val
+
+def lumped_model_Cg_and_Lg_direct_cap(phase_vel, Z0, l_Gf, l_Gn, l_Rf, l_Rn, Cm):
+
+    omega_f = np.pi*phase_vel / (2*l_Rf)
+    #omega_f2 = np.pi*phase_vel / l_Rf
+
+    print('omega_f(GHz):', omega_f / (2*np.pi*1e9))
+
+    #print('omega_f/2pi (GHz):', omega_f/(2*np.pi*1e9))
+    Z0_f = find_notch_filter_char_impedance_direct_cap(l_Gf, l_Gn, l_Rf, l_Rn, Cm, omega_f, phase_vel=phase_vel, Z0=Z0)
+    #print('Z0_f:', Z0_f)
+
+    Cg = 1/(omega_f*Z0_f)
+    Lg =  Z0_f / omega_f
+
+    return Cg, Lg
+
+def get_lumped_elements_direct_cap(l_Gf, l_Gn, l_Rf, l_Rn, Cm, phase_vel=3*10**8/2.5, Z0=65):
+        
+    cpw__length1 = l_Gf + l_Gn
+    cpw__length2 = l_Rf + l_Rn
+    
+    C1, L1 = lumped_model_C_and_L(phase_vel, Z0, cpw__length1, res_type = 'lambda/4')
+    C2, L2 = lumped_model_C_and_L(phase_vel, Z0, cpw__length2, res_type = 'lambda/2')
+    Cn, Ln = lumped_model_Cg_and_Lg_direct_cap(phase_vel, Z0, l_Gf, l_Gn, l_Rf, l_Rn, Cm)
+
+    return C1, L1, C2, L2, Cn, Ln
 
 #######################################
 ### qubit radiative decay functions ###
