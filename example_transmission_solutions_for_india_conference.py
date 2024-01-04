@@ -1,14 +1,22 @@
 ### example solutions
 
 from exact_coupled_transmission_line_eqn_solver import *
+import cap_util as cap
+
+d_vals = np.linspace(1, 40, 20) * 1e-6
+
+# print('d_vals:', d_vals)
 
 ### param set 1: for high freq range
 
 # phase_vel = 3*10**8/2.5
 # Z0 = 65
 
-Lm = 1.31e-9*1e1*2.2
-Cm = 5e-15*1e3*2.2
+d_val = 6e-6
+Cm = cap.get_Cm(d_val)
+Lm = cap.get_Lm(d_val)
+# Lm = 1.31e-9*1e1*2.2
+# Cm = 5e-15*1e3*2.2
 l_Rf = 1.15e-3 
 l_Rn = 1.45e-3 
 l_Gf = 1.7e-3 
@@ -51,7 +59,9 @@ print('l_c:', l_c)
 
 test_notch_freq = find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65)
 
-test_notch_freq_analytic = find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65)
+#test_notch_freq_analytic = find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65)
+
+test_notch_freq_analytic = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm, phase_vel=3*10**8/2.5, Z0=65, scale_phase_c = True)
 
 # notch_freq_agreement_percent = 100*(test_notch_freq_analytic - test_notch_freq )/ test_notch_freq
 

@@ -9,25 +9,31 @@ import sys
 #######################
 
 def Zcap(Cval, omega):
-	return -1j/(Cval*omega)
+
+    if Cval == 0:
+        val = 1j*1e30
+    else:
+        val = -1j/(Cval*omega)
+
+    return val
 
 def Zind(Lval, omega):
-	return 1j*(Lval*omega)
+    return 1j*(Lval*omega)
 
 def Zopen(Z0, phi):
-	return Z0/(1j*np.tan(phi))
+    return Z0/(1j*np.tan(phi))
 
 def Zshort(Z0, phi):
-	return 1j*Z0*np.tan(phi)
+    return 1j*Z0*np.tan(phi)
 
 def Zinput(Z0, Zload, phi):
-	return Z0*(Zload+1j*Z0*np.tan(phi))/(Z0+1j*Zload*np.tan(phi))
+    return Z0*(Zload+1j*Z0*np.tan(phi))/(Z0+1j*Zload*np.tan(phi))
 
 def Zpara(Z1, Z2):
-	return 1/(1/Z1+1/Z2)
+    return 1/(1/Z1+1/Z2)
 
 def Zres(Cr, Lr, omega):
-	return Zpara(Zcap(Cr, omega),Zind(Lr, omega))
+    return Zpara(Zcap(Cr, omega),Zind(Lr, omega))
 
 def Zchar(Cr, Lr):
     return (Lr/Cr)**0.5
@@ -288,17 +294,17 @@ def Z_input_tl(Z0, Zload, phase_vel, L, omega ):
 
     return Z0*(Zload+1j*Z0*np.tan(phi))/(Z0+1j*Zload*np.tan(phi))
 
-def voltage_at_source_location_exact(Z0, Zinput_Gn, phase_vel, l_Gn, omega):
+def voltage_at_source_location_exact(l_Gn, Z_input_coupled_system, Z0, phase_vel, omega):
 
     # returns the exact ratio of the input current to the generator line to the voltage at the start of the coupled line section.
 
     tau_n = l_Gn / phase_vel
 
-    Zinput_n = Zinput(Z0, Zinput_Gn, omega * tau_n)
+    Zinput_total = Z_input_tl(Z0, Z_input_coupled_system, phase_vel, l_Gn, omega)
 
     I_in = 1
 
-    v_in = Zinput_n * I_in
+    v_in = Zinput_total * I_in
 
     v_out, I_out = transmission_line_voltage_current_out(Z0, tau_n, v_in, I_in)
 
@@ -624,6 +630,37 @@ def notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm, phase_vel=3*10**8/
     omega = np.pi/(2*(tau_G + tau_R + tau_c))
 
     return omega
+
+def Z_input_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega, phase_vel=3*10**8/2.5, Z0=65, Zline = 50, C_env = 0):
+
+    C_val, L_val = transmission_line_C_and_L(phase_vel, Z0)
+
+    Cm = Cm_per_len
+
+    Lm = Lm_per_len
+
+    L_test = np.array([[L_val, Lm],[Lm, L_val]])
+
+    C_mutual_test = np.array([[C_val, Cm], [Cm, C_val]])
+
+    C_Maxwell_test = C_mutual_to_Maxwell(C_mutual_test)
+
+    Z_env = Zline + Zcap(C_env, omega)
+
+    Z_nb = np.diag(np.array([0, Z_input_tl(Z0, Z_env, phase_vel, l_Rn, omega)]))
+    Z_fb = np.diag(np.array([Z_short_tl(Z0, phase_vel, l_Gf, omega), Z_short_tl(Z0, phase_vel, l_Rf, omega)]))
+
+    Vs_nb = np.array([1,0])
+    Vs_fb = np.array([0,0])
+
+    #print('111')
+    V_sols_n, V_sols_f, I_sols_n, I_sols_f = V_I_solutions_sym_three(C_Maxwell_test, L_test, Z_nb, Z_fb, Vs_nb, Vs_fb, l_c, omega)
+
+    Z_input_coupled_system = V_sols_n[0] / I_sols_n[0]
+
+    Z_input_total_exact_val = Z_input_tl(Z0, Z_input_coupled_system, phase_vel, l_Gn, omega)
+
+    return Z_input_total_exact_val
 
 ############################
 ### Lumped Element Model ###
@@ -1310,7 +1347,7 @@ def Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per
 
         #print('Z_input_exact:', Z_input_exact)
 
-        V_from_input_I = voltage_at_source_location_exact(Z0, Z_input_exact, phase_vel, l_Gn, omega)
+        V_from_input_I = voltage_at_source_location_exact(l_Gn, Z_input_exact, Z0, phase_vel, omega)
 
         #print('V_from_input_I:', V_from_input_I)
 
@@ -1664,24 +1701,26 @@ def qubit_radiative_decay_sym_3_lines_exact(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_
 
     for omega in omegas:
 
-        Z_env = Zline + Zcap(C_ext, omega)
+        Z_input_exact = Z_input_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega, phase_vel=phase_vel, Z0=Z0, Zline = Zline, C_env = C_ext)
 
-        Z_nb = np.diag(np.array([0, Z_input_tl(Z0, Z_env, phase_vel, l_Rn, omega)]))
-        Z_fb = np.diag(np.array([Z_short_tl(Z0, phase_vel, l_Gf, omega), Z_short_tl(Z0, phase_vel, l_Rf, omega)]))
+        # Z_env = Zline + Zcap(C_ext, omega)
 
-        Vs_nb = np.array([1,0])
-        Vs_fb = np.array([0,0])
+        # Z_nb = np.diag(np.array([0, Z_input_tl(Z0, Z_env, phase_vel, l_Rn, omega)]))
+        # Z_fb = np.diag(np.array([Z_short_tl(Z0, phase_vel, l_Gf, omega), Z_short_tl(Z0, phase_vel, l_Rf, omega)]))
 
-        #print('111')
-        V_sols_n, V_sols_f, I_sols_n, I_sols_f = V_I_solutions_sym_three(C_Maxwell_test, L_test, Z_nb, Z_fb, Vs_nb, Vs_fb, l_c, omega)
+        # Vs_nb = np.array([1,0])
+        # Vs_fb = np.array([0,0])
 
-        V_sols_n_arr.append(V_sols_n)
-        V_sols_f_arr.append(V_sols_f)
+        # #print('111')
+        # V_sols_n, V_sols_f, I_sols_n, I_sols_f = V_I_solutions_sym_three(C_Maxwell_test, L_test, Z_nb, Z_fb, Vs_nb, Vs_fb, l_c, omega)
 
-        I_sols_n_arr.append(I_sols_n)
-        I_sols_f_arr.append(I_sols_f)
+        # V_sols_n_arr.append(V_sols_n)
+        # V_sols_f_arr.append(V_sols_f)
 
-        Z_input_exact = V_sols_n[0] / I_sols_n[0]
+        # I_sols_n_arr.append(I_sols_n)
+        # I_sols_f_arr.append(I_sols_f)
+
+        # Z_input_exact = V_sols_n[0] / I_sols_n[0]
 
         Z_input_exact_arr.append(Z_input_exact)
 
@@ -1864,7 +1903,7 @@ def J_coupling_analytic_by_freqs(omega_r, omega_n, l_c, Cm_per_len, phase_vel=3*
 
     C_l = 1/(Z0 * phase_vel)
 
-    J_test = 0.5 * np.pi **2 /16 * omega_r *(omega_r/omega_n - omega_n/omega_r)**3 * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r))**2)
+    J_test = np.pi **2 /32 * omega_r *(omega_r/omega_n - omega_n/omega_r)**3 * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r))**2)
 
     return J_test
 

@@ -61,11 +61,14 @@ Ll = default_Z0/default_phase_vel
 Cm_per_len = cap.get_Cm(15e-6)
 Lm_per_len = cap.get_Lm(15e-6)
 
-l_Rf = 1.65e-3
-l_Rn = 0.75e-3
-l_Gf = 2.2e-3
-l_Gn = 0.21e-3
-l_c = 0.45e-3 * 1
+l_Rf = 1.85e-3
+l_Rn = 0.75e-3 + 0.35e-3
+l_Gf = 2.4e-3 
+l_Gn = 0.21e-3 + 0.35e-3
+l_c = 0.35e-3 
+
+print('l_Gf + l_Gn:', l_Gf + l_Gn)
+print('l_Rf + l_Rn:', l_Rf + l_Rn)
 
 # phase_vel_c = 1/(np.sqrt(Ll*(Cl + Cm_per_len)))
 
@@ -79,7 +82,7 @@ l_c = 0.45e-3 * 1
 # print('notch_val:', notch_val)
 # print('test_simple_notch_val:', test_simple_notch_val)
 
-d_vals = np.linspace(2, 25, 10) * 1e-6
+d_vals = np.linspace(5, 15, 10) * 1e-6
 
 print('d_vals', d_vals)
 
@@ -88,7 +91,7 @@ print('d_vals', d_vals)
 # plt.plot(d_vals, J_vals_test/(2*np.pi * 1e6))
 # plt.show()
 
-l_c_vals = np.linspace(100, 400, 15) * 1e-6
+l_c_vals = np.linspace(200, 400, 15) * 1e-6
 
 # notch_vals = np.array([find_notch_filter_frequency_analytic(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, Z0 = Z0, search_span = 3 * 2*np.pi*1e9, search_spacing=(10*2*np.pi*10**6))  for l_c_val in l_c_vals]) 
 
