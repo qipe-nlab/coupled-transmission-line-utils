@@ -5,6 +5,30 @@ import matplotlib.pyplot as plt
 import sys
 import cap_util as cap
 
+## debug
+
+# # Define the function
+# def custom_function(x):
+#     return - np.cos(np.pi * x / 2) / (x - 1 / x)
+
+# # Generate x values
+# x_values = np.linspace(0., 2, 1000)
+
+# # Calculate corresponding y values
+# y_values = custom_function(x_values)
+
+# # Plot the function
+# plt.plot(x_values, y_values)
+# plt.axhline(y=np.pi/4, color='r', linestyle='--', label='y = sqrt(2)')
+
+# plt.title('Plot of cos(pi*x/2)/(1/x-x)')
+# plt.xlabel('x')
+# plt.ylabel('y')
+# plt.grid(True)
+# plt.show()
+
+## end
+
 d_vals = np.linspace(1, 40, 20) * 1e-6
 
 # print('d_vals:', d_vals)
@@ -64,7 +88,7 @@ Lm_per_len = cap.get_Lm(15e-6)
 l_Rf = 1.85e-3
 l_Rn = 0.75e-3 + 0.35e-3
 l_Gf = 2.4e-3 
-l_Gn = 0.21e-3 + 0.35e-3
+l_Gn = 0.21e-3 + 0.15e-3
 l_c = 0.35e-3 
 
 print('l_Gf + l_Gn:', l_Gf + l_Gn)
@@ -116,7 +140,7 @@ print('omega_p:', omega_p/(2*np.pi*1e9))
 print('omega_f_rule_of_thumb_scaled:', omega_f_rule_of_thumb_scaled/(2*np.pi*1e9))
 print('omega_f_rule_of_thumb_basic:', omega_f_rule_of_thumb_basic/(2*np.pi*1e9))
 
-J_vals_analytic = np.array([J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0) for d_val in d_vals])
+J_vals_analytic = np.array([J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0) for d_val in d_vals])
 print('J_vals_analytic:', J_vals_analytic/(2*np.pi*1e9))
 
 ####
@@ -138,8 +162,8 @@ print('J_vals_analytic:', J_vals_analytic/(2*np.pi*1e9))
 # plt.plot(d_vals * 1e6, 100*(J_vals_analytic-J_vals_exact_circuit)/(J_vals_exact_circuit), color = 'r')
 # plt.show()
 
-J_vals_exact_circuit = np.array([J_coupling(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(5e-6), cap.get_Cm(5e-6), phase_vel=phase_vel, Z0=Z0) for l_c_val in l_c_vals])
-J_vals_analytic = np.array([J_coupling_analytic(l_c_val, l_Gf, l_Gn, l_Rf, cap.get_Cm(5e-6), phase_vel=phase_vel, Z0=Z0) for l_c_val in l_c_vals])
+J_vals_exact_circuit = np.array([J_coupling(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(2.5e-6), cap.get_Cm(2.5e-6), phase_vel=phase_vel, Z0=Z0) for l_c_val in l_c_vals])
+J_vals_analytic = np.array([J_coupling_analytic(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Cm(2.5e-6), phase_vel=phase_vel, Z0=Z0) for l_c_val in l_c_vals])
 
 plt.plot(l_c_vals, J_vals_exact_circuit/(2*np.pi * 1e6), color = 'r')
 plt.plot(l_c_vals, J_vals_analytic/(2*np.pi * 1e6), color = 'g')

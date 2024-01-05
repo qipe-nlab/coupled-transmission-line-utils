@@ -1873,7 +1873,7 @@ def J_coupling_testing2(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, pha
 
     return J_test
 
-def J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
+def J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
     
     #J = lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg)
 
@@ -1884,8 +1884,10 @@ def J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, Cm_per_len, phase_vel=3*10**8/2.5
     #omega_r = 1/np.sqrt(L1 * C1)
 
     L_G = l_c + l_Gf + l_Gn
-
+    L_P = l_c + l_Rf + l_Rn
+    
     omega_r = lambda_quarter_omega(L_G, phase_vel=phase_vel)
+    omega_p = lambda_quarter_omega(L_P, phase_vel=phase_vel)
 
     omega_n = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm_per_len, phase_vel=phase_vel, Z0=Z0, scale_phase_c = False)
 
@@ -1895,15 +1897,31 @@ def J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, Cm_per_len, phase_vel=3*10**8/2.5
 
     #J_test = np.pi **2 /16 * omega_r *(omega_r/omega_n - omega_n/omega_r)**3 / (3-2*(omega_n/omega_r)**2) * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r))**2)
 
-    J_test = 0.5 * np.pi **2 /16 * omega_r *(omega_r/omega_n - omega_n/omega_r)**3 * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r))**2)
+    # J_test = 0.5 * np.pi **2 /16 * omega_r *(omega_r/omega_n - omega_n/omega_r)**3 * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r))**2)
+
+    #print('HIHIHI')
+    #print(np.pi**0.5 / 2)
+
+    #J_test = np.pi **2 / 32 * np.pi**0.5 / 2 *omega_r *(omega_r/omega_n - omega_n/omega_r)**3 * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r))**2)
+    
+    omega_bar = (omega_r + omega_p) / 2
+
+    J_test = np.pi **2 / 32 * omega_bar * (omega_r/omega_n - omega_n/omega_r) * (omega_p/omega_n - omega_n/omega_p) * (omega_bar/omega_n - omega_n/omega_bar) * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r)) * np.cos(omega_n * np.pi / (2*omega_p)))
 
     return J_test
 
-def J_coupling_analytic_by_freqs(omega_r, omega_n, l_c, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
+def J_coupling_analytic_by_freqs(omega_r, omega_p, omega_n, l_c, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
+
+    ### this expression drops order (delta_rp / omega_n)^2 terms
+
+    omega_bar = (omega_r + omega_p) / 2
 
     C_l = 1/(Z0 * phase_vel)
 
-    J_test = np.pi **2 /32 * omega_r *(omega_r/omega_n - omega_n/omega_r)**3 * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r))**2)
+    # print('HIHIHI')
+    # print(np.pi**0.5 / 2)
+
+    J_test = np.pi **2 / 32 * np.pi**0.5 / 2 * omega_bar * (omega_r/omega_n - omega_n/omega_r) * (omega_p/omega_n - omega_n/omega_p) * (omega_bar/omega_n - omega_n/omega_bar) * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r)) * np.cos(omega_n * np.pi / (2*omega_p)))
 
     return J_test
 
