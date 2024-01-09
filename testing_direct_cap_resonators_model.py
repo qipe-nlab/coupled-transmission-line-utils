@@ -17,8 +17,8 @@ from exact_coupled_transmission_line_eqn_solver import *
 
 ### direct lambda/4 resonators model
 
-run_model_A = True
-run_model_B = False
+run_model_A = False
+run_model_B = True
 run_model_C = False
 
 if run_model_A:

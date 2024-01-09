@@ -17,10 +17,10 @@ Cm = cap.get_Cm(d_val)
 Lm = cap.get_Lm(d_val)
 # Lm = 1.31e-9*1e1*2.2
 # Cm = 5e-15*1e3*2.2
-l_Rf = 2.6e-3 * 2
-l_Rn = 0.3e-3 * 2
-l_Gf = 2.4e-3
-l_Gn = 0.25e-3 
+l_Rf = 2.4e-3 * 2
+l_Rn = 0.5e-3 * 2
+l_Gf = 2.3e-3
+l_Gn = 0.5e-3 
 l_c = 0.45e-3 
 
 # omega = 8 * 2*np.pi*1e9
@@ -117,9 +117,9 @@ print('test_omega_2 (GHz):', test_omega_2/(2*np.pi*1e9))
 
 # start!!
 
-omegas = np.arange(6, 11, 0.02) * 1e9 * 2*np.pi
+omegas = np.arange(3, 20, 0.02) * 1e9 * 2*np.pi
 
-test_Z_transfer_exact = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65, receiver_type='lambda/2')
+test_Z_transfer_exact = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65, receiver_type='lambda/2', receiver_side='near')
 
 # test_Z_transfer_weak_coupling = Z_transfer_weak_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65)
 

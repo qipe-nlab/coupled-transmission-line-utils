@@ -924,7 +924,7 @@ def find_notch_filter_char_impedance_LE_coupling(l_Gf, l_Gn, l_Rf, l_Rn, Lc, Cc,
 ### Z matrix transfer functions ###
 ###################################
 
-def Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omegas, phase_vel=3*10**8/2.5, Z0=65, receiver_type = 'lambda/4'):
+def Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omegas, phase_vel=3*10**8/2.5, Z0=65, receiver_type = 'lambda/4', receiver_side = 'near'):
 
     C_val, L_val = transmission_line_C_and_L(phase_vel, Z0)
 
@@ -943,7 +943,7 @@ def Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per
     I_sols_n_arr = []
     I_sols_f_arr = []
     V_from_input_I_arr = []
-    Rn_tl_voltage_scale_factor_arr = []
+    tl_voltage_scale_factor_arr = []
     Z_input_exact_arr = []
 
     # if type(omegas) is not list() or type(omegas) is not np.array():
@@ -995,10 +995,17 @@ def Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per
         V_from_input_I_arr.append(V_from_input_I)
 
         tau_Rn = l_Rn/phase_vel
+        tau_Rf = l_Rf/phase_vel
 
-        Rn_tl_voltage_scale_factor = 1/np.cos(tau_Rn*omega)
+        if receiver_side == 'near':
 
-        Rn_tl_voltage_scale_factor_arr.append(Rn_tl_voltage_scale_factor)
+            tl_voltage_scale_factor = 1/np.cos(tau_Rn*omega)
+
+        if receiver_side == 'far':
+        
+            tl_voltage_scale_factor = 1/np.cos(tau_Rf*omega)
+
+        tl_voltage_scale_factor_arr.append(tl_voltage_scale_factor)
 
     # print('V_sols_n_arr:', V_sols_n_arr)
     # print('V_sols_f_arr:', V_sols_f_arr)
@@ -1006,13 +1013,17 @@ def Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per
     V_sols_n_arr = np.array(V_sols_n_arr)    
     V_sols_f_arr = np.array(V_sols_f_arr)
     V_from_input_I_arr = np.array(V_from_input_I_arr)
-    Rn_tl_voltage_scale_factor_arr = np.array(Rn_tl_voltage_scale_factor_arr)
+    tl_voltage_scale_factor_arr = np.array(tl_voltage_scale_factor_arr)
 
     Z_input_exact_arr = np.array(Z_input_exact_arr)
 
     ## take the imag part to remove tiny numerical errors
 
-    Z_transfer_exact = 1j*np.imag(Rn_tl_voltage_scale_factor_arr * V_from_input_I_arr * V_sols_n_arr[:, -1])
+    if receiver_side == 'near':
+        Z_transfer_exact = 1j*np.imag(tl_voltage_scale_factor_arr * V_from_input_I_arr * V_sols_n_arr[:, -1])
+
+    if receiver_side == 'far':
+        Z_transfer_exact = 1j*np.imag(tl_voltage_scale_factor_arr * V_from_input_I_arr * V_sols_f_arr[:, -1])
 
     return Z_transfer_exact
 
