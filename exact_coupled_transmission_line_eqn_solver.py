@@ -1693,44 +1693,6 @@ def k_readout(C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_
 
     return val
 
-def J_coupling_testing(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
-
-    ## Scaled dimensional guess. Sort of works.
-
-    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
-    
-    #J = lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg)
-
-    omega_r = 1/np.sqrt(L1 * C1)
-    omega_n = 1/np.sqrt(Lg * Cg)
-
-    Z_transfer_differential_val = Z_transfer_differential(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega_n, phase_vel=phase_vel, Z0=Z0, delta_omega = 15 * 2*np.pi)
-
-    print('Z_transfer_differential_exact_val:', Z_transfer_differential_val)
-
-    J_test = 1j * np.pi/8 * omega_r * (omega_r - omega_n) * (omega_r/omega_n - omega_n/omega_r)**2 * Z_transfer_differential_val / Z0
-
-    #J_test = 1j * np.pi/8 * omega_r * omega_n * (omega_r/omega_n - omega_n/omega_r)**2 * Z_transfer_differential_val / Z0
-
-    return J_test
-
-def J_coupling_testing2(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
-
-    ## Scaled dimensional guess. Sort of works.
-
-    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
-    
-    #J = lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg)
-
-    omega_r = 1/np.sqrt(L1 * C1)
-    omega_n = 1/np.sqrt(Lg * Cg)
-
-    Z_transfer_differential_val = Z_transfer_differential_test6(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega_n, phase_vel=3*10**8/2.5, Z0=65, delta_omega = 15 * 2*np.pi)
-
-    J_test =  1j *np.pi/8 * omega_r * (omega_r - omega_n) * (omega_r/omega_n - omega_n/omega_r)**2 * Z_transfer_differential_val / Z0
-
-    return J_test
-
 def J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65, receiver_type = 'lambda/4'):
     
     #J = lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg)
