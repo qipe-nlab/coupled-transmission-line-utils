@@ -34,8 +34,8 @@ Lm_per_len = cap.get_Lm(8e-6)
 
 l_Rf = 1.55e-3
 l_Rn = 0.7e-3
-l_Gf = 2.2e-3
-l_Gn = 0.01e-3
+l_Gf = 1.7e-3
+l_Gn = 0.51e-3
 l_c = 0.5e-3
 
 # l_Rf = 1.85e-3
@@ -104,7 +104,7 @@ plt.plot(J_vals_analytic_raw/(2*np.pi*1e6), color = 'b')
 plt.plot(J_vals_analytic_simplified/(2*np.pi*1e6), color = 'g', linestyle = '--')
 plt.show()
 
-sys.exit()
+#sys.exit()
 
 l_c_exp = 340e-6 
 s_exp = 5e-6
@@ -128,10 +128,11 @@ s_exp = 3.8e-6
 l_c_exp = 330e-6 
 omega_n_exp = 9.1*2*np.pi*1e9
 omega_r_exp = 10.650*2*np.pi*1e9
+omega_p_exp = 10.650*2*np.pi*1e9
 
 Cm_per_len_exp = cap.get_Cm(s_exp)
 
-exp_J_analytic_prediction = J_coupling_analytic_by_freqs(omega_r_exp, omega_n_exp, l_c_exp, Cm_per_len_exp, phase_vel=phase_vel, Z0=Z0)
+exp_J_analytic_prediction = J_coupling_analytic_by_freqs(omega_r_exp, omega_p_exp, omega_n_exp, l_c_exp, Cm_per_len_exp, phase_vel=phase_vel, Z0=Z0)
 
 print('exp_J_analytic_prediction (MHz):', exp_J_analytic_prediction / (2*np.pi*1e6))
 
@@ -147,7 +148,7 @@ print('exp_J_analytic_prediction (MHz):', exp_J_analytic_prediction / (2*np.pi*1
 # print('Z_diff7:', Z_diff7)
 
 J_vals_exact_circuit = np.array([J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(d_val), cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0) for d_val in d_vals])
-J_vals_analytic = np.array([J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0) for d_val in d_vals])
+J_vals_analytic = np.array([J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0) for d_val in d_vals])
 
 plt.plot(d_vals * 1e6, J_vals_exact_circuit/(2*np.pi * 1e6), color = 'r')
 plt.plot(d_vals * 1e6, J_vals_analytic/(2*np.pi * 1e6), color = 'g')
@@ -157,7 +158,7 @@ plt.plot(d_vals * 1e6, 100*(J_vals_analytic-J_vals_exact_circuit)/(J_vals_exact_
 plt.show()
 
 J_vals_exact_circuit = np.array([J_coupling(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(10e-6), cap.get_Cm(10e-6), phase_vel=phase_vel, Z0=Z0) for l_c_val in l_c_vals])
-J_vals_analytic = np.array([J_coupling_analytic(l_c_val, l_Gf, l_Gn, l_Rf, cap.get_Cm(10e-6), phase_vel=phase_vel, Z0=Z0) for l_c_val in l_c_vals])
+J_vals_analytic = np.array([J_coupling_analytic(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Cm(10e-6), phase_vel=phase_vel, Z0=Z0) for l_c_val in l_c_vals])
 
 plt.plot(l_c_vals, J_vals_exact_circuit/(2*np.pi * 1e6), color = 'r')
 plt.plot(l_c_vals, J_vals_analytic/(2*np.pi * 1e6), color = 'g')

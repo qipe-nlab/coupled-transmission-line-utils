@@ -8,7 +8,7 @@ import cap_util as cap
 phase_vel = 3*10**8/2.5
 Z0 = 65
 
-d_val = 6e-6 # 12.5*1e-6 # separation between the coupled sections
+d_val = 10e-6 # 12.5*1e-6 # separation between the coupled sections
 
 Cm = cap.get_Cm(d_val)
 Lm = cap.get_Lm(d_val)
@@ -56,7 +56,7 @@ test_notch_freq = find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, C
 
 # test_notch_freq_analytic = find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=phase_vel, Z0=Z0)
 
-test_notch_freq_rule_of_thumb = notch_filter_frequency_rule_of_thumb(l_c, l_Gf,l_Rf, phase_vel=phase_vel, Z0=Z0)
+test_notch_freq_rule_of_thumb = notch_filter_frequency_rule_of_thumb(l_c, l_Gf,l_Rf, Cm, phase_vel=phase_vel, Z0=Z0)
 
 test_omega_1 = lambda_quarter_omega(l_c + l_Gf + l_Gn, phase_vel=phase_vel)
 
@@ -216,9 +216,9 @@ plt.show()
 enhancement_factor = test_T1_radiative_exact/test_T1_radiative_equivalent_LE_circuit_without_notch
 enhancement_factor_approx = test_T1_radiative_equivalent_LE_circuit/test_T1_radiative_equivalent_LE_circuit_without_notch
 
-test_enhancement_factor = notch_enhancement_bandwidth(l_c, l_Gf, l_Gn, l_Rf, l_Rn, T1_enhancement_fact = 10, phase_vel = 3*10**8/2.5)
+test_enhancement_bandwidth = notch_enhancement_bandwidth(l_c, l_Gf, l_Gn, l_Rf, l_Rn, T1_enhancement_fact = 10, phase_vel = 3*10**8/2.5)
 
-print('test_enhancement_factor (GHz):', test_enhancement_factor / (2*np.pi*1e9))
+print('test_enhancement_bandwidth (GHz):', test_enhancement_bandwidth / (2*np.pi*1e9))
 
 plt.plot(omegas/(2*np.pi * 1e9), enhancement_factor, color = 'r')
 plt.plot(omegas/(2*np.pi * 1e9), enhancement_factor_approx, color = 'b')
@@ -229,6 +229,9 @@ omega_p = lambda_quarter_omega(l_c + l_Rf + l_Rn, phase_vel=phase_vel)
 predicted_notch_enhancement = enhancement_factor_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, omegas)
 plt.plot(omegas/(2*np.pi * 1e9), predicted_notch_enhancement, color = 'g')
 
+exact_bandwidth = find_notch_enhancement_bandwidth(omegas, enhancement_factor, 10)
+
+print('exact_bandwidth (GHz):', exact_bandwidth / (2*np.pi*1e9))
 
 plt.hlines(10, 6, 11, color = 'k', linestyle = '--')
 plt.yscale('log')

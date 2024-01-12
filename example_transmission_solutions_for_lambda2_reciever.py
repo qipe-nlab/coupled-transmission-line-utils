@@ -20,12 +20,12 @@ Lm = cap.get_Lm(d_val)
 # l_Rf = 2.3e-3 * 2
 # l_Rn = 0.6e-3 * 2
 
-l_Rf = 1.4e-3 * 2
-l_Rn = 1.5e-3 * 2
+l_Rf = 1.9e-3 * 2
+l_Rn = 1.0e-3 * 2
 
 l_Gf = 2.6e-3
-l_Gn = 0.2e-3 
-l_c = 0.25e-3 
+l_Gn = 0.2e-3
+l_c = 0.25e-3
 
 # omega = 8 * 2*np.pi*1e9
 #C = 100 * 1e-15

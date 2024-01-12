@@ -3,6 +3,7 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+import warnings
 
 #######################
 ### Basic functions ###
@@ -1846,3 +1847,21 @@ def notch_enhancement_bandwidth(l_c, l_Gf, l_Gn, l_Rf, l_Rn, T1_enhancement_fact
 
     return bandwidth_val
 
+def find_notch_enhancement_bandwidth(omegas, enhancement_factors, bandwidth_threshold):
+
+    idx = np.argwhere(np.diff(np.sign(enhancement_factors - bandwidth_threshold))).flatten()
+
+    omega_vals = omegas[idx]
+
+    print('omega_vals:', omega_vals)
+
+    if len(omega_vals)<2:
+        warnings.warn("Could not find two frequencies that intercept with the bandwidth_threshold so returning a nan")
+        enhancement_bandwidth = np.nan
+    elif len(omega_vals)>2:
+        warnings.warn("Found more than two frequencies that intercept with the bandwidth_threshold so using the first two")
+        enhancement_bandwidth = np.abs(omega_vals[1] - omega_vals[0])
+    else:
+        enhancement_bandwidth = np.abs(omega_vals[1] - omega_vals[0])
+
+    return enhancement_bandwidth
