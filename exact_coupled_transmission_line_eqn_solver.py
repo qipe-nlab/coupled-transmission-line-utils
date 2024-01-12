@@ -1154,7 +1154,6 @@ def S_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per
 
     return S_mat
 
-
 #################################################
 ###      Distributed Element Calculations     ###
 ### 2 capacitively coupled transmission lines ###
@@ -1748,7 +1747,7 @@ def J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, phase_vel=3*10*
     omega_r = lambda_quarter_omega(L_G, phase_vel=phase_vel)
     omega_p = lambda_quarter_omega(L_P, phase_vel=phase_vel)
 
-    omega_n = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm_per_len, phase_vel=phase_vel, Z0=Z0, scale_phase_c = False)
+    omega_n = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, phase_vel=phase_vel, Z0=Z0)
 
     if receiver_type == 'lambda/2':
         omega_n = 2 * omega_n
