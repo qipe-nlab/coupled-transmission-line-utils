@@ -626,11 +626,12 @@ def find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, ph
 
     return val
 
-def notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm, phase_vel=3*10**8/2.5, Z0=65, scale_phase_c = True):
+def notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm = None, phase_vel=3*10**8/2.5, Z0=65):
 
     Cl, Ll= transmission_line_C_and_L(phase_vel, Z0)
 
-    if scale_phase_c:
+    if Cm is not None:
+        # add the effect of the scaled v_c. For weak coupling it is a small effect.
 
         phase_vel_c = omega_r(Cl + Cm, Ll)
 
@@ -645,7 +646,7 @@ def notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm, phase_vel=3*10**8/
 
     return omega
 
-def Z_input_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega, phase_vel=3*10**8/2.5, Z0=65, Zline = 50, C_env = 0):
+def Z_input_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50, C_env = 0):
 
     C_val, L_val = transmission_line_C_and_L(phase_vel, Z0)
 
@@ -659,22 +660,40 @@ def Z_input_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, o
 
     C_Maxwell_test = C_mutual_to_Maxwell(C_mutual_test)
 
-    Z_env = Zline + Zcap(C_env, omega)
+    print('omegas:', omegas)
+    print('np.size(omegas):', np.size(omegas))
 
-    Z_nb = np.diag(np.array([0, Z_input_tl(Z0, Z_env, phase_vel, l_Rn, omega)]))
-    Z_fb = np.diag(np.array([Z_short_tl(Z0, phase_vel, l_Gf, omega), Z_short_tl(Z0, phase_vel, l_Rf, omega)]))
+    if np.size(omegas) == 1 and type(omegas) is not np.array:
+        omegas = np.array([omegas])
 
-    Vs_nb = np.array([1,0])
-    Vs_fb = np.array([0,0])
+    Z_input_total_exact = []
 
-    #print('111')
-    V_sols_n, V_sols_f, I_sols_n, I_sols_f = V_I_solutions_sym_three(C_Maxwell_test, L_test, Z_nb, Z_fb, Vs_nb, Vs_fb, l_c, omega)
+    for omega in omegas:
 
-    Z_input_coupled_system = V_sols_n[0] / I_sols_n[0]
+        Z_env = Zline + Zcap(C_env, omega)
 
-    Z_input_total_exact_val = Z_input_tl(Z0, Z_input_coupled_system, phase_vel, l_Gn, omega)
+        Z_nb = np.diag(np.array([0, Z_input_tl(Z0, Z_env, phase_vel, l_Rn, omega)]))
+        Z_fb = np.diag(np.array([Z_short_tl(Z0, phase_vel, l_Gf, omega), Z_short_tl(Z0, phase_vel, l_Rf, omega)]))
 
-    return Z_input_total_exact_val
+        Vs_nb = np.array([1,0])
+        Vs_fb = np.array([0,0])
+
+        V_sols_n, V_sols_f, I_sols_n, I_sols_f = V_I_solutions_sym_three(C_Maxwell_test, L_test, Z_nb, Z_fb, Vs_nb, Vs_fb, l_c, omega)
+
+        Z_input_coupled_system = V_sols_n[0] / I_sols_n[0]
+
+        Z_input_total_exact_val = Z_input_tl(Z0, Z_input_coupled_system, phase_vel, l_Gn, omega)
+
+        Z_input_total_exact.append(Z_input_total_exact_val)
+
+    Z_input_total_exact = np.array(Z_input_total_exact)
+
+    if np.size(omegas) == 1 and type(omegas) is not np.array:
+        Z_input_total_exact = Z_input_total_exact[0]
+
+    print('Z_input_total_exact:', Z_input_total_exact)
+
+    return Z_input_total_exact
 
 ############################
 ### Lumped Element Model ###
@@ -1100,6 +1119,41 @@ def Z_transfer_equivalent_LE_circuit_LE_coupling(l_Gf, l_Gn, l_Rf, l_Rn,  Lc, Cc
     val = lumped_model_Z_transmission(omega, C1, L1, C2, L2, Cg, Lg)
 
     return val
+
+## S matrix
+
+def S_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omegas, phase_vel=3*10**8/2.5, Z0=65, Zport = 50, receiver_type = 'lambda/4'):
+
+    Ztrans = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omegas, phase_vel=phase_vel, Z0=Z0, receiver_type = receiver_type)
+
+    Zinput = []
+
+    for omega in omegas:
+
+        Zin = Z_input_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega, phase_vel=3*10**8/2.5, Z0=65, Zline = 50, C_env = 0)
+
+        Zinput.append(Zin)
+
+    Zinput = np.array(Zinput)
+
+    I_mat = np.diag([1,1])
+    sqrt_Z_char_mat = np.diag([np.sqrt(Zport),np.sqrt(Zport)])
+    sqrt_Y_char_mat = np.diag([1/np.sqrt(Zport),1/np.sqrt(Zport)])
+    #print('Z_mat:', Zinput)
+
+    S_mat = []
+
+    for Zin, Ztr in zip(Zinput,Ztrans):
+
+        Z_mat = np.array([[Zin, Ztr],[Ztr, Zin]])
+        S_m =  np.linalg.inv(sqrt_Y_char_mat@Z_mat@sqrt_Y_char_mat + I_mat)@(sqrt_Y_char_mat@Z_mat@sqrt_Y_char_mat - I_mat)
+
+        S_mat.append(S_m)
+
+    S_mat = np.array(S_mat)
+
+    return S_mat
+
 
 #################################################
 ###      Distributed Element Calculations     ###
@@ -1529,55 +1583,9 @@ def get_lumped_elements_direct_cap_C(l_Gf, l_Gn, l_Rf, l_Rn, Cm, phase_vel=3*10*
 
 def qubit_radiative_decay_sym_3_lines_exact(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50):
 
-    C_val, L_val = transmission_line_C_and_L(phase_vel, Z0)
+    Z_input_exact = Z_input_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omegas, phase_vel=phase_vel, Z0=Z0, Zline = Zline, C_env = C_ext)
 
-    Cm = Cm_per_len
-
-    Lm = Lm_per_len
-
-    C_mutual_test = np.array([[C_val, Cm], [Cm, C_val]])
-
-    C_Maxwell_test = C_mutual_to_Maxwell(C_mutual_test)
-
-    L_test = np.array([[L_val, Lm],[Lm, L_val]])
-
-    V_sols_n_arr = []
-    V_sols_f_arr = []
-    I_sols_n_arr = []
-    I_sols_f_arr = []
-    Z_input_exact_arr = []
-
-    if len(omegas) == 0:
-        omegas = [omegas]
-
-    for omega in omegas:
-
-        Z_input_exact = Z_input_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega, phase_vel=phase_vel, Z0=Z0, Zline = Zline, C_env = C_ext)
-
-        # Z_env = Zline + Zcap(C_ext, omega)
-
-        # Z_nb = np.diag(np.array([0, Z_input_tl(Z0, Z_env, phase_vel, l_Rn, omega)]))
-        # Z_fb = np.diag(np.array([Z_short_tl(Z0, phase_vel, l_Gf, omega), Z_short_tl(Z0, phase_vel, l_Rf, omega)]))
-
-        # Vs_nb = np.array([1,0])
-        # Vs_fb = np.array([0,0])
-
-        # #print('111')
-        # V_sols_n, V_sols_f, I_sols_n, I_sols_f = V_I_solutions_sym_three(C_Maxwell_test, L_test, Z_nb, Z_fb, Vs_nb, Vs_fb, l_c, omega)
-
-        # V_sols_n_arr.append(V_sols_n)
-        # V_sols_f_arr.append(V_sols_f)
-
-        # I_sols_n_arr.append(I_sols_n)
-        # I_sols_f_arr.append(I_sols_f)
-
-        # Z_input_exact = V_sols_n[0] / I_sols_n[0]
-
-        Z_input_exact_arr.append(Z_input_exact)
-
-    Z_input_total_exact = np.array([Z_input_tl(Z0, Z_input_exact_arr[i], phase_vel, l_Gn, omega) for i, omega in enumerate(omegas)])
-
-    Zq_env = Zcap(C_g, omegas) + Z_input_total_exact
+    Zq_env = Zcap(C_g, omegas) + Z_input_exact
 
     T1 = qubit_radiative_T1(C_q, Zq_env)
 
@@ -1854,3 +1862,48 @@ def get_eff_C_ext_from_k(Cr, Lr, Zline, k_readout):
     val =  np.sqrt(k_readout / (Zline / (Cr**2 * Lr)))
     
     return val
+
+def enhancement_factor_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, omegas, phase_vel = 3*10**8/2.5):
+    ## returns the predicted enhancement to T1 that comes from using the ind-cap coupling design
+    ## vs using a direct capacitive coupling design with the same J coupling between the resonators
+    ## only valid for omegas near the notch frequency
+
+    omega_r = lambda_quarter_omega(l_c + l_Gf + l_Gn, phase_vel=phase_vel)
+    omega_p = lambda_quarter_omega(l_c + l_Rf + l_Rn, phase_vel=phase_vel)
+    omega_n = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf)
+
+    delta = omegas - omega_n
+    omega_bar = (omega_r + omega_p)/ 2
+
+    ## first order
+    Z21_ratios =  (2*delta) / (omega_n*((omega_n/omega_bar)**2 -1))
+
+    ## more accurate
+    #Z21_ratios =  (omega_n/omegas - omegas/omega_n)/omegas * omega_bar/(omega_n/omega_bar - omega_bar/omega_n)
+
+    T1_enhancement = 1/Z21_ratios**2
+
+    return T1_enhancement
+
+def notch_enhancement_bandwidth_by_omegas(omega_n, omega_r, omega_p, T1_enhancement_fact = 10):
+
+    omega_bar = (omega_r + omega_p)/ 2
+
+    factor = 1/np.sqrt(T1_enhancement_fact)
+    
+    bandwidth_val = factor * omega_n*(1 - (omega_n/omega_bar)**2)
+
+    return bandwidth_val
+
+def notch_enhancement_bandwidth(l_c, l_Gf, l_Gn, l_Rf, l_Rn, T1_enhancement_fact = 10, phase_vel = 3*10**8/2.5):
+    ## returns the predicted bandwidth of the enhancement to T1 that comes from using the ind-cap coupling design
+    ## vs using a direct capacitive coupling design with the same J coupling between the resonators
+
+    omega_r = lambda_quarter_omega(l_c + l_Gf + l_Gn, phase_vel=phase_vel)
+    omega_p = lambda_quarter_omega(l_c + l_Rf + l_Rn, phase_vel=phase_vel)
+    omega_n = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf)
+
+    bandwidth_val = notch_enhancement_bandwidth_by_omegas(omega_n, omega_r, omega_p, T1_enhancement_fact = T1_enhancement_fact)
+
+    return bandwidth_val
+

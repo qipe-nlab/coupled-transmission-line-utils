@@ -8,16 +8,16 @@ import cap_util as cap
 phase_vel = 3*10**8/2.5
 Z0 = 65
 
-d_val = 12.5*1e-6 # separation between the coupled sections
+d_val = 10e-6 # 12.5*1e-6 # separation between the coupled sections
 
 Cm = cap.get_Cm(d_val)
 Lm = cap.get_Lm(d_val)
 
 l_Rf = 1.5e-3
 l_Rn = 1.16e-3
-l_Gf = 1.65e-3
-l_Gn = 1e-3
-l_c = 0.35e-3
+l_Gf = 2e-3
+l_Gn = 0.7e-3
+l_c = 0.3e-3
 
 L_readout = l_Gn + l_c + l_Gf
 
@@ -122,9 +122,21 @@ print('test_omega_1 (GHz):', test_omega_1/(2*np.pi*1e9))
 print('test_omega_2 (GHz):', test_omega_2/(2*np.pi*1e9))
 # print('test_J_val (MHz):', test_J_val/(2*np.pi*1e6))
 
-omegas = np.arange(7.5, 11, 0.02) * 1e9 * 2*np.pi
+omegas = np.arange(6.5, 11, 0.02) * 1e9 * 2*np.pi
 
 test_Z_transfer_exact = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
+
+test_S_transfer_sym_3_lines_exact = S_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
+
+print('test_S_transfer_sym_3_lines_exact:', test_S_transfer_sym_3_lines_exact)
+
+S_transfer = test_S_transfer_sym_3_lines_exact[:, 0, 1]
+
+print('S_transfer:', S_transfer)
+
+plt.plot(omegas/(2*np.pi*1e9), np.abs(S_transfer))
+plt.yscale('log')
+plt.show()
 
 test_Z_transfer_weak_coupling = Z_transfer_weak_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
 
@@ -184,7 +196,7 @@ C_q = 50e-15
 
 ### param set 1: for high freq range
 C_g = 5.5e-15 #3.65e-15
-C_ext = 24e-15
+C_ext = 10e-15 #24e-15
 
 ### param set 2: for low freq range
 # C_g = 6e-15
@@ -208,7 +220,7 @@ test_T1_radiative_equivalent_LE_circuit_without_notch = qubit_radiative_decay_eq
 test_T1_radiative_equivalent_LE_circuit_single_resonator = qubit_radiative_decay_equivalent_LE_circuit_single_resonator(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
 
 plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_exact * 1e3, color = 'k', label = 'with intrinsic notch')
-#plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_equivalent_LE_circuit * 1e6, color = 'r', linestyle = '--')
+plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_equivalent_LE_circuit * 1e3, color = 'r', linestyle = '--')
 plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_equivalent_LE_circuit_without_notch * 1e3, color = 'r', linestyle = '--', label = 'without intrinsic notch')
 # plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_equivalent_LE_circuit_single_resonator * 1e3, color = 'b', linestyle = '--', label = 'equiv. single resonator circuit')
 
@@ -235,4 +247,25 @@ for axis in ['top','bottom','left','right']:
 ax.tick_params(width=3)
 plt.tight_layout()
 
+plt.show()
+
+enhancement_factor = test_T1_radiative_exact/test_T1_radiative_equivalent_LE_circuit_without_notch
+enhancement_factor_approx = test_T1_radiative_equivalent_LE_circuit/test_T1_radiative_equivalent_LE_circuit_without_notch
+
+test_enhancement_factor = notch_enhancement_bandwidth(l_c, l_Gf, l_Gn, l_Rf, l_Rn, T1_enhancement_fact = 10, phase_vel = 3*10**8/2.5)
+
+print('test_enhancement_factor (GHz):', test_enhancement_factor / (2*np.pi*1e9))
+
+plt.plot(omegas/(2*np.pi * 1e9), enhancement_factor, color = 'r')
+plt.plot(omegas/(2*np.pi * 1e9), enhancement_factor_approx, color = 'b')
+
+omega_r = lambda_quarter_omega(l_c + l_Gf + l_Gn, phase_vel=phase_vel)
+omega_p = lambda_quarter_omega(l_c + l_Rf + l_Rn, phase_vel=phase_vel)
+
+predicted_notch_enhancement = enhancement_factor_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, omegas)
+plt.plot(omegas/(2*np.pi * 1e9), predicted_notch_enhancement, color = 'g')
+
+
+plt.hlines(10, 6, 11, color = 'k', linestyle = '--')
+plt.yscale('log')
 plt.show()
