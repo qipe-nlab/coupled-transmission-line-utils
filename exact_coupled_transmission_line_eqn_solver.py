@@ -1693,16 +1693,8 @@ def k_readout(C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_
 
     return val
 
-def J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65, receiver_type = 'lambda/4'):
+def J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65, receiver_type = 'lambda/4', simplified = True):
     
-    #J = lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg)
-
-    #omega_r = 1/np.sqrt(L1 * C1)
-
-    #omega_n = 1/np.sqrt(Cg * Lg)
-
-    #omega_r = 1/np.sqrt(L1 * C1)
-
     L_G = l_c + l_Gf + l_Gn
     L_P = l_c + l_Rf + l_Rn
     
@@ -1717,43 +1709,32 @@ def J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, phase_vel=3*10*
 
     C_l = 1/(Z0 * phase_vel)
 
-    #J_test = np.pi **2 /16 * omega_r * (omega_r/omega_n - 1) * (omega_r/omega_n - omega_n/omega_r)**2 * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r))**2)
-
-    #J_test = np.pi **2 /16 * omega_r *(omega_r/omega_n - omega_n/omega_r)**3 / (3-2*(omega_n/omega_r)**2) * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r))**2)
-
-    # J_test = 0.5 * np.pi **2 /16 * omega_r *(omega_r/omega_n - omega_n/omega_r)**3 * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r))**2)
-
-    #print('HIHIHI')
-    #print(np.pi**0.5 / 2)
-
-    #J_test = np.pi **2 / 32 * np.pi**0.5 / 2 *omega_r *(omega_r/omega_n - omega_n/omega_r)**3 * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r))**2)
-    
-    omega_bar = (omega_r + omega_p) / 2
-
     if receiver_type == 'lambda/4':
 
-        J_val = np.pi **2 / 32 * omega_bar * (omega_r/omega_n - omega_n/omega_r) * (omega_p/omega_n - omega_n/omega_p) * (omega_bar/omega_n - omega_n/omega_bar) * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r)) * np.cos(omega_n * np.pi / (2*omega_p)))
-
+        J_val = J_coupling_analytic_by_freqs(omega_r, omega_p, omega_n, l_c, Cm_per_len, phase_vel=phase_vel, Z0=Z0, simplified = simplified)
+    
     if receiver_type == 'lambda/2':
 
         J_val = np.pi **2 / 16 * omega_bar * (omega_r/omega_n - omega_n/omega_r) * (omega_p/omega_n - omega_n/omega_p) * (omega_bar/omega_n - omega_n/omega_bar) * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r)) * np.sin(omega_n * np.pi / (omega_p)))
 
     return J_val
 
-def J_coupling_analytic_by_freqs(omega_r, omega_p, omega_n, l_c, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
-
-    ### this expression drops order (delta_rp / omega_n)^2 terms
-
-    omega_bar = (omega_r + omega_p) / 2
+def J_coupling_analytic_by_freqs(omega_r, omega_p, omega_n, l_c, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65, simplified = True):
 
     C_l = 1/(Z0 * phase_vel)
 
-    # print('HIHIHI')
-    # print(np.pi**0.5 / 2)
+    if simplified:
+        ## return the solution ignoring second order terms in the parameter delta_rp/omega_n
+        
+        omega_bar = (omega_r + omega_p) / 2
 
-    J_test = np.pi **2 / 32 * np.pi**0.5 / 2 * omega_bar * (omega_r/omega_n - omega_n/omega_r) * (omega_p/omega_n - omega_n/omega_p) * (omega_bar/omega_n - omega_n/omega_bar) * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r)) * np.cos(omega_n * np.pi / (2*omega_p)))
+        J_val = np.pi **2 / 32 * omega_bar * (omega_bar/omega_n - omega_n/omega_bar)**3 * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_bar)))**2
+    
+    else:
+        ## return the exact solution to Solgun's simple impedance formula
+        J_val = (np.pi * omega_r * omega_p / 8)**2 * (omega_r/omega_n - omega_n/omega_r) * (omega_p/omega_n - omega_n/omega_p) * ((omega_r/omega_n - omega_n/omega_r)/omega_r**3 + (omega_p/omega_n - omega_n/omega_p)/omega_p**3) * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r)) * np.cos(omega_n * np.pi / (2*omega_p)))
 
-    return J_test
+    return J_val
 
 ######################
 ### User functions ###

@@ -83,10 +83,16 @@ Lm_per_len = cap.get_Lm(10e-6)
 # l_Gn = 0.21e-3
 # l_c = 0.45e-3 * 1
 
-l_Rf = 1.65e-3
-l_Rn = 0.6e-3
-l_Gf = 2.2e-3
-l_Gn = 0.06e-3
+# l_Rf = 1.65e-3
+# l_Rn = 0.6e-3
+# l_Gf = 2.2e-3
+# l_Gn = 0.06e-3
+# l_c = 0.45e-3*1
+
+l_Rf = 1.05e-3
+l_Rn = 1.2e-3
+l_Gf = 1.2e-3
+l_Gn = 1.06e-3
 l_c = 0.45e-3*1
 
 # phase_vel_c = 1/(np.sqrt(Ll*(Cl + Cm_per_len)))
@@ -127,8 +133,8 @@ omega_p = lambda_quarter_omega(cpw_length_R, phase_vel=phase_vel)
 
 omega_f_analytic = find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=phase_vel, Z0=Z0, search_span=2*2*np.pi*10**9, search_spacing=(2.5*2*np.pi*10**6))
 
-omega_f_rule_of_thumb_scaled = notch_filter_frequency_rule_of_thumb(l_c, l_Gf,l_Rf, Cm_per_len, phase_vel=phase_vel, Z0=Z0, scale_phase_c = True)
-omega_f_rule_of_thumb_basic = notch_filter_frequency_rule_of_thumb(l_c, l_Gf,l_Rf, Cm_per_len, phase_vel=phase_vel, Z0=Z0, scale_phase_c = False)
+omega_f_rule_of_thumb_scaled = notch_filter_frequency_rule_of_thumb(l_c, l_Gf,l_Rf, Cm_per_len, phase_vel=phase_vel, Z0=Z0)
+omega_f_rule_of_thumb_basic = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, phase_vel=phase_vel, Z0=Z0)
 
 print('omega_r:', omega_r/(2*np.pi*1e9))
 print('omega_p:', omega_p/(2*np.pi*1e9))
@@ -138,8 +144,16 @@ print('omega_f_rule_of_thumb_basic:', omega_f_rule_of_thumb_basic/(2*np.pi*1e9))
 J_vals_solve_eq_c = np.array([J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(d), cap.get_Cm(d), phase_vel=phase_vel, Z0=Z0) for d in d_vals])
 print('J_vals_solve_eq_c:', J_vals_solve_eq_c/(2*np.pi*1e9))
 
-J_vals_analytic = np.array([J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0) for d_val in d_vals])
-print('J_vals_analytic:', J_vals_analytic/(2*np.pi*1e9))
+J_vals_analytic_raw = np.array([J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0, simplified=False) for d_val in d_vals])
+print('J_vals_analytic_raw:', J_vals_analytic_raw/(2*np.pi*1e9))
+
+J_vals_analytic_simplified = np.array([J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0, simplified=True) for d_val in d_vals])
+print('J_vals_analytic_simplified:', J_vals_analytic_simplified/(2*np.pi*1e9))
+
+plt.plot(J_vals_solve_eq_c/(2*np.pi*1e6), color= 'r')
+plt.plot(J_vals_analytic_raw/(2*np.pi*1e6), color = 'b')
+plt.plot(J_vals_analytic_simplified/(2*np.pi*1e6), color = 'g', linestyle = '--')
+plt.show()
 
 sys.exit()
 
