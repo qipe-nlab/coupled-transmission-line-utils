@@ -526,6 +526,8 @@ def Z_trans_along_open_tl(Z0, phase_vel, L, z, omega):
 
 def voltage_at_source_location(Z0, phase_vel, Cm_per_len, l_c, l_Gf, l_Gn, omega):
 
+    ### approximate solution that ignores the backaction from the coupled circuit
+
     Cl, Ll = transmission_line_C_and_L(phase_vel, Z0)
 
     Z0_c = Zchar(Cl + Cm_per_len, Ll)
@@ -547,7 +549,7 @@ def voltage_at_source_location(Z0, phase_vel, Cm_per_len, l_c, l_Gf, l_Gn, omega
 
     v_in = Zinput_n * I_in
 
-    v_out, I_out = transmission_line_voltage_current_out(Z0, tau_n, v_in, I_in)
+    v_out, I_out = transmission_line_voltage_current_out(Z0, tau_n*omega, v_in, I_in)
 
     val = v_out
 
