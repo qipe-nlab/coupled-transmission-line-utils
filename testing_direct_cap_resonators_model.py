@@ -72,7 +72,7 @@ if run_model_B:
 
     Cm = 5e-15
 
-    l_Rf = 2.2e-3*2 #-0.51e-3
+    l_Rf = 2.1e-3*2 #-0.51e-3
     l_Rn = 0.5e-3*2 #-0.51e-3
     l_Gf = 2.2e-3 #-0.51e-3
     l_Gn = 0.5e-3 #- 0.51e-3
@@ -96,8 +96,8 @@ if run_model_B:
 
     CJs = np.linspace(0.2, 5, 10) * 1e-15
 
-    l_Rf = 1.36e-3 * 2
-    l_Rn = 1.35e-3 * 2
+    # l_Rf = 1.36e-3 * 2
+    # l_Rn = 1.35e-3 * 2
 
     J_vals_direct_cap = np.array([J_coupling_direct_cap_B(l_Gf, l_Gn, l_Rf, l_Rn, CJ, phase_vel=phase_vel, Z0=Z0) for CJ in CJs])
     J_vals_direct_symbolic = np.array([J_coupling_direct_cap_analytic_B(l_Gf, l_Gn, l_Rf, l_Rn, CJ, phase_vel=phase_vel, Z0=Z0) for CJ in CJs])
