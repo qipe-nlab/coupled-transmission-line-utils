@@ -82,8 +82,8 @@ Z0 = 65 #65
 Cl = 1/(default_phase_vel * default_Z0)
 Ll = default_Z0/default_phase_vel
 
-Cm_per_len = cap.get_Cm(15e-6)
-Lm_per_len = cap.get_Lm(15e-6)
+Cm_per_len = cap.get_Cm(10e-6)
+Lm_per_len = cap.get_Lm(10e-6)
 
 l_Rf = 1.85e-3
 l_Rn = 0.75e-3 + 0.35e-3
@@ -132,8 +132,8 @@ omega_p = lambda_quarter_omega(cpw_length_R, phase_vel=phase_vel)
 
 omega_f_analytic = find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=phase_vel, Z0=Z0, search_span=2*2*np.pi*10**9, search_spacing=(2.5*2*np.pi*10**6))
 
-omega_f_rule_of_thumb_scaled = notch_filter_frequency_rule_of_thumb(l_c, l_Gf,l_Rf, Cm_per_len, phase_vel=phase_vel, Z0=Z0, scale_phase_c = True)
-omega_f_rule_of_thumb_basic = notch_filter_frequency_rule_of_thumb(l_c, l_Gf,l_Rf, Cm_per_len, phase_vel=phase_vel, Z0=Z0, scale_phase_c = False)
+omega_f_rule_of_thumb_scaled = notch_filter_frequency_rule_of_thumb(l_c, l_Gf,l_Rf, Cm_per_len, phase_vel=phase_vel, Z0=Z0)
+omega_f_rule_of_thumb_basic = notch_filter_frequency_rule_of_thumb(l_c, l_Gf,l_Rf, phase_vel=phase_vel, Z0=Z0)
 
 print('omega_r:', omega_r/(2*np.pi*1e9))
 print('omega_p:', omega_p/(2*np.pi*1e9))
@@ -162,11 +162,13 @@ print('J_vals_analytic:', J_vals_analytic/(2*np.pi*1e9))
 # plt.plot(d_vals * 1e6, 100*(J_vals_analytic-J_vals_exact_circuit)/(J_vals_exact_circuit), color = 'r')
 # plt.show()
 
-J_vals_exact_circuit = np.array([J_coupling(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(2.5e-6), cap.get_Cm(2.5e-6), phase_vel=phase_vel, Z0=Z0) for l_c_val in l_c_vals])
-J_vals_analytic = np.array([J_coupling_analytic(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Cm(2.5e-6), phase_vel=phase_vel, Z0=Z0) for l_c_val in l_c_vals])
+J_vals_exact_circuit = np.array([J_coupling(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(7.5e-6), cap.get_Cm(7.5e-6), phase_vel=phase_vel, Z0=Z0) for l_c_val in l_c_vals])
+J_vals_analytic = np.array([J_coupling_analytic(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Cm(7.5e-6), phase_vel=phase_vel, Z0=Z0) for l_c_val in l_c_vals])
+J_vals_analytic_raw = np.array([J_coupling_analytic(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Cm(7.5e-6), phase_vel=phase_vel, Z0=Z0, simplified=False) for l_c_val in l_c_vals])
 
 plt.plot(l_c_vals, J_vals_exact_circuit/(2*np.pi * 1e6), color = 'r')
 plt.plot(l_c_vals, J_vals_analytic/(2*np.pi * 1e6), color = 'g')
+plt.plot(l_c_vals, J_vals_analytic_raw/(2*np.pi * 1e6), color = 'b')
 plt.show()
 
 plt.plot(l_c_vals, 100*(J_vals_analytic-J_vals_exact_circuit)/(J_vals_exact_circuit), color = 'r')

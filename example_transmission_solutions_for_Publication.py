@@ -8,16 +8,16 @@ import cap_util as cap
 phase_vel = 3*10**8/2.5
 Z0 = 65
 
-d_val = 10e-6 # 12.5*1e-6 # separation between the coupled sections
+d_val = 6e-6 # 12.5*1e-6 # separation between the coupled sections
 
 Cm = cap.get_Cm(d_val)
 Lm = cap.get_Lm(d_val)
 
-l_Rf = 1.5e-3
-l_Rn = 1.16e-3
-l_Gf = 2e-3
-l_Gn = 0.7e-3
-l_c = 0.3e-3
+l_Rf = 1.7e-3
+l_Rn = 0.96e-3
+l_Gf = 1.6e-3
+l_Gn = 1.1e-3
+l_c = 0.25e-3
 
 L_readout = l_Gn + l_c + l_Gf
 
@@ -30,18 +30,6 @@ purcell_omega = lambda_quarter_omega(L_purcell, phase_vel=phase_vel)
 print('readout_omega:', readout_omega / (2*np.pi*1e9))
 print('purcell_omega:', purcell_omega / (2*np.pi*1e9))
 
-# omega = 8 * 2*np.pi*1e9
-#C = 100 * 1e-15
-
-# L = 1/(C*omega**2)
-
-# print('L:', L)
-
-# L = 10 * 1e-9
-
-# C = 1/(L*omega**2)
-
-# print('C:', C)
 
 ### param set 2: for low freq range
 
@@ -66,50 +54,9 @@ print('l_c:', l_c)
 
 test_notch_freq = find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=phase_vel, Z0=Z0)
 
-test_notch_freq_analytic = find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=phase_vel, Z0=Z0)
+# test_notch_freq_analytic = find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=phase_vel, Z0=Z0)
 
-test_notch_freq_rule_of_thumb = notch_filter_frequency_rule_of_thumb(l_c, l_Gf,l_Rf, Cm, phase_vel=phase_vel, Z0=Z0)
-
-# notch_freq_agreement_percent = 100*(test_notch_freq_analytic - test_notch_freq )/ test_notch_freq
-
-# print('notch_freq_agreement_percent:', notch_freq_agreement_percent)
-
-# testing LE coupling between TLs
-# Cc = 250*1e-15
-# Lc = 3e-9
-
-# omegas = np.arange(2, 10, 0.02) * 1e9 * 2*np.pi
-
-# l_Gn = 2.5e-3 * scale_fac
-# l_Gf = 0.4e-3 * scale_fac
-
-# l_Rn = 2.5e-3 * scale_fac
-# l_Rf = 0.4e-3 * scale_fac
-
-# C_gval, L_gval = lumped_model_Cg_and_Lg_LE_coupling(3*10**8/2.5, 65, l_Gf, l_Gn, l_Rf, l_Rn, Lc, Cc)
-
-# print('C_gval, L_gval:', C_gval, L_gval)
-
-# lumped_element_values = get_lumped_elements_LE_coupling(l_Gf, l_Gn, l_Rf, l_Rn, Lc, Cc, phase_vel=3*10**8/2.5, Z0=65)
-
-# test_res_coupling = lumped_model_resonator_coupling(*lumped_element_values)
-
-# print('lumped_element_values:', lumped_element_values)
-
-# print('test_res_coupling (MHz):', test_res_coupling/(2*np.pi*1e6))
-
-# test_Zvals = Z_transfer_LE_coupled_lines(l_Gf, l_Gn, l_Rf, l_Rn, Lc, Cc, omegas, phase_vel=3*10**8/2.5, Z0=65)
-
-# test_Zequiv_vals = Z_transfer_equivalent_LE_circuit(l_Gf, l_Gn, l_Rf, l_Rn, Lc, Cc, omegas, phase_vel=3*10**8/2.5, Z0=65)
-
-# plt.plot(omegas/(2*np.pi*1e9), np.abs(np.imag(test_Zvals)))
-# plt.plot(omegas/(2*np.pi*1e9), np.abs(np.imag(test_Zequiv_vals)), linestyle = '--')
-
-# plt.yscale('log')
-# plt.show()
-# print('test_Zvals:', test_Zvals)
-
-# #sys.exit()
+test_notch_freq_rule_of_thumb = notch_filter_frequency_rule_of_thumb(l_c, l_Gf,l_Rf, phase_vel=phase_vel, Z0=Z0)
 
 test_omega_1 = lambda_quarter_omega(l_c + l_Gf + l_Gn, phase_vel=phase_vel)
 
@@ -126,25 +73,36 @@ omegas = np.arange(6.5, 11, 0.02) * 1e9 * 2*np.pi
 
 test_Z_transfer_exact = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
 
-test_S_transfer_sym_3_lines_exact = S_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
+# test_S_transfer_sym_3_lines_exact = S_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
 
-print('test_S_transfer_sym_3_lines_exact:', test_S_transfer_sym_3_lines_exact)
+# print('test_S_transfer_sym_3_lines_exact:', test_S_transfer_sym_3_lines_exact)
 
-S_transfer = test_S_transfer_sym_3_lines_exact[:, 0, 1]
+# S_transfer = test_S_transfer_sym_3_lines_exact[:, 0, 1]
 
-print('S_transfer:', S_transfer)
+# print('S_transfer:', S_transfer)
 
-plt.plot(omegas/(2*np.pi*1e9), np.abs(S_transfer))
+# plt.plot(omegas/(2*np.pi*1e9), np.abs(S_transfer))
+# plt.yscale('log')
+# plt.show()
+
+Z_test_exact_vals = voltage_at_source_location_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, Z0, phase_vel, omegas)
+Z_test_approx_vals = Z_trans_along_shorted_tl(Z0, phase_vel, l_Gn+l_Gf+l_c, l_Gn, omegas)
+
+plt.plot(omegas/(2*np.pi * 1e9), np.imag(Z_test_exact_vals))
+plt.plot(omegas/(2*np.pi * 1e9), np.imag(Z_test_approx_vals))
 plt.yscale('log')
 plt.show()
+
+Z_test_exact_vals = voltage_at_source_location_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, Z0, phase_vel, test_notch_freq_rule_of_thumb)
+Z_test_approx_vals = Z_trans_along_shorted_tl(Z0, phase_vel, l_Gn+l_Gf+l_c, l_Gn, test_notch_freq_rule_of_thumb)
+
+Z_ratios = Z_test_exact_vals/Z_test_approx_vals
+
+
 
 test_Z_transfer_weak_coupling = Z_transfer_weak_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
 
 test_Z_equiv_LE_circuit = Z_transfer_equivalent_LE_circuit(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
-
-# print('test_Z_transfer_exact:', test_Z_transfer_exact[:10])
-# print('test_Z_transfer_weak_coupling:', test_Z_transfer_weak_coupling[:10])
-# print('test_Z_transfer_equiv_LE_circuit:', test_Z_equiv_LE_circuit[:10])
 
 import seaborn as sns
 hex_codes = sns.color_palette().as_hex()
@@ -206,10 +164,19 @@ omega_q = test_notch_freq
 
 test_g_val = g_coupling(omega_q, C_q, C_g, l_c, l_Gf, l_Gn, phase_vel=3*10**8/2.5, Z0=65)
 test_J_val = J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65)
+test_J_val_symbolic = J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm, phase_vel=3*10**8/2.5, Z0=65)
+
 test_k_val = k_readout(C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
 
 print('test_g_val (MHz):', test_g_val/(2*np.pi*1e6))
 print('test_J_val (MHz):', test_J_val/(2*np.pi*1e6))
+print('test_J_val_symbolic (MHz):', test_J_val_symbolic/(2*np.pi*1e6))
+
+J_ratios = test_J_val/test_J_val_symbolic
+
+print('J_ratios:', J_ratios)
+print('Z_ratios:', Z_ratios)
+
 print('test_k_val (MHz):', test_k_val/(2*np.pi*1e6))
 
 omegas = np.arange(6, 11, 0.02) * 1e9 * 2*np.pi
@@ -237,9 +204,6 @@ ax.tick_params(axis='both', which='major', labelsize=15)
 ax.set_yticks([1e-6,1e-3,1,1e3]) 
 ax.set_yticklabels(['1 ns','1 us','1 ms', '1 s'])
 ax.set_ylim([0.5e-6, 5e3])
-
-# plt.yticks([1e-5,1e-4,1e-2,1e-1,1e1, 1e2],
-#            ['',"", "", "", '', ''], minor=True)
 
 for axis in ['top','bottom','left','right']:
     ax.spines[axis].set_linewidth(2)

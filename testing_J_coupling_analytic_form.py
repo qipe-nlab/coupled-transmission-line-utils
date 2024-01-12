@@ -5,22 +5,6 @@ import matplotlib.pyplot as plt
 import sys
 import cap_util as cap
 
-# def f(x):
-
-#     numerator = (1/x - x)**3
-#     denominator = (np.cos(np.pi * x/2))**2
-
-#     val = numerator/denominator
-
-#     return val
-
-# x_vals = np.linspace(0.5, 0.999, 50)
-
-# f_vals = f(x_vals)
-
-# plt.plot(x_vals, f_vals)
-# plt.show()
-
 d_vals = np.linspace(1, 40, 20) * 1e-6
 
 # print('d_vals:', d_vals)
@@ -28,23 +12,6 @@ d_vals = np.linspace(1, 40, 20) * 1e-6
 test_Cm_vals = cap.get_Cm(d_vals)
 test_Lm_vals = cap.get_Lm(d_vals)
 test_Zm_vals = cap.get_Zm(d_vals)
-
-# print('test_Cm_vals:', test_Cm_vals)
-# print('test_Lm_vals:', test_Lm_vals)
-# print('test_Zm_vals:', test_Zm_vals)
-
-# # plt.plot(d_vals*1e6, test_Cm_vals * 1e15)
-# # plt.show()
-# # plt.plot(d_vals*1e6, test_Lm_vals * 1e9)
-# # plt.show()
-# # plt.plot(d_vals*1e6, test_Zm_vals)
-# # plt.show()
-
-# def RHS_eq(Zm, Zc):
-
-#     val = Zm**2 + Zc**2/ (Zc**2 - Zm**2)
-
-#     return val
 
 default_phase_vel = 119919602
 default_Z0 = 65
@@ -54,19 +21,7 @@ Ll = default_Z0/default_phase_vel
 
 Zc_vals = np.sqrt(Ll/(Cl + test_Cm_vals))
 
-# RHS_test_vals = np.array([RHS_eq(Zm, Zc) for Zm, Zc in zip(test_Zm_vals, Zc_vals)])
-
-# plt.plot(RHS_test_vals)
-# plt.show()
-
-# ###
-
 from exact_coupled_transmission_line_eqn_solver import *
-
-# omegas = np.linspace(2, 12, 100) * 2*np.pi * 1e9
-
-#phase_vel=3*10**8/2.5
-#Z0 = 65
 
 phase_vel = 119919602
 Z0 = 65.6 #65
@@ -74,26 +29,20 @@ Z0 = 65.6 #65
 Cl = 1/(default_phase_vel * default_Z0)
 Ll = default_Z0/default_phase_vel
 
-Cm_per_len = cap.get_Cm(10e-6)
-Lm_per_len = cap.get_Lm(10e-6)
+Cm_per_len = cap.get_Cm(8e-6)
+Lm_per_len = cap.get_Lm(8e-6)
 
-# l_Rf = 1.65e-3
-# l_Rn = 0.75e-3
-# l_Gf = 2.2e-3
-# l_Gn = 0.21e-3
-# l_c = 0.45e-3 * 1
+l_Rf = 1.55e-3
+l_Rn = 0.7e-3
+l_Gf = 2.2e-3
+l_Gn = 0.01e-3
+l_c = 0.5e-3
 
-# l_Rf = 1.65e-3
-# l_Rn = 0.6e-3
-# l_Gf = 2.2e-3
-# l_Gn = 0.06e-3
-# l_c = 0.45e-3*1
-
-l_Rf = 1.05e-3
-l_Rn = 1.2e-3
-l_Gf = 1.2e-3
-l_Gn = 1.06e-3
-l_c = 0.45e-3*1
+# l_Rf = 1.85e-3
+# l_Rn = 0.75e-3 + 0.35e-3
+# l_Gf = 2.4e-3 
+# l_Gn = 0.21e-3 + 0.15e-3
+# l_c = 0.35e-3 
 
 # phase_vel_c = 1/(np.sqrt(Ll*(Cl + Cm_per_len)))
 
@@ -107,7 +56,7 @@ l_c = 0.45e-3*1
 # print('notch_val:', notch_val)
 # print('test_simple_notch_val:', test_simple_notch_val)
 
-d_vals = np.linspace(2, 4, 3) * 1e-6
+d_vals = np.linspace(2, 10, 10) * 1e-6
 
 print('d_vals', d_vals)
 
@@ -141,7 +90,7 @@ print('omega_p:', omega_p/(2*np.pi*1e9))
 print('omega_f_rule_of_thumb_scaled:', omega_f_rule_of_thumb_scaled/(2*np.pi*1e9))
 print('omega_f_rule_of_thumb_basic:', omega_f_rule_of_thumb_basic/(2*np.pi*1e9))
 
-J_vals_solve_eq_c = np.array([J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(d), cap.get_Cm(d), phase_vel=phase_vel, Z0=Z0) for d in d_vals])
+J_vals_solve_eq_c = np.array([J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(d_val), cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0) for d_val in d_vals])
 print('J_vals_solve_eq_c:', J_vals_solve_eq_c/(2*np.pi*1e9))
 
 J_vals_analytic_raw = np.array([J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0, simplified=False) for d_val in d_vals])
@@ -186,7 +135,7 @@ exp_J_analytic_prediction = J_coupling_analytic_by_freqs(omega_r_exp, omega_n_ex
 
 print('exp_J_analytic_prediction (MHz):', exp_J_analytic_prediction / (2*np.pi*1e6))
 
-sys.exit()
+#sys.exit()
 
 ####
 # delta_omega = 10 * 2*np.pi
