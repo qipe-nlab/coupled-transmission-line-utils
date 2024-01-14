@@ -1,3 +1,14 @@
+import seaborn as sns
+hex_codes = sns.color_palette().as_hex()
+hex_codes2 = sns.color_palette('husl', 9).as_hex()
+
+from matplotlib.colors import ListedColormap
+
+#flatui = ["#9b59b6", "#3498db", "#95a5a6", "#e74c3c", "#34495e", "#2ecc71"]
+my_cmap = ListedColormap(hex_codes)
+my_cmap2 = ListedColormap(hex_codes2)
+my_cmap3 = ListedColormap(["#9b59b6", "#34495e"])
+
 ### example solutions
 
 from exact_coupled_transmission_line_eqn_solver import *
@@ -15,9 +26,15 @@ Lm = cap.get_Lm(d_val)
 
 l_Rf = 1.7e-3
 l_Rn = 0.96e-3
-l_Gf = 1.6e-3
-l_Gn = 1.1e-3
+l_Gf = 1.2e-3
+l_Gn = 1.5e-3
 l_c = 0.25e-3
+
+# l_Rf = 1.7e-3
+# l_Rn = 0.96e-3
+# l_Gf = 1.4e-3
+# l_Gn = 1.3e-3
+# l_c = 0.25e-3
 
 L_readout = l_Gn + l_c + l_Gf
 
@@ -29,19 +46,6 @@ purcell_omega = lambda_quarter_omega(L_purcell, phase_vel=phase_vel)
 
 print('readout_omega:', readout_omega / (2*np.pi*1e9))
 print('purcell_omega:', purcell_omega / (2*np.pi*1e9))
-
-
-### param set 2: for low freq range
-
-# scale_fac = 1.6
-
-# Lm = 1.31e-9*1e1*2.2
-# Cm = 5e-15*1e3*2.2
-# l_Rf = 1.15e-3 * scale_fac
-# l_Rn = 1.45e-3 * scale_fac
-# l_Gf = 1.7e-3 * scale_fac
-# l_Gn = 0.9e-3 * scale_fac
-# l_c = 0.5e-3 * scale_fac
 
 print('Lm:', Lm)
 print('Cm:', Cm)
@@ -88,9 +92,29 @@ test_Z_transfer_exact = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn
 Z_test_exact_vals = voltage_at_source_location_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, Z0, phase_vel, omegas)
 Z_test_approx_vals = Z_trans_along_shorted_tl(Z0, phase_vel, l_Gn+l_Gf+l_c, l_Gn, omegas)
 
-plt.plot(omegas/(2*np.pi * 1e9), np.imag(Z_test_exact_vals))
-plt.plot(omegas/(2*np.pi * 1e9), np.imag(Z_test_approx_vals))
+plt.plot(omegas/(2*np.pi * 1e9), np.imag(Z_test_exact_vals), color = my_cmap3(1), label = 'Exact solution', linewidth = 3)
+plt.plot(omegas/(2*np.pi * 1e9), np.imag(Z_test_approx_vals), color = my_cmap2(7), label = 'Single transmission line solution', linewidth = 3, alpha = 0.6)
+
 plt.yscale('log')
+
+plt.xlabel('Frequency (GHz)', size = 20)
+plt.ylabel(r'$V_1 / I_{in}$' + r' $(\Omega)$', size = 20)
+plt.legend(fontsize = 16)
+#plt.title('Radiative T1 limit through detector line')
+
+ax = plt.gca()
+
+ax.tick_params(axis='both', which='major', labelsize=16)
+
+# ax.set_yticks([1e-6,1e-3,1,1e3]) 
+# ax.set_yticklabels(['1 ns','1 us','1 ms', '1 s'])
+# ax.set_ylim([0.5e-6, 5e3])
+
+for axis in ['top','bottom','left','right']:
+    ax.spines[axis].set_linewidth(2)
+
+ax.tick_params(width=3)
+plt.tight_layout()
 plt.show()
 
 Z_test_exact_vals = voltage_at_source_location_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, Z0, phase_vel, test_notch_freq_rule_of_thumb)
@@ -98,34 +122,24 @@ Z_test_approx_vals = Z_trans_along_shorted_tl(Z0, phase_vel, l_Gn+l_Gf+l_c, l_Gn
 
 Z_ratios = Z_test_exact_vals/Z_test_approx_vals
 
-
-
 test_Z_transfer_weak_coupling = Z_transfer_weak_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
 
 test_Z_equiv_LE_circuit = Z_transfer_equivalent_LE_circuit(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
 
-import seaborn as sns
-hex_codes = sns.color_palette().as_hex()
-hex_codes2 = sns.color_palette('husl', 9).as_hex()
-
-from matplotlib.colors import ListedColormap
-
-#flatui = ["#9b59b6", "#3498db", "#95a5a6", "#e74c3c", "#34495e", "#2ecc71"]
-my_cmap = ListedColormap(hex_codes)
-my_cmap2 = ListedColormap(hex_codes2)
-my_cmap3 = ListedColormap(["#9b59b6", "#34495e"])
+test_Z_equiv_LE_circuit_symbolic = Z_transfer_equivalent_LE_circuit_from_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
 
 # my_cmap2(7)
 
 plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_exact), color = my_cmap3(1), label = 'Distributed circuit', linewidth = 3)
 #plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_weak_coupling), color = 'r', linestyle = '--', label = 'Z transfer weak coupling model')
 plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit), color = my_cmap2(7), label = 'Equivalent circuit', linewidth = 3, alpha = 0.85)
+plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit_symbolic), color = my_cmap3(7), label = 'Equivalent circuit - symbolic', linewidth = 3, alpha = 0.5)
 
 #plt.vlines(test_notch_freq_analytic/(2*np.pi*1e9), 0.008, 2, color = my_cmap(7), linestyle = 'dotted', linewidth = 3)
-plt.vlines(test_notch_freq_rule_of_thumb/(2*np.pi*1e9), 0.008, 2, color = my_cmap(7), linestyle = 'dotted', linewidth = 3, label = 'Notch eq. (x)',zorder=10)
+plt.vlines(test_notch_freq_rule_of_thumb/(2*np.pi*1e9), 0.008, 2, color = my_cmap(7), linestyle = 'dotted', linewidth = 3, label = 'Notch eq.',zorder=10)
 
 plt.yscale('log')
-plt.legend(loc = 'lower right', fontsize = 16)
+plt.legend(loc = 'upper left', fontsize = 16)
 plt.xlabel('Frequency (GHz)', size = 20)
 plt.ylabel(r'$Z_{21}$ ($\Omega$)', size = 20)
 #plt.title('Z transfer function for different models')
@@ -186,20 +200,20 @@ test_T1_radiative_equivalent_LE_circuit = qubit_radiative_decay_equivalent_LE_ci
 test_T1_radiative_equivalent_LE_circuit_without_notch = qubit_radiative_decay_equivalent_LE_circuit_without_notch(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
 test_T1_radiative_equivalent_LE_circuit_single_resonator = qubit_radiative_decay_equivalent_LE_circuit_single_resonator(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
 
-plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_exact * 1e3, color = 'k', label = 'with intrinsic notch')
-plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_equivalent_LE_circuit * 1e3, color = 'r', linestyle = '--')
-plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_equivalent_LE_circuit_without_notch * 1e3, color = 'r', linestyle = '--', label = 'without intrinsic notch')
+plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_exact * 1e3, color = my_cmap3(1), linewidth = 3, label = 'with intrinsic notch - exact')
+plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_equivalent_LE_circuit * 1e3, color = my_cmap2(7), linewidth = 3, label = 'with intrinsic notch - e.c.', alpha = 0.5)
+plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_equivalent_LE_circuit_without_notch * 1e3, color = my_cmap2(7), linewidth = 3, linestyle = '--', label = 'without intrinsic notch - e.c.', alpha = 0.5)
 # plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_equivalent_LE_circuit_single_resonator * 1e3, color = 'b', linestyle = '--', label = 'equiv. single resonator circuit')
 
 plt.yscale('log')
 plt.xlabel('Frequency (GHz)', size = 20)
 plt.ylabel(r'Purcell decay $T_1$ limit', size = 20)
-plt.legend()
+plt.legend(fontsize = 16)
 #plt.title('Radiative T1 limit through detector line')
 
 ax = plt.gca()
 
-ax.tick_params(axis='both', which='major', labelsize=15)
+ax.tick_params(axis='both', which='major', labelsize=16)
 
 ax.set_yticks([1e-6,1e-3,1,1e3]) 
 ax.set_yticklabels(['1 ns','1 us','1 ms', '1 s'])
@@ -220,18 +234,33 @@ test_enhancement_bandwidth = notch_enhancement_bandwidth(l_c, l_Gf, l_Gn, l_Rf, 
 
 print('test_enhancement_bandwidth (GHz):', test_enhancement_bandwidth / (2*np.pi*1e9))
 
-plt.plot(omegas/(2*np.pi * 1e9), enhancement_factor, color = 'r')
-plt.plot(omegas/(2*np.pi * 1e9), enhancement_factor_approx, color = 'b')
+plt.plot(omegas/(2*np.pi * 1e9), enhancement_factor, color = my_cmap3(1), linewidth = 3, label = 'exact soltution')
+plt.plot(omegas/(2*np.pi * 1e9), enhancement_factor_approx, color = my_cmap2(7), linewidth = 3, label = 'equivalent circuit solution', alpha = 0.5)
 
 omega_r = lambda_quarter_omega(l_c + l_Gf + l_Gn, phase_vel=phase_vel)
 omega_p = lambda_quarter_omega(l_c + l_Rf + l_Rn, phase_vel=phase_vel)
 
 predicted_notch_enhancement = enhancement_factor_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, omegas)
-plt.plot(omegas/(2*np.pi * 1e9), predicted_notch_enhancement, color = 'g')
+#plt.plot(omegas/(2*np.pi * 1e9), predicted_notch_enhancement, color = 'g')
 
 exact_bandwidth = find_notch_enhancement_bandwidth(omegas, enhancement_factor, 10)
 
 print('exact_bandwidth (GHz):', exact_bandwidth / (2*np.pi*1e9))
+
+plt.yscale('log')
+plt.xlabel('Frequency (GHz)', size = 20)
+plt.ylabel(r'Purcell $T_1$ enhancement', size = 20)
+plt.legend(fontsize = 16)
+
+ax = plt.gca()
+
+ax.tick_params(axis='both', which='major', labelsize=16)
+
+for axis in ['top','bottom','left','right']:
+    ax.spines[axis].set_linewidth(2)
+
+ax.tick_params(width=3)
+plt.tight_layout()
 
 plt.hlines(10, 6, 11, color = 'k', linestyle = '--')
 plt.yscale('log')

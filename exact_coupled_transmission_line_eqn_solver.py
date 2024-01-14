@@ -865,6 +865,52 @@ def find_notch_filter_char_impedance(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_
 
     return val
 
+def Z_notch_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm, phase_vel=3*10**8/2.5, Z0=65):
+    
+    tl_C, tl_L_val = transmission_line_C_and_L(phase_vel, Z0)
+
+    cpw__length1 = l_c + l_Gf + l_Gn
+    cpw__length2 = l_c + l_Rf + l_Rn
+    
+    C1, L1 = lumped_model_C_and_L(phase_vel, Z0, cpw__length1)
+    C2, L2 = lumped_model_C_and_L(phase_vel, Z0, cpw__length2)
+
+    omega_n = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, phase_vel=phase_vel, Z0=Z0)
+
+    omega_r = 1/np.sqrt(C1 * L1)
+    omega_p = 1/np.sqrt(C2 * L2)
+
+    val_1 = Z0 * (64/np.pi**3) * np.cos(omega_n * np.pi/(2*omega_r)) * np.cos(omega_n * np.pi/(2*omega_p)) / (((omega_r/omega_n)-(omega_n/omega_r))*((omega_p/omega_n)-(omega_n/omega_p)))
+
+    tau_c = l_c/phase_vel
+
+    val_2 = (tl_C/Cm)/np.sin(omega_n * tau_c)
+
+    val = val_1*val_2
+
+    return val
+
+def get_lumped_elements_from_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65, receiver_type = 'lambda/4'):
+        
+    cpw__length1 = l_c + l_Gf + l_Gn
+    cpw__length2 = l_c + l_Rf + l_Rn
+    
+    C1, L1 = lumped_model_C_and_L(phase_vel, Z0, cpw__length1)
+    C2, L2 = lumped_model_C_and_L(phase_vel, Z0, cpw__length2, res_type = receiver_type)
+    #Cg, Lg = lumped_model_Cg_and_Lg(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, receiver_type = receiver_type)
+    
+    omega_notch_symbolic = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, phase_vel=phase_vel, Z0=Z0)
+
+    Z_notch_symbolic_val = Z_notch_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, phase_vel=phase_vel, Z0=Z0)
+
+    Cg = 1/(Z_notch_symbolic_val*omega_notch_symbolic)
+    Lg = Z_notch_symbolic_val/omega_notch_symbolic
+
+    # Cg_basic = Cm_per_len *l_c
+    # Lg_basic = L1*L2/ (Lm_per_len * l_c)
+
+    return C1, L1, C2, L2, Cg, Lg
+
 # lines coupled by LE capacitor & inductor
 
 def get_lumped_elements_LE_coupling(l_Gf, l_Gn, l_Rf, l_Rn, Lc, Cc, phase_vel=3*10**8/2.5, Z0=65):
@@ -1074,6 +1120,14 @@ def Z_transfer_weak_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len
 def Z_transfer_equivalent_LE_circuit(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega, phase_vel=3*10**8/2.5, Z0=65, receiver_type = 'lambda/4'):
 
     C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0, receiver_type = receiver_type)
+
+    val = lumped_model_Z_transmission(omega, C1, L1, C2, L2, Cg, Lg)
+
+    return val
+
+def Z_transfer_equivalent_LE_circuit_from_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, omega, phase_vel=3*10**8/2.5, Z0=65, receiver_type = 'lambda/4'):
+
+    C1, L1, C2, L2, Cg, Lg = get_lumped_elements_from_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, phase_vel, Z0, receiver_type = receiver_type)
 
     val = lumped_model_Z_transmission(omega, C1, L1, C2, L2, Cg, Lg)
 
