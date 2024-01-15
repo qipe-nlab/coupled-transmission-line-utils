@@ -3,6 +3,7 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+import warnings
 
 #######################
 ### Basic functions ###
@@ -294,19 +295,27 @@ def Z_input_tl(Z0, Zload, phase_vel, L, omega ):
 
     return Z0*(Zload+1j*Z0*np.tan(phi))/(Z0+1j*Zload*np.tan(phi))
 
-def voltage_at_source_location_exact(l_Gn, Z_input_coupled_system, Z0, phase_vel, omega):
+def voltage_at_source_location_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, Z0, phase_vel, omega, solved_Z_input_coupled_system = None):
 
     # returns the exact ratio of the input current to the generator line to the voltage at the start of the coupled line section.
 
-    tau_n = l_Gn / phase_vel
+    # if a solved value for the input impedance of the coupled system is provided, then use it directly, otherwise solve it here first
 
-    Zinput_total = Z_input_tl(Z0, Z_input_coupled_system, phase_vel, l_Gn, omega)
+    if solved_Z_input_coupled_system is None:
+        Zinput_total = Z_input_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega, phase_vel=phase_vel, Z0=Z0, Zline = 50, C_env = 0)
+
+    else:
+        Z_input_coupled_system = solved_Z_input_coupled_system
+
+        Zinput_total = Z_input_tl(Z0, Z_input_coupled_system, phase_vel, l_Gn, omega)
 
     I_in = 1
 
     v_in = Zinput_total * I_in
 
-    v_out, I_out = transmission_line_voltage_current_out(Z0, tau_n, v_in, I_in)
+    tau_n = l_Gn / phase_vel
+
+    v_out, I_out = transmission_line_voltage_current_out(Z0, tau_n*omega, v_in, I_in)
 
     val = v_out
 
@@ -518,6 +527,8 @@ def Z_trans_along_open_tl(Z0, phase_vel, L, z, omega):
 
 def voltage_at_source_location(Z0, phase_vel, Cm_per_len, l_c, l_Gf, l_Gn, omega):
 
+    ### approximate solution that ignores the backaction from the coupled circuit
+
     Cl, Ll = transmission_line_C_and_L(phase_vel, Z0)
 
     Z0_c = Zchar(Cl + Cm_per_len, Ll)
@@ -539,7 +550,7 @@ def voltage_at_source_location(Z0, phase_vel, Cm_per_len, l_c, l_Gf, l_Gn, omega
 
     v_in = Zinput_n * I_in
 
-    v_out, I_out = transmission_line_voltage_current_out(Z0, tau_n, v_in, I_in)
+    v_out, I_out = transmission_line_voltage_current_out(Z0, tau_n*omega, v_in, I_in)
 
     val = v_out
 
@@ -660,8 +671,8 @@ def Z_input_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, o
 
     C_Maxwell_test = C_mutual_to_Maxwell(C_mutual_test)
 
-    print('omegas:', omegas)
-    print('np.size(omegas):', np.size(omegas))
+    #print('omegas:', omegas)
+    #print('np.size(omegas):', np.size(omegas))
 
     if np.size(omegas) == 1 and type(omegas) is not np.array:
         omegas = np.array([omegas])
@@ -691,7 +702,7 @@ def Z_input_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, o
     if np.size(omegas) == 1 and type(omegas) is not np.array:
         Z_input_total_exact = Z_input_total_exact[0]
 
-    print('Z_input_total_exact:', Z_input_total_exact)
+    #print('Z_input_total_exact:', Z_input_total_exact)
 
     return Z_input_total_exact
 
@@ -848,11 +859,57 @@ def find_notch_filter_char_impedance(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_
 
     grad_Ztransfer_val = Z_transfer_differential(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omega_f, phase_vel=phase_vel, Z0=Z0, receiver_type = receiver_type)
 
-    print('grad_Ztransfer_val:', grad_Ztransfer_val)
+    #print('grad_Ztransfer_val:', grad_Ztransfer_val)
 
     val = np.real(1j*2*Zres_1_omega_f * Zres_2_omega_f / (omega_f * grad_Ztransfer_val))
 
     return val
+
+def Z_notch_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm, phase_vel=3*10**8/2.5, Z0=65):
+    
+    tl_C, tl_L_val = transmission_line_C_and_L(phase_vel, Z0)
+
+    cpw__length1 = l_c + l_Gf + l_Gn
+    cpw__length2 = l_c + l_Rf + l_Rn
+    
+    C1, L1 = lumped_model_C_and_L(phase_vel, Z0, cpw__length1)
+    C2, L2 = lumped_model_C_and_L(phase_vel, Z0, cpw__length2)
+
+    omega_n = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, phase_vel=phase_vel, Z0=Z0)
+
+    omega_r = 1/np.sqrt(C1 * L1)
+    omega_p = 1/np.sqrt(C2 * L2)
+
+    val_1 = Z0 * (64/np.pi**3) * np.cos(omega_n * np.pi/(2*omega_r)) * np.cos(omega_n * np.pi/(2*omega_p)) / (((omega_r/omega_n)-(omega_n/omega_r))*((omega_p/omega_n)-(omega_n/omega_p)))
+
+    tau_c = l_c/phase_vel
+
+    val_2 = (tl_C/Cm)/np.sin(omega_n * tau_c)
+
+    val = val_1*val_2
+
+    return val
+
+def get_lumped_elements_from_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65, receiver_type = 'lambda/4'):
+        
+    cpw__length1 = l_c + l_Gf + l_Gn
+    cpw__length2 = l_c + l_Rf + l_Rn
+    
+    C1, L1 = lumped_model_C_and_L(phase_vel, Z0, cpw__length1)
+    C2, L2 = lumped_model_C_and_L(phase_vel, Z0, cpw__length2, res_type = receiver_type)
+    #Cg, Lg = lumped_model_Cg_and_Lg(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, receiver_type = receiver_type)
+    
+    omega_notch_symbolic = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, phase_vel=phase_vel, Z0=Z0)
+
+    Z_notch_symbolic_val = Z_notch_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, phase_vel=phase_vel, Z0=Z0)
+
+    Cg = 1/(Z_notch_symbolic_val*omega_notch_symbolic)
+    Lg = Z_notch_symbolic_val/omega_notch_symbolic
+
+    # Cg_basic = Cm_per_len *l_c
+    # Lg_basic = L1*L2/ (Lm_per_len * l_c)
+
+    return C1, L1, C2, L2, Cg, Lg
 
 # lines coupled by LE capacitor & inductor
 
@@ -982,7 +1039,6 @@ def Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per
 
         #Z_nb = np.asarray(Z_nb,dtype=object)
 
-        #print('testing ZBN:', Z_nb)
         if receiver_type == 'lambda/4':
             Z_fb = np.diag(np.array([Z_short_tl(Z0, phase_vel, l_Gf, omega), Z_short_tl(Z0, phase_vel, l_Rf, omega)]))
         if receiver_type == 'lambda/2':
@@ -990,8 +1046,6 @@ def Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per
 
         Vs_nb = np.array([1,0])
         Vs_fb = np.array([0,0])
-
-        #print('222')
 
         V_sols_n, V_sols_f, I_sols_n, I_sols_f = V_I_solutions_sym_three(C_Maxwell_test, L_test, Z_nb, Z_fb, Vs_nb, Vs_fb, l_c, omega)
 
@@ -1005,11 +1059,7 @@ def Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per
 
         Z_input_exact_arr.append(Z_input_exact)
 
-        #print('Z_input_exact:', Z_input_exact)
-
-        V_from_input_I = voltage_at_source_location_exact(l_Gn, Z_input_exact, Z0, phase_vel, omega)
-
-        #print('V_from_input_I:', V_from_input_I)
+        V_from_input_I = voltage_at_source_location_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, Z0, phase_vel, omega, solved_Z_input_coupled_system=Z_input_exact)
 
         V_from_input_I_arr.append(V_from_input_I)
 
@@ -1025,9 +1075,6 @@ def Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per
             tl_voltage_scale_factor = 1/np.cos(tau_Rf*omega)
 
         tl_voltage_scale_factor_arr.append(tl_voltage_scale_factor)
-
-    # print('V_sols_n_arr:', V_sols_n_arr)
-    # print('V_sols_f_arr:', V_sols_f_arr)
 
     V_sols_n_arr = np.array(V_sols_n_arr)    
     V_sols_f_arr = np.array(V_sols_f_arr)
@@ -1073,6 +1120,14 @@ def Z_transfer_weak_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len
 def Z_transfer_equivalent_LE_circuit(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega, phase_vel=3*10**8/2.5, Z0=65, receiver_type = 'lambda/4'):
 
     C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0, receiver_type = receiver_type)
+
+    val = lumped_model_Z_transmission(omega, C1, L1, C2, L2, Cg, Lg)
+
+    return val
+
+def Z_transfer_equivalent_LE_circuit_from_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, omega, phase_vel=3*10**8/2.5, Z0=65, receiver_type = 'lambda/4'):
+
+    C1, L1, C2, L2, Cg, Lg = get_lumped_elements_from_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, phase_vel, Z0, receiver_type = receiver_type)
 
     val = lumped_model_Z_transmission(omega, C1, L1, C2, L2, Cg, Lg)
 
@@ -1139,7 +1194,6 @@ def S_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per
     I_mat = np.diag([1,1])
     sqrt_Z_char_mat = np.diag([np.sqrt(Zport),np.sqrt(Zport)])
     sqrt_Y_char_mat = np.diag([1/np.sqrt(Zport),1/np.sqrt(Zport)])
-    #print('Z_mat:', Zinput)
 
     S_mat = []
 
@@ -1153,7 +1207,6 @@ def S_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per
     S_mat = np.array(S_mat)
 
     return S_mat
-
 
 #################################################
 ###      Distributed Element Calculations     ###
@@ -1242,8 +1295,6 @@ def find_coupling_cap_direct_cap(l_Gf, l_Gn, l_Rf, l_Rn, Cm, phase_vel=3*10**8/2
 
     #grad_grad_grad_Ztransfer_val = Z_transfer_differential_direct_cap(l_Gf, l_Gn, l_Rf, l_Rn, Cm, 0, phase_vel=phase_vel, Z0=Z0)
 
-    #print('grad_grad_grad_Ztransfer_val:', grad_grad_grad_Ztransfer_val)
-
     #val = 1j * omega_1 * omega_2 / (Zchar_1 * Zchar_2) * grad_grad_grad_Ztransfer_val / 6
 
     omega_test = 5000 * 2*np.pi *1e6
@@ -1272,8 +1323,6 @@ def lumped_model_Cg_and_Lg_direct_cap(phase_vel, Z0, l_Gf, l_Gn, l_Rf, l_Rn, Cm)
 
     # omega_f1 = np.pi*phase_vel / l_Gf
     # omega_f2 = np.pi*phase_vel / l_Rf
-
-    # print('omega_f1(GHz):', omega_f1 / (2*np.pi*1e9))
 
     Cc = find_coupling_cap_direct_cap(l_Gf, l_Gn, l_Rf, l_Rn, Cm, phase_vel=phase_vel, Z0=Z0)
 
@@ -1394,7 +1443,7 @@ def find_notch_filter_char_impedance_direct_cap_B(l_Gf, l_Gn, l_Rf, l_Rn, Cm, om
 
     grad_Ztransfer_val = Z_transfer_differential_direct_cap_B(l_Gf, l_Gn, l_Rf, l_Rn, Cm, omega_f, phase_vel=phase_vel, Z0=Z0)
 
-    print('grad_Ztransfer_val:', grad_Ztransfer_val)
+    #print('grad_Ztransfer_val:', grad_Ztransfer_val)
 
     val = np.real(1j*2*Zres_1_omega_f * Zres_2_omega_f / (omega_f * grad_Ztransfer_val))
 
@@ -1405,7 +1454,7 @@ def lumped_model_Cg_and_Lg_direct_cap_B(phase_vel, Z0, l_Gf, l_Gn, l_Rf, l_Rn, C
     omega_f = np.pi*phase_vel / (2*l_Rf)
     #omega_f2 = np.pi*phase_vel / l_Rf
 
-    print('omega_f(GHz):', omega_f / (2*np.pi*1e9))
+    #print('omega_f(GHz):', omega_f / (2*np.pi*1e9))
 
     #print('omega_f/2pi (GHz):', omega_f/(2*np.pi*1e9))
     Z0_f = find_notch_filter_char_impedance_direct_cap_B(l_Gf, l_Gn, l_Rf, l_Rn, Cm, omega_f, phase_vel=phase_vel, Z0=Z0)
@@ -1459,7 +1508,7 @@ def J_coupling_direct_cap_analytic_B(l_Gf, l_Gn, l_Rf, l_Rn, Cm, phase_vel=3*10*
 
     omega_n = np.pi / (2 * tau_notch)
 
-    print('omega_n:', omega_n / (2*np.pi*1e9))
+    #print('omega_n:', omega_n / (2*np.pi*1e9))
 
     J_val = np.pi **2 / 32 * Z0 * Cm * omega_n * omega_bar * (omega_r/omega_n - omega_n/omega_r) * (omega_p/omega_n - omega_n/omega_p) * (omega_bar/omega_n - omega_n/omega_bar) * np.sin(omega_n * tau_Gf) * 1/(np.cos(omega_n * np.pi / (2*omega_r)) * np.sin(omega_n * np.pi / (omega_p)))
 
@@ -1538,7 +1587,7 @@ def find_notch_filter_char_impedance_direct_cap_C(l_Gf, l_Gn, l_Rf, l_Rn, Cm, om
 
     grad_Ztransfer_val = Z_transfer_differential_direct_cap_C(l_Gf, l_Gn, l_Rf, l_Rn, Cm, omega_f, phase_vel=phase_vel, Z0=Z0)
 
-    print('grad_Ztransfer_val:', grad_Ztransfer_val)
+    #print('grad_Ztransfer_val:', grad_Ztransfer_val)
 
     val = np.real(1j*2*Zres_1_omega_f * Zres_2_omega_f / (omega_f * grad_Ztransfer_val))
 
@@ -1549,8 +1598,8 @@ def lumped_model_Cg_and_Lg_direct_cap_C(phase_vel, Z0, l_Gf, l_Gn, l_Rf, l_Rn, C
     omega_f1 = np.pi*phase_vel / (2*l_Rf)
     omega_f2 = np.pi*phase_vel / (2*l_Gf)
 
-    print('omega_f1(GHz):', omega_f1 / (2*np.pi*1e9))
-    print('omega_f2(GHz):', omega_f2 / (2*np.pi*1e9))
+    #print('omega_f1(GHz):', omega_f1 / (2*np.pi*1e9))
+    #print('omega_f2(GHz):', omega_f2 / (2*np.pi*1e9))
 
     #print('omega_f/2pi (GHz):', omega_f/(2*np.pi*1e9))
     Z0_f1 = find_notch_filter_char_impedance_direct_cap_C(l_Gf, l_Gn, l_Rf, l_Rn, Cm, omega_f1, phase_vel=phase_vel, Z0=Z0)
@@ -1616,7 +1665,7 @@ def qubit_radiative_decay_equivalent_LE_circuit_without_notch(C_q, C_g, C_ext, l
 
     eff_Cg = get_eff_Cf_from_J(l_c, l_Gf, l_Gn, l_Rf, l_Rn, J_val, phase_vel, Z0)
 
-    print('eff_Cg:', eff_Cg)
+    #print('eff_Cg:', eff_Cg)
 
     Z1 = 1/(1j*omegas*C1 + 1/(1j*omegas*L1))
     Z2 = 1/(1j*omegas*eff_Cg)
@@ -1685,7 +1734,7 @@ def k_readout(C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_
     k_ext_val = k_ext_from_LE_model(C2, L2, C_ext, Zline)
 
     #print('C2 (fF):', C2 * 1e15)
-    print('k_ext_val (MHz):', k_ext_val / (2*np.pi * 1e6))
+    #print('k_ext_val (MHz):', k_ext_val / (2*np.pi * 1e6))
 
     omega_1 = omega_r(C1, L1)
     omega_2 = omega_r(C2, L2)
@@ -1694,61 +1743,15 @@ def k_readout(C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_
 
     return val
 
-def J_coupling_testing(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
-
-    ## Scaled dimensional guess. Sort of works.
-
-    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
+def J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65, receiver_type = 'lambda/4', simplified = True):
     
-    #J = lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg)
-
-    omega_r = 1/np.sqrt(L1 * C1)
-    omega_n = 1/np.sqrt(Lg * Cg)
-
-    Z_transfer_differential_val = Z_transfer_differential(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega_n, phase_vel=phase_vel, Z0=Z0, delta_omega = 15 * 2*np.pi)
-
-    print('Z_transfer_differential_exact_val:', Z_transfer_differential_val)
-
-    J_test = 1j * np.pi/8 * omega_r * (omega_r - omega_n) * (omega_r/omega_n - omega_n/omega_r)**2 * Z_transfer_differential_val / Z0
-
-    #J_test = 1j * np.pi/8 * omega_r * omega_n * (omega_r/omega_n - omega_n/omega_r)**2 * Z_transfer_differential_val / Z0
-
-    return J_test
-
-def J_coupling_testing2(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
-
-    ## Scaled dimensional guess. Sort of works.
-
-    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
-    
-    #J = lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg)
-
-    omega_r = 1/np.sqrt(L1 * C1)
-    omega_n = 1/np.sqrt(Lg * Cg)
-
-    Z_transfer_differential_val = Z_transfer_differential_test6(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega_n, phase_vel=3*10**8/2.5, Z0=65, delta_omega = 15 * 2*np.pi)
-
-    J_test =  1j *np.pi/8 * omega_r * (omega_r - omega_n) * (omega_r/omega_n - omega_n/omega_r)**2 * Z_transfer_differential_val / Z0
-
-    return J_test
-
-def J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65, receiver_type = 'lambda/4'):
-    
-    #J = lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg)
-
-    #omega_r = 1/np.sqrt(L1 * C1)
-
-    #omega_n = 1/np.sqrt(Cg * Lg)
-
-    #omega_r = 1/np.sqrt(L1 * C1)
-
     L_G = l_c + l_Gf + l_Gn
     L_P = l_c + l_Rf + l_Rn
     
     omega_r = lambda_quarter_omega(L_G, phase_vel=phase_vel)
     omega_p = lambda_quarter_omega(L_P, phase_vel=phase_vel)
 
-    omega_n = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm_per_len, phase_vel=phase_vel, Z0=Z0, scale_phase_c = False)
+    omega_n = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, phase_vel=phase_vel, Z0=Z0)
 
     if receiver_type == 'lambda/2':
         omega_n = 2 * omega_n
@@ -1756,43 +1759,34 @@ def J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, phase_vel=3*10*
 
     C_l = 1/(Z0 * phase_vel)
 
-    #J_test = np.pi **2 /16 * omega_r * (omega_r/omega_n - 1) * (omega_r/omega_n - omega_n/omega_r)**2 * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r))**2)
-
-    #J_test = np.pi **2 /16 * omega_r *(omega_r/omega_n - omega_n/omega_r)**3 / (3-2*(omega_n/omega_r)**2) * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r))**2)
-
-    # J_test = 0.5 * np.pi **2 /16 * omega_r *(omega_r/omega_n - omega_n/omega_r)**3 * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r))**2)
-
-    #print('HIHIHI')
-    #print(np.pi**0.5 / 2)
-
-    #J_test = np.pi **2 / 32 * np.pi**0.5 / 2 *omega_r *(omega_r/omega_n - omega_n/omega_r)**3 * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r))**2)
-    
-    omega_bar = (omega_r + omega_p) / 2
-
     if receiver_type == 'lambda/4':
 
-        J_val = np.pi **2 / 32 * omega_bar * (omega_r/omega_n - omega_n/omega_r) * (omega_p/omega_n - omega_n/omega_p) * (omega_bar/omega_n - omega_n/omega_bar) * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r)) * np.cos(omega_n * np.pi / (2*omega_p)))
-
-    if receiver_type == 'lambda/2':
+        J_val = J_coupling_analytic_by_freqs(omega_r, omega_p, omega_n, l_c, Cm_per_len, phase_vel=phase_vel, Z0=Z0, simplified = simplified)
+    
+    if receiver_type == 'lambda/2':#
+        
+        omega_bar = (omega_r + omega_p )/2
 
         J_val = np.pi **2 / 16 * omega_bar * (omega_r/omega_n - omega_n/omega_r) * (omega_p/omega_n - omega_n/omega_p) * (omega_bar/omega_n - omega_n/omega_bar) * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r)) * np.sin(omega_n * np.pi / (omega_p)))
 
     return J_val
 
-def J_coupling_analytic_by_freqs(omega_r, omega_p, omega_n, l_c, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
-
-    ### this expression drops order (delta_rp / omega_n)^2 terms
-
-    omega_bar = (omega_r + omega_p) / 2
+def J_coupling_analytic_by_freqs(omega_r, omega_p, omega_n, l_c, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65, simplified = True):
 
     C_l = 1/(Z0 * phase_vel)
 
-    # print('HIHIHI')
-    # print(np.pi**0.5 / 2)
+    if simplified:
+        ## return the solution ignoring second order terms in the parameter delta_rp/omega_n
+        
+        omega_bar = (omega_r + omega_p) / 2
 
-    J_test = np.pi **2 / 32 * np.pi**0.5 / 2 * omega_bar * (omega_r/omega_n - omega_n/omega_r) * (omega_p/omega_n - omega_n/omega_p) * (omega_bar/omega_n - omega_n/omega_bar) * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r)) * np.cos(omega_n * np.pi / (2*omega_p)))
+        J_val = np.pi **2 / 32 * omega_bar * (omega_bar/omega_n - omega_n/omega_bar)**3 * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_bar)))**2
+    
+    else:
+        ## return the exact solution to Solgun's simple impedance formula
+        J_val = (np.pi * omega_r * omega_p / 8)**2 * (omega_r/omega_n - omega_n/omega_r) * (omega_p/omega_n - omega_n/omega_p) * ((omega_r/omega_n - omega_n/omega_r)/omega_r**3 + (omega_p/omega_n - omega_n/omega_p)/omega_p**3) * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r)) * np.cos(omega_n * np.pi / (2*omega_p)))
 
-    return J_test
+    return J_val
 
 ######################
 ### User functions ###
@@ -1907,3 +1901,21 @@ def notch_enhancement_bandwidth(l_c, l_Gf, l_Gn, l_Rf, l_Rn, T1_enhancement_fact
 
     return bandwidth_val
 
+def find_notch_enhancement_bandwidth(omegas, enhancement_factors, bandwidth_threshold):
+
+    idx = np.argwhere(np.diff(np.sign(enhancement_factors - bandwidth_threshold))).flatten()
+
+    omega_vals = omegas[idx]
+
+    print('omega_vals:', omega_vals)
+
+    if len(omega_vals)<2:
+        warnings.warn("Could not find two frequencies that intercept with the bandwidth_threshold so returning a nan")
+        enhancement_bandwidth = np.nan
+    elif len(omega_vals)>2:
+        warnings.warn("Found more than two frequencies that intercept with the bandwidth_threshold so using the first two")
+        enhancement_bandwidth = np.abs(omega_vals[1] - omega_vals[0])
+    else:
+        enhancement_bandwidth = np.abs(omega_vals[1] - omega_vals[0])
+
+    return enhancement_bandwidth

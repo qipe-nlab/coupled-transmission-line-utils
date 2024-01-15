@@ -17,11 +17,15 @@ Cm = cap.get_Cm(d_val)
 Lm = cap.get_Lm(d_val)
 # Lm = 1.31e-9*1e1*2.2
 # Cm = 5e-15*1e3*2.2
-l_Rf = 2.4e-3 * 2
-l_Rn = 0.5e-3 * 2
-l_Gf = 2.3e-3
-l_Gn = 0.5e-3 
-l_c = 0.45e-3 
+# l_Rf = 2.3e-3 * 2
+# l_Rn = 0.6e-3 * 2
+
+l_Rf = 1.9e-3 * 2
+l_Rn = 1.0e-3 * 2
+
+l_Gf = 2.6e-3
+l_Gn = 0.2e-3
+l_c = 0.25e-3
 
 # omega = 8 * 2*np.pi*1e9
 #C = 100 * 1e-15
@@ -61,7 +65,7 @@ test_notch_freq = find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, C
 
 #test_notch_freq_analytic = find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65)
 
-test_notch_freq_analytic = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm, phase_vel=3*10**8/2.5, Z0=65, scale_phase_c = True)
+test_notch_freq_analytic = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm, phase_vel=3*10**8/2.5, Z0=65)
 
 # notch_freq_agreement_percent = 100*(test_notch_freq_analytic - test_notch_freq )/ test_notch_freq
 
