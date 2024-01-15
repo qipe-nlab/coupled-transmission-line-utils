@@ -14,9 +14,9 @@ Cm = cap.get_Cm(d_val)
 Lm = cap.get_Lm(d_val)
 
 l_Rf = 1.5e-3
-l_Rn = 1.16e-3
-l_Gf = 2e-3
-l_Gn = 0.7e-3
+l_Rn = 1.175e-3
+l_Gf = 1.925e-3
+l_Gn = 0.75e-3
 l_c = 0.3e-3
 
 L_readout = l_Gn + l_c + l_Gf
@@ -269,3 +269,12 @@ plt.plot(omegas/(2*np.pi * 1e9), predicted_notch_enhancement, color = 'g')
 plt.hlines(10, 6, 11, color = 'k', linestyle = '--')
 plt.yscale('log')
 plt.show()
+
+
+omega_n = 8 
+omega_r = 10
+omega_p = 10
+
+test = notch_enhancement_bandwidth_by_omegas(omega_n, omega_r, omega_p, T1_enhancement_fact = 10)
+
+print(test)
