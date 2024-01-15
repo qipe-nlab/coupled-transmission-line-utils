@@ -1,4 +1,5 @@
 import seaborn as sns
+
 hex_codes = sns.color_palette().as_hex()
 hex_codes2 = sns.color_palette('husl', 9).as_hex()
 
@@ -73,7 +74,7 @@ print('test_omega_1 (GHz):', test_omega_1/(2*np.pi*1e9))
 print('test_omega_2 (GHz):', test_omega_2/(2*np.pi*1e9))
 # print('test_J_val (MHz):', test_J_val/(2*np.pi*1e6))
 
-omegas = np.arange(6.5, 11, 0.02) * 1e9 * 2*np.pi
+omegas = np.arange(7.5, 11, 0.02) * 1e9 * 2*np.pi
 
 test_Z_transfer_exact = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
 
@@ -117,6 +118,44 @@ ax.tick_params(width=3)
 plt.tight_layout()
 plt.show()
 
+###
+
+Z11_exact = Z_input_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
+
+Z11_LE_circuit = Z_input_equivalent_LE_circuit(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
+
+Z11_LE_circuit_symbolic = Z_input_equivalent_LE_circuit(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
+
+plt.plot(omegas/(2*np.pi * 1e9), np.abs(Z11_exact), color = my_cmap3(1), label = 'Distributed circuit', linewidth = 3)
+#plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_weak_coupling), color = 'r', linestyle = '--', label = 'Z transfer weak coupling model')
+plt.plot(omegas/(2*np.pi*1e9), np.abs(Z11_LE_circuit), color = my_cmap2(7), label = 'Equivalent circuit', linewidth = 3, alpha = 0.85)
+plt.plot(omegas/(2*np.pi*1e9), np.abs(Z11_LE_circuit_symbolic), color = my_cmap3(7), linestyle = '--', label = 'Equivalent circuit - symbolic', linewidth = 3, alpha = 0.5)
+
+plt.yscale('log')
+plt.legend(loc = 'upper left', fontsize = 14)
+plt.xlabel('Frequency (GHz)', size = 20)
+plt.ylabel(r'$Z_{11}$ ($\Omega$)', size = 20)
+#plt.title('Z transfer function for different models')
+# Customize the border settings
+ax = plt.gca()
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['bottom'].set_linewidth(3)
+ax.spines['left'].set_linewidth(3)
+
+ax.set_xticks([8, 9, 10, 11])
+
+#ax.set_yticks([1e-2, 1, 100, 1e4])
+
+# Adjust tick thickness and label size
+ax.tick_params(axis='both', which='both', width=2.5)
+ax.tick_params(axis='both', labelsize=20)
+plt.tight_layout()
+
+plt.show()
+
+###
+
 Z_test_exact_vals = voltage_at_source_location_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, Z0, phase_vel, test_notch_freq_rule_of_thumb)
 Z_test_approx_vals = Z_trans_along_shorted_tl(Z0, phase_vel, l_Gn+l_Gf+l_c, l_Gn, test_notch_freq_rule_of_thumb)
 
@@ -133,13 +172,13 @@ test_Z_equiv_LE_circuit_symbolic = Z_transfer_equivalent_LE_circuit_from_symboli
 plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_exact), color = my_cmap3(1), label = 'Distributed circuit', linewidth = 3)
 #plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_weak_coupling), color = 'r', linestyle = '--', label = 'Z transfer weak coupling model')
 plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit), color = my_cmap2(7), label = 'Equivalent circuit', linewidth = 3, alpha = 0.85)
-plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit_symbolic), color = my_cmap3(7), label = 'Equivalent circuit - symbolic', linewidth = 3, alpha = 0.5)
+plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit_symbolic), color = my_cmap3(7), label = 'Equivalent circuit - sybc.', linewidth = 3, alpha = 0.5)
 
 #plt.vlines(test_notch_freq_analytic/(2*np.pi*1e9), 0.008, 2, color = my_cmap(7), linestyle = 'dotted', linewidth = 3)
-plt.vlines(test_notch_freq_rule_of_thumb/(2*np.pi*1e9), 0.008, 2, color = my_cmap(7), linestyle = 'dotted', linewidth = 3, label = 'Notch eq.',zorder=10)
+#plt.vlines(test_notch_freq_rule_of_thumb/(2*np.pi*1e9), 0.008, 2, color = my_cmap(7), linestyle = 'dotted', linewidth = 3, label = 'Notch eq.',zorder=10)
 
 plt.yscale('log')
-plt.legend(loc = 'upper left', fontsize = 16)
+plt.legend(loc = 'upper left', fontsize = 14)
 plt.xlabel('Frequency (GHz)', size = 20)
 plt.ylabel(r'$Z_{21}$ ($\Omega$)', size = 20)
 #plt.title('Z transfer function for different models')
@@ -193,7 +232,7 @@ print('Z_ratios:', Z_ratios)
 
 print('test_k_val (MHz):', test_k_val/(2*np.pi*1e6))
 
-omegas = np.arange(6, 11, 0.02) * 1e9 * 2*np.pi
+omegas = np.arange(7.5, 11, 0.02) * 1e9 * 2*np.pi
 
 test_T1_radiative_exact = qubit_radiative_decay_sym_3_lines_exact(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
 test_T1_radiative_equivalent_LE_circuit = qubit_radiative_decay_equivalent_LE_circuit(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)

@@ -657,55 +657,6 @@ def notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm = None, phase_vel=3
 
     return omega
 
-def Z_input_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50, C_env = 0):
-
-    C_val, L_val = transmission_line_C_and_L(phase_vel, Z0)
-
-    Cm = Cm_per_len
-
-    Lm = Lm_per_len
-
-    L_test = np.array([[L_val, Lm],[Lm, L_val]])
-
-    C_mutual_test = np.array([[C_val, Cm], [Cm, C_val]])
-
-    C_Maxwell_test = C_mutual_to_Maxwell(C_mutual_test)
-
-    #print('omegas:', omegas)
-    #print('np.size(omegas):', np.size(omegas))
-
-    if np.size(omegas) == 1 and type(omegas) is not np.array:
-        omegas = np.array([omegas])
-
-    Z_input_total_exact = []
-
-    for omega in omegas:
-
-        Z_env = Zline + Zcap(C_env, omega)
-
-        Z_nb = np.diag(np.array([0, Z_input_tl(Z0, Z_env, phase_vel, l_Rn, omega)]))
-        Z_fb = np.diag(np.array([Z_short_tl(Z0, phase_vel, l_Gf, omega), Z_short_tl(Z0, phase_vel, l_Rf, omega)]))
-
-        Vs_nb = np.array([1,0])
-        Vs_fb = np.array([0,0])
-
-        V_sols_n, V_sols_f, I_sols_n, I_sols_f = V_I_solutions_sym_three(C_Maxwell_test, L_test, Z_nb, Z_fb, Vs_nb, Vs_fb, l_c, omega)
-
-        Z_input_coupled_system = V_sols_n[0] / I_sols_n[0]
-
-        Z_input_total_exact_val = Z_input_tl(Z0, Z_input_coupled_system, phase_vel, l_Gn, omega)
-
-        Z_input_total_exact.append(Z_input_total_exact_val)
-
-    Z_input_total_exact = np.array(Z_input_total_exact)
-
-    if np.size(omegas) == 1 and type(omegas) is not np.array:
-        Z_input_total_exact = Z_input_total_exact[0]
-
-    #print('Z_input_total_exact:', Z_input_total_exact)
-
-    return Z_input_total_exact
-
 ############################
 ### Lumped Element Model ###
 ############################
@@ -777,6 +728,18 @@ def lumped_model_Z_transmission(omega, C1, L1, C2, L2, Cg, Lg, Cg2 = None, Lg2 =
 
     return val 
 
+def lumped_model_Z11(omega, C1, L1, C2, L2, Cg, Lg):
+
+    Zr1 = Zres(C1, L1, omega)
+    Zr2 = Zres(C2, L2, omega)
+    Zn = Zres(Cg, Lg, omega)
+
+    Z2 = Zn + Zr2
+
+    val = Zpara(Zr1, Z2) 
+
+    return val
+    
 def lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg):
 
     omega_1 = omega_r(C1, L1)
@@ -1172,6 +1135,73 @@ def Z_transfer_equivalent_LE_circuit_LE_coupling(l_Gf, l_Gn, l_Rf, l_Rn,  Lc, Cc
     C1, L1, C2, L2, Cg, Lg = get_lumped_elements_LE_coupling(l_Gf, l_Gn, l_Rf, l_Rn, Lc, Cc, phase_vel=phase_vel, Z0=Z0)
 
     val = lumped_model_Z_transmission(omega, C1, L1, C2, L2, Cg, Lg)
+
+    return val
+
+###################################
+########## Z11 functions ##########
+###################################
+
+def Z_input_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50, C_env = 0):
+
+    C_val, L_val = transmission_line_C_and_L(phase_vel, Z0)
+
+    Cm = Cm_per_len
+
+    Lm = Lm_per_len
+
+    L_test = np.array([[L_val, Lm],[Lm, L_val]])
+
+    C_mutual_test = np.array([[C_val, Cm], [Cm, C_val]])
+
+    C_Maxwell_test = C_mutual_to_Maxwell(C_mutual_test)
+
+    #print('omegas:', omegas)
+    #print('np.size(omegas):', np.size(omegas))
+
+    if np.size(omegas) == 1 and type(omegas) is not np.array:
+        omegas = np.array([omegas])
+
+    Z_input_total_exact = []
+
+    for omega in omegas:
+
+        Z_env = Zline + Zcap(C_env, omega)
+
+        Z_nb = np.diag(np.array([0, Z_input_tl(Z0, Z_env, phase_vel, l_Rn, omega)]))
+        Z_fb = np.diag(np.array([Z_short_tl(Z0, phase_vel, l_Gf, omega), Z_short_tl(Z0, phase_vel, l_Rf, omega)]))
+
+        Vs_nb = np.array([1,0])
+        Vs_fb = np.array([0,0])
+
+        V_sols_n, V_sols_f, I_sols_n, I_sols_f = V_I_solutions_sym_three(C_Maxwell_test, L_test, Z_nb, Z_fb, Vs_nb, Vs_fb, l_c, omega)
+
+        Z_input_coupled_system = V_sols_n[0] / I_sols_n[0]
+
+        Z_input_total_exact_val = Z_input_tl(Z0, Z_input_coupled_system, phase_vel, l_Gn, omega)
+
+        Z_input_total_exact.append(Z_input_total_exact_val)
+
+    Z_input_total_exact = np.array(Z_input_total_exact)
+
+    if np.size(omegas) == 1 and type(omegas) is not np.array:
+        Z_input_total_exact = Z_input_total_exact[0]
+
+    return Z_input_total_exact
+
+def Z_input_equivalent_LE_circuit(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega, phase_vel=3*10**8/2.5, Z0=65):
+
+    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
+
+    val = lumped_model_Z11(omega, C1, L1, C2, L2, Cg, Lg)
+
+    return val
+
+def Z_input_equivalent_LE_circuit_from_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega, phase_vel=3*10**8/2.5, Z0=65):
+
+    C1, L1, C2, L2, Cg, Lg = get_lumped_elements_from_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, phase_vel, Z0)
+
+    val = lumped_model_Z11(omega, C1, L1, C2, L2, Cg, Lg)
 
     return val
 
