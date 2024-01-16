@@ -23,53 +23,32 @@ Z0 = 65
 
 d_val = 10e-6 # 12.5*1e-6 # separation between the coupled sections
 
-Cm = cap.get_Cm(d_val)
-Lm = cap.get_Lm(d_val)
-
-print('Cm:', Cm)
-print('Lm:', Lm)
+CJ = 2e-15
 
 l_Rf = 1.7e-3
 l_Rn = 0.96e-3
 l_Gf = 1.2e-3
 l_Gn = 1.5e-3
-l_c = 0.25e-3
 
-# l_Rf = 1.7e-3
-# l_Rn = 0.96e-3
-# l_Gf = 1.4e-3
-# l_Gn = 1.3e-3
-# l_c = 0.25e-3
-
-L_readout = l_Gn + l_c + l_Gf
+L_readout = l_Gn + l_Gf
 
 readout_omega = lambda_quarter_omega(L_readout, phase_vel=phase_vel)
 
-L_purcell = l_Rn + l_c + l_Rf
+L_purcell = l_Rn  + l_Rf
 
 purcell_omega = lambda_quarter_omega(L_purcell, phase_vel=phase_vel)
 
 print('readout_omega:', readout_omega / (2*np.pi*1e9))
 print('purcell_omega:', purcell_omega / (2*np.pi*1e9))
 
-print('Lm:', Lm)
-print('Cm:', Cm)
 print('l_Rf:', l_Rf)
 print('l_Rn:', l_Rn)
 print('l_Gf:', l_Gf)
 print('l_Gn:', l_Gn)
-print('l_c:', l_c)
-#sys.exit()
 
-test_notch_freq = find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=phase_vel, Z0=Z0)
+test_omega_1 = lambda_quarter_omega(l_Gf + l_Gn, phase_vel=phase_vel)
 
-# test_notch_freq_analytic = find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=phase_vel, Z0=Z0)
-
-test_notch_freq_rule_of_thumb = notch_filter_frequency_rule_of_thumb(l_c, l_Gf,l_Rf, Cm, phase_vel=phase_vel, Z0=Z0)
-
-test_omega_1 = lambda_quarter_omega(l_c + l_Gf + l_Gn, phase_vel=phase_vel)
-
-test_omega_2 = lambda_quarter_omega(l_c + l_Rf + l_Rn, phase_vel=phase_vel)
+test_omega_2 = lambda_quarter_omega(l_Rf + l_Rn, phase_vel=phase_vel)
 
 # test_J_val = J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm)
 
@@ -80,30 +59,16 @@ print('test_omega_2 (GHz):', test_omega_2/(2*np.pi*1e9))
 
 omegas = np.arange(7.5, 11, 0.02) * 1e9 * 2*np.pi
 
-test_Z_transfer_exact = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
+Z11_exact = Z_input_direct_cap_exact(l_Gf, l_Gn, l_Rf, l_Rn, CJ, omegas, phase_vel=phase_vel, Z0=Z0)
+Z11_equivalent_circuit_symbolic = Z_input_direct_cap_equivalent_LE_circuit(l_Gf, l_Gn, l_Rf, l_Rn, CJ, omegas, phase_vel=phase_vel, Z0=Z0)
 
-# test_S_transfer_sym_3_lines_exact = S_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
-
-# print('test_S_transfer_sym_3_lines_exact:', test_S_transfer_sym_3_lines_exact)
-
-# S_transfer = test_S_transfer_sym_3_lines_exact[:, 0, 1]
-
-# print('S_transfer:', S_transfer)
-
-# plt.plot(omegas/(2*np.pi*1e9), np.abs(S_transfer))
-# plt.yscale('log')
-# plt.show()
-
-Z_test_exact_vals = voltage_at_source_location_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, Z0, phase_vel, omegas)
-Z_test_approx_vals = Z_trans_along_shorted_tl(Z0, phase_vel, l_Gn+l_Gf+l_c, l_Gn, omegas)
-
-plt.plot(omegas/(2*np.pi * 1e9), np.imag(Z_test_exact_vals), color = my_cmap3(1), label = 'Exact solution', linewidth = 3)
-plt.plot(omegas/(2*np.pi * 1e9), np.imag(Z_test_approx_vals), color = my_cmap2(7), label = 'Single transmission line solution', linewidth = 3, alpha = 0.6)
+plt.plot(omegas/(2*np.pi * 1e9), np.imag(Z11_exact), color = my_cmap3(1), label = 'Exact solution', linewidth = 3)
+plt.plot(omegas/(2*np.pi * 1e9), np.imag(Z11_equivalent_circuit_symbolic), color = my_cmap2(7), label = 'Equivalent circuit - symbolic', linewidth = 3, alpha = 0.6)
 
 plt.yscale('log')
 
 plt.xlabel('Frequency (GHz)', size = 20)
-plt.ylabel(r'$V_1 / I_{in}$' + r' $(\Omega)$', size = 20)
+plt.ylabel(r'$Z_{11}$ ($\Omega$)' + r' $(\Omega)$', size = 20)
 plt.legend(fontsize = 16)
 #plt.title('Radiative T1 limit through detector line')
 
@@ -124,59 +89,16 @@ plt.show()
 
 ###
 
-Z11_exact = Z_input_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
+test_Z_transfer_exact = Z_transfer_direct_cap_exact(l_Gf, l_Gn, l_Rf, l_Rn, CJ, omegas, phase_vel=phase_vel, Z0=Z0)
 
-Z11_LE_circuit = Z_input_equivalent_LE_circuit(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
-
-Z11_LE_circuit_symbolic = Z_input_equivalent_LE_circuit(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
-
-plt.plot(omegas/(2*np.pi * 1e9), np.abs(Z11_exact), color = my_cmap3(1), label = 'Distributed circuit', linewidth = 3)
-#plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_weak_coupling), color = 'r', linestyle = '--', label = 'Z transfer weak coupling model')
-plt.plot(omegas/(2*np.pi*1e9), np.abs(Z11_LE_circuit), color = my_cmap2(7), label = 'Equivalent circuit', linewidth = 3, alpha = 0.85)
-plt.plot(omegas/(2*np.pi*1e9), np.abs(Z11_LE_circuit_symbolic), color = my_cmap3(7), linestyle = '--', label = 'Equivalent circuit - symbolic', linewidth = 3, alpha = 0.5)
-
-plt.yscale('log')
-plt.legend(loc = 'upper left', fontsize = 14)
-plt.xlabel('Frequency (GHz)', size = 20)
-plt.ylabel(r'$Z_{11}$ ($\Omega$)', size = 20)
-#plt.title('Z transfer function for different models')
-# Customize the border settings
-ax = plt.gca()
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
-ax.spines['bottom'].set_linewidth(3)
-ax.spines['left'].set_linewidth(3)
-
-ax.set_xticks([8, 9, 10, 11])
-
-#ax.set_yticks([1e-2, 1, 100, 1e4])
-
-# Adjust tick thickness and label size
-ax.tick_params(axis='both', which='both', width=2.5)
-ax.tick_params(axis='both', labelsize=20)
-plt.tight_layout()
-
-plt.show()
-
-###
-
-Z_test_exact_vals = voltage_at_source_location_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, Z0, phase_vel, test_notch_freq_rule_of_thumb)
-Z_test_approx_vals = Z_trans_along_shorted_tl(Z0, phase_vel, l_Gn+l_Gf+l_c, l_Gn, test_notch_freq_rule_of_thumb)
-
-Z_ratios = Z_test_exact_vals/Z_test_approx_vals
-
-test_Z_transfer_weak_coupling = Z_transfer_weak_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
-
-test_Z_equiv_LE_circuit = Z_transfer_equivalent_LE_circuit(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
-
-test_Z_equiv_LE_circuit_symbolic = Z_transfer_equivalent_LE_circuit_from_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
+test_Z_equiv_LE_circuit_symbolic = Z_transfer_direct_cap_equivalent_LE_circuit(l_Gf, l_Gn, l_Rf, l_Rn, CJ, omegas, phase_vel=phase_vel, Z0=Z0)
 
 # my_cmap2(7)
 
 plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_exact), color = my_cmap3(1), label = 'Distributed circuit', linewidth = 3)
 #plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_weak_coupling), color = 'r', linestyle = '--', label = 'Z transfer weak coupling model')
-plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit), color = my_cmap2(7), label = 'Equivalent circuit', linewidth = 3, alpha = 0.85)
-plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit_symbolic), color = my_cmap3(7), label = 'Equivalent circuit - sybc.', linewidth = 3, alpha = 0.5)
+#plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit), color = my_cmap2(7), label = 'Equivalent circuit', linewidth = 3, alpha = 0.85)
+plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit_symbolic), color = my_cmap2(7), label = 'Equivalent circuit - sybc.', linewidth = 3, alpha = 0.5)
 
 #plt.vlines(test_notch_freq_analytic/(2*np.pi*1e9), 0.008, 2, color = my_cmap(7), linestyle = 'dotted', linewidth = 3)
 #plt.vlines(test_notch_freq_rule_of_thumb/(2*np.pi*1e9), 0.008, 2, color = my_cmap(7), linestyle = 'dotted', linewidth = 3, label = 'Notch eq.',zorder=10)

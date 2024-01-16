@@ -28,6 +28,9 @@ Zm_vals = cap.get_Zm(d_vals)
 default_phase_vel = constants.c / np.sqrt(6.351)
 default_Z0 = 65.62
 
+print('default_phase_vel:', default_phase_vel)
+input('.')
+
 Cl = 1/(default_phase_vel * default_Z0)
 Ll = default_Z0/default_phase_vel
 
