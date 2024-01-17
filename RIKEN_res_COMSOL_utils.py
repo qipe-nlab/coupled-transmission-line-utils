@@ -22,6 +22,8 @@ class RIKEN_resonator_COMSOL(object):
                 'wiggle_offset':20,
                 'start_r': 20,
                 'first_curve_radius':40,
+                'thickness_res_coupler_pad': 37.5
+
             }
 
         if input_dict is None:
@@ -43,7 +45,8 @@ class RIKEN_resonator_COMSOL(object):
         self.wiggle_offset = input_dict['wiggle_offset']
         self.start_r = input_dict['start_r']
         self.first_curve_radius = input_dict['first_curve_radius']
-    
+        self.thickness_res_coupler_pad = input_dict['thickness_res_coupler_pad']
+
         self.wiggle_curve_length = self.wiggle_curve_length_func()
         self.start_curve_offset_length = self.start_curve_offset_length_func()
         self.extra_wiggle_length = self.extra_wiggle_len_func()
@@ -110,9 +113,12 @@ class RIKEN_resonator_COMSOL(object):
 
             corner_line_1_length = self.length_corner_line(self.l_pad_bar, self.l_start - self.r, self.first_curve_radius, angle = np.pi/2)
 
-            print('corner_line_1_length:', corner_line_1_length)
+            # print('self.l_pad_bar:', self.l_pad_bar)
+            # print('corner_line_1_length:', corner_line_1_length)
 
-            start_length = corner_line_1_length
+            start_length = corner_line_1_length - self.thickness_res_coupler_pad
+            
+            print('start_length:', start_length)
 
         else:
 
@@ -137,7 +143,10 @@ class RIKEN_resonator_COMSOL(object):
             start_length = corner_line_1_length + meander_line_1_length + corner_line_2_length + corner_line_3_length
 
         mid_length_1 = self.length_corner_line(self.r, self.l_height/2, self.r)
-        mid_length_2 = self.length_corner_line(self.l_height/2, 0, self.r)
+        mid_length_2 = self.length_corner_line(self.l_height/2, self.r, self.r)
+
+        print('mid_length_1:', mid_length_1)
+        print('mid_length_2:', mid_length_2)
 
         length_open_val = start_length + mid_length_1 + mid_length_2
 
@@ -159,11 +168,7 @@ class RIKEN_resonator_COMSOL(object):
 
         length_short_val_and_coupled_len = self.length_meander_line(self.meander_spacing, self.l_line, start_section_offset_length, end_section_offset_length, self.n_meander_curve)
 
-        print('length_short_val_and_coupled_len:', length_short_val_and_coupled_len)
-
-        length_short_val = length_short_val_and_coupled_len + end_section_offset_length - self.l_couple_line
-
-        return length_short_val
+        return length_short_val_and_coupled_len
 
     def length_coupled(self):
 
@@ -201,8 +206,8 @@ class RIKEN_resonator_COMSOL(object):
 
         input_dict = self.user_param_dict 
 
-        l_pad_bar_val = input_dict['straight_len'] - input_dict['Q_diam']/2 + input_dict['inner_pad_deformation'] - \
-        input_dict['Q_res_coupler_gap'] + input_dict['double_resonator_offset'] + input_dict['double_resonator_spacing'] - 0.95
+        l_pad_bar_val = input_dict['straight_len'] - input_dict['Q_diam']/2 + input_dict['inner_pad_deformation'] \
+        - input_dict['Q_res_coupler_gap'] + input_dict['double_resonator_offset'] - input_dict['double_resonator_spacing'] - 0.95
 
         self.l_couple_line = input_dict['res_couple_line_len']
         self.l_height = input_dict['height']
@@ -221,6 +226,7 @@ class RIKEN_resonator_COMSOL(object):
         self.start_r = input_dict['wiggle_r']
         self.extra_wiggle_length = 0.001122743338823081*1e-6 # hardcoded value in models. Not sure why.
         self.first_curve_radius = input_dict['start_curve_radius']
+        self.thickness_res_coupler_pad = input_dict['thickness_res_coupler_pad']
     
         self.wiggle_curve_length = self.wiggle_curve_length_func()
         self.start_curve_offset_length = self.start_curve_offset_length_func()
@@ -230,8 +236,21 @@ class RIKEN_resonator_COMSOL(object):
     
 ###### testing ######
 
-## maunally calculated short length: 381.5 + 305 * 3 + 4 * 45/2 *pi = 1579
+## maunally calculated short length: 381.544 + 305 * 3 + 4 * 45/2 *pi = 1579 # agrees!
 ## manually calculated open length: 489.2 + 173 + 20 + 60/2*pi + 110 + 60/2*pi = 981
+## coupled line length is correct!
+    
+# open length is wrong.
+    # first curve length. 682.2 
+    # model now agrees.
+    # second curve length 
+# COMSOL first straight length = 489.2
+    # model value is 528
+# l_pad_bar is correct.
+
+# l_end = 374 correct
+# l_height = 230 correct
+# l_line = 350 correct
     
 test_class = RIKEN_resonator_COMSOL()
 
@@ -259,7 +278,8 @@ COMSOL_resonator_user_params_test = \
         'wiggle_length': 90,
         'wiggle_offset':60,
         'wiggle_r': 20,
-        'start_curve_radius':110,
+        'start_curve_radius': 110,
+        'thickness_res_coupler_pad': 37.5
     }
 
 test_class.update_base_params_from_user_params(COMSOL_resonator_user_params_test)
