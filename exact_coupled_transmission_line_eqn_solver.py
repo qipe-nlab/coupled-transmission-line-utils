@@ -745,8 +745,8 @@ def lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg):
     omega_1 = omega_r(C1, L1)
     omega_2 = omega_r(C2, L2)
 
-    Z21_omega_1 = lumped_model_Z_transmission(omega_1, C1, 1e3, C2, 1e3, Cg, Lg)
-    Z21_omega_1 = lumped_model_Z_transmission(omega_2, C1, 1e3, C2, 1e3, Cg, Lg)
+    Z21_omega_1 = lumped_model_Z_transmission(omega_1, C1, 1e6, C2, 1e6, Cg, Lg)
+    Z21_omega_1 = lumped_model_Z_transmission(omega_2, C1, 1e6, C2, 1e6, Cg, Lg)
 
     val = -0.25*(omega_1**3*omega_2**3*C1*C2)**0.5*(np.imag(Z21_omega_1)/omega_1 + np.imag(Z21_omega_1)/omega_2)
 
@@ -1815,6 +1815,17 @@ def J_coupling_analytic_by_freqs(omega_r, omega_p, omega_n, l_c, Cm_per_len, pha
         J_val = (np.pi * omega_r * omega_p / 8)**2 * (omega_r/omega_n - omega_n/omega_r) * (omega_p/omega_n - omega_n/omega_p) * ((omega_r/omega_n - omega_n/omega_r)/omega_r**3 + (omega_p/omega_n - omega_n/omega_p)/omega_p**3) * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r)) * np.cos(omega_n * np.pi / (2*omega_p)))
 
     return J_val
+
+### Test function for J from COMSOL
+
+# def J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65):
+
+#     C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
+    
+    
+#     J = lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg)
+
+#     return J
 
 ######################
 ### User functions ###

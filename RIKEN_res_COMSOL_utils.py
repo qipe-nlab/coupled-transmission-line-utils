@@ -266,9 +266,8 @@ class RIKEN_resonator_COMSOL(object):
         self.start_meander_length = input_dict['wiggle_length']
         self.wiggle_offset = input_dict['wiggle_offset']
         self.start_r = input_dict['wiggle_r']
-        # self.extra_wiggle_length = 0.001122743338823081*1e-6 # hardcoded value in models. Not sure why.
         self.first_curve_radius = input_dict['start_curve_radius']
-        self.thickness_res_coupler_pad = input_dict['thickness_res_coupler_pad']
+        self.thickness_res_coupler_pad = input_dict['inner_pad_deformation'] - input_dict['Q_res_coupler_gap']
         self.resonator_filter_spacing = input_dict['double_resonator_spacing'] 
     
         self.wiggle_curve_length = self.wiggle_curve_length_func()
@@ -303,7 +302,6 @@ class RIKEN_resonator_COMSOL(object):
         self.start_meander_length = input_dict['wiggle_length']
         self.wiggle_offset = input_dict['wiggle_offset']
         self.start_r = input_dict['wiggle_r']
-        #self.extra_wiggle_length = 322.74333882308136e-6 # hardcoded value in models. Not sure why.
         self.first_curve_radius = input_dict['start_curve_radius']
         self.thickness_res_coupler_pad = input_dict['thickness_res_coupler_pad']
         self.resonator_filter_spacing = input_dict['double_resonator_spacing'] 
@@ -314,7 +312,7 @@ class RIKEN_resonator_COMSOL(object):
 
         return 
 
-class RIKEN_coupled_res_filter_COMSOL(object):
+class RIKEN_coupled_readout_filter_COMSOL(object):
 
     def __init__(self, resonator_user_param_dict, filter_user_param_dict):
 
@@ -334,6 +332,25 @@ class RIKEN_coupled_res_filter_COMSOL(object):
         val = np.pi * phase_vel/(2*notch_length)
 
         return val
+
+    def omega_notch_numeric(self, Z0 = 65, phase_vel = 1.2e8):
+
+        l_Gn, l_Gf, l_c = self.resonator.resonator_lengths_from_base_COMSOL_params()
+        l_Rn, l_Rf, l_c = self.filter.resonator_lengths_from_base_COMSOL_params()
+
+        l_Gn = l_Gn * 1e-6
+        l_Gf = l_Gf * 1e-6
+        l_Rn = l_Rn * 1e-6
+        l_Rf = l_Rf * 1e-6
+        l_c = l_c * 1e-6
+
+        sep = self.resonator.resonator_filter_spacing * 1e-6 # in meters
+        lm = cap.get_Lm(sep)
+        cm = cap.get_Cm(sep)
+
+        numeric_notch = find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, lm, cm, phase_vel=phase_vel, Z0=Z0)
+
+        return numeric_notch
 
     def J_coupling_symbolic_sol(self, Z0 = 65, phase_vel = 1.2e8, assume_hybridized = True, kappa_exp = None):
 
@@ -361,13 +378,8 @@ class RIKEN_coupled_res_filter_COMSOL(object):
 
     def J_coupling_numeric_sol(self, Z0 = 65, phase_vel = 1.2e8):
 
-        #### NOT
-
         l_Gn, l_Gf, l_c = self.resonator.resonator_lengths_from_base_COMSOL_params()
         l_Rn, l_Rf, l_c = self.filter.resonator_lengths_from_base_COMSOL_params()
-
-        print('l_Gn, l_Gf, l_c:', l_Gn, l_Gf, l_c)
-        print('l_Rn, l_Rf, l_c:', l_Rn, l_Rf, l_c)
 
         l_Gn = l_Gn * 1e-6
         l_Gf = l_Gf * 1e-6
@@ -382,196 +394,3 @@ class RIKEN_coupled_res_filter_COMSOL(object):
         val = J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, lm, cm, phase_vel=phase_vel, Z0=Z0)
 
         return val
-
-resonator_A = RIKEN_resonator_COMSOL()
-filter_A = RIKEN_resonator_COMSOL()
-
-resonator_B = RIKEN_resonator_COMSOL()
-filter_B = RIKEN_resonator_COMSOL()
-
-#initial_lengths = resonator_A.resonator_lengths_from_base_COMSOL_params()
-
-COMSOL_resonator_user_params_A = \
-    {'res_couple_line_len': 400,
-        'height': 230,
-        'start_len' : 190,
-        'end_sec_len': 329,
-        'l_line_len': 350,
-        'fine_tuning_end': 195, 
-        'straight_len': 531.5,
-        'Q_diam': 149,
-        'inner_pad_deformation': 42.5,
-        'Q_res_coupler_gap': 5,
-        'double_resonator_offset': 150,
-        'double_resonator_spacing': 5.5,
-        'meander_spacing': 45,
-        'curvatur_radius': 60, # was 40 # maybe 60?
-        'center_line_width': 20,
-        'meander_curves': 4,
-        'wiggle_meander_spacing': 50, ## start meander parameters
-        'wiggle_n': 0,
-        'wiggle_length': 90,
-        'wiggle_offset':60,
-        'wiggle_r': 20,
-        'start_curve_radius': 110,
-        'thickness_res_coupler_pad': 37.5
-    }
-
-COMSOL_filter_user_params_A = \
-    {'res_couple_line_len': 400,
-        'height': 230,
-        'start_len' : 190,
-        'end_sec_len': 329,
-        'l_line_len': 350,
-        'fine_tuning_end': 195, 
-        'straight_len': 531.5,
-        'Q_diam': 149,
-        'inner_pad_deformation': 42.5,
-        'Q_res_coupler_gap': 5,
-        'double_resonator_offset': 150,
-        'double_resonator_spacing': 5.5,
-        'meander_spacing': 45,
-        'curvatur_radius': 60, # was 40 # maybe 60?
-        'center_line_width': 20,
-        'meander_curves': 4,
-        'wiggle_meander_spacing': 35, ## start meander parameters
-        'wiggle_n': 0,
-        'wiggle_length': 90,
-        'wiggle_offset':30,
-        'wiggle_r': 20,
-        'start_curve_radius': 110,
-        'thickness_res_coupler_pad': 32.5,
-        'readout_via_pad_deformation': 37.5
-
-    }
-
-COMSOL_resonator_user_params_B = \
-    {'res_couple_line_len': 400,
-        'height': 230,
-        'start_len' : 190,
-        'end_sec_len': 255,
-        'l_line_len': 350,
-        'fine_tuning_end': 222, 
-        'straight_len': 531.5,
-        'Q_diam': 126.5,
-        'inner_pad_deformation': 25,
-        'Q_res_coupler_gap': 5,
-        'double_resonator_offset': 150,
-        'double_resonator_spacing': 3.8,
-        'meander_spacing': 45,
-        'curvatur_radius': 60, # was 40 # maybe 60?
-        'center_line_width': 20,
-        'meander_curves': 4,
-        'wiggle_meander_spacing': 50, ## start meander parameters
-        'wiggle_n': 0,
-        'wiggle_length': 90,
-        'wiggle_offset':60,
-        'wiggle_r': 20,
-        'start_curve_radius': 60,
-        'thickness_res_coupler_pad': 20
-    }
-
-COMSOL_filter_user_params_B = \
-    {'res_couple_line_len': 400,
-        'height': 230,
-        'start_len' : 190,
-        'end_sec_len': 255,
-        'l_line_len': 350,
-        'fine_tuning_end': 222, 
-        'straight_len': 531.5,
-        'Q_diam': 126.5,
-        'inner_pad_deformation': 25,
-        'Q_res_coupler_gap': 5,
-        'double_resonator_offset': 150,
-        'double_resonator_spacing': 3.8,
-        'meander_spacing': 45,
-        'curvatur_radius': 60, # was 40 # maybe 60?
-        'center_line_width': 20,
-        'meander_curves': 4,
-        'wiggle_meander_spacing': 35, ## start meander parameters
-        'wiggle_n': 3,
-        'wiggle_length': 82.5,
-        'wiggle_offset':30,
-        'wiggle_r': 20,
-        'start_curve_radius': 60,
-        'thickness_res_coupler_pad': 32.5,
-        'readout_via_pad_deformation': 37.5
-    }
-
-res_filter_A = RIKEN_coupled_res_filter_COMSOL(COMSOL_resonator_user_params_A, COMSOL_filter_user_params_A)
-
-predicted_notch_A = res_filter_A.omega_notch()
-
-print('predicted_notch_A (GHz):', predicted_notch_A / (2*np.pi*1e9))
-
-J_symb = res_filter_A.J_coupling_symbolic_sol()
-#J_num = res_filter_A.J_coupling_numeric_sol()
-
-print('J_symb:', J_symb / (2*np.pi*1e6))
-#print('J_num:', J_num / (2*np.pi*1e6))
-
-####
-
-res_filter_B = RIKEN_coupled_res_filter_COMSOL(COMSOL_resonator_user_params_B, COMSOL_filter_user_params_B)
-
-predicted_notch_B = res_filter_B.omega_notch()
-
-print('predicted_notch_B (GHz):', predicted_notch_B / (2*np.pi*1e9))
-
-J_symb = res_filter_B.J_coupling_symbolic_sol()
-#J_num = res_filter_B.J_coupling_numeric_sol()
-
-print('J_symb:', J_symb / (2*np.pi*1e6))
-#print('J_num:', J_num / (2*np.pi*1e6))
-
-# resonator_A.update_base_params_from_readout_COMSOL_params(COMSOL_resonator_user_params_A)
-# filter_A.update_base_params_from_filter_COMSOL_params(COMSOL_filter_user_params_A)
-
-# resonator_B.update_base_params_from_readout_COMSOL_params(COMSOL_resonator_user_params_B)
-# filter_B.update_base_params_from_filter_COMSOL_params(COMSOL_filter_user_params_B)
-
-# ###
-
-# resonator_lengths = resonator_B.resonator_lengths_from_base_COMSOL_params()
-# filter_lengths = filter_B.resonator_lengths_from_base_COMSOL_params()
-
-# print('resonator_lengths:', resonator_lengths)
-# print('filter_lengths:', filter_lengths)
-
-# res_short_len = resonator_lengths[1]
-# filter_short_len = filter_lengths[1]
-# res_couple_len = resonator_lengths[2]
-
-# filter_frequency = np.pi/2 * 1.2e8/(res_short_len+filter_short_len+res_couple_len) * 1e6
-# print('filter_frequency (GHz):', filter_frequency/(2*np.pi*1e9))
-
-# omega_n = filter_frequency
-# omega_r = resonator_B.resonance_omega()
-# l_c = res_couple_len * 1e-6
-
-# print('omega_n:', omega_n)
-# print('omega_r:', omega_r)
-
-# print('cap.get_Cm(3.8e-6):', cap.get_Cm(3.8e-6))
-
-# predicted_J = J_coupling_analytic_by_freqs(omega_r, omega_r, omega_n, l_c, cap.get_Cm(3.8e-6), phase_vel=1.2e8, Z0=65)
-
-# filter_length = filter_B.total_resonator_length_from_base_COMSOL_params()
-
-# C_shunt = 1e-6*filter_length * 1/(1.2e8*65) / 2
-
-# print('C_shunt (fF):', C_shunt*1e15)
-
-# omega_shift = (100*2*np.pi*1e6/(4*C_shunt*50))**0.5
-
-# print('omega_shift (GHZ):', omega_shift/(2*np.pi*1e9))
-
-# print('predicted_J (MHz):', predicted_J/(2*np.pi*1e6))
-
-# #input('.')
-
-# test_omega_res_B = resonator_B.resonance_omega()
-# test_omega_filter_B = filter_B.resonance_omega()
-
-# print('test_omega_res_B (GHz):', test_omega_res_B/(2*np.pi*1e9))
-# print('test_omega_filter_B (GHz):', test_omega_filter_B/(2*np.pi*1e9))
