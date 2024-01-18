@@ -98,7 +98,7 @@ class RIKEN_resonator_COMSOL(object):
 
         # print(offset_end)
 
-        start_section_length =  line_length/2 + offset_end # len_each + offset_start - spacing/2 # 0   #   
+        start_section_length = line_length/2 + offset_start # offset_start # len_each + offset_start - spacing/2 # 0  
         end_section_length = line_length/2 + offset_end #   len_each + offset_end - spacing/2
 
         # print('tot_meander_curve_length:', tot_meander_curve_length)
@@ -149,7 +149,7 @@ class RIKEN_resonator_COMSOL(object):
 
             corner_line_2_length = self.length_corner_line(len_start_2, len_end, radius)
 
-            print('corner_line_2_length:', corner_line_2_length)
+            #print('corner_line_2_length:', corner_line_2_length)
 
             #print('corner_line_1_length + corner_line_2_length:', corner_line_1_length + corner_line_2_length)
 
@@ -158,12 +158,12 @@ class RIKEN_resonator_COMSOL(object):
             radius_3 = self.first_curve_radius
 
             corner_line_3_length = self.length_corner_line(len_start_3, len_end_3, radius_3)
-            print('corner_line_3_length:', corner_line_3_length)
+            #print('corner_line_3_length:', corner_line_3_length)
 
             start_length = corner_line_1_length + meander_line_1_length + corner_line_2_length + corner_line_3_length
 
-            print('start_length:', start_length)
-            input('...')
+            #print('start_length:', start_length)
+            #input('...')
             # testing 73 + 20*pi/2 + 3.75 + 35 * pi/2 + 47.5 + 35*pi/2 + 47.5 + 35*pi/2 + 3.75 + 20*pi/2 + 58.5 + 48.5 + 60 * pi/2 + 70 + 60 *pi/2 + 110 + 60 * pi/2
             # = 973.
             # meander1 length = 267.4
@@ -180,19 +180,16 @@ class RIKEN_resonator_COMSOL(object):
 
     def length_short(self):
 
-        start_section_offset_length = self.l_couple_line - self.l_start - self.l_line/2
-        # print('start_section_offset_length:', start_section_offset_length)
-        
+        ## for the short section, total start length should be 0.
+        start_section_offset = -(self.l_line - self.meander_spacing)/2
+                
         ## testing: val should be res_1_couple_line_len - res_1_start_len - res_1_line_len/2
         # which is 400 - 190 - 350/2 = 35 # correct
         #start_section_length = 0
 
-        end_section_offset_length = self.l_end - self.l_line/2 - self.extra_wiggle_length +  self.start_curve_offset_length
+        end_section_offset = self.l_end - self.l_line/2 - self.extra_wiggle_length +  self.start_curve_offset_length
         
-        # print('end_section_offset_length:', end_section_offset_length)
-        # print('self.meander_spacing:', self.meander_spacing)
-
-        length_short_val_and_coupled_len = self.length_meander_line(self.meander_spacing, self.l_line, start_section_offset_length, end_section_offset_length, self.n_meander_curve)
+        length_short_val_and_coupled_len = self.length_meander_line(self.meander_spacing, self.l_line, start_section_offset, end_section_offset, self.n_meander_curve)
 
         return length_short_val_and_coupled_len
 
@@ -301,14 +298,18 @@ class RIKEN_resonator_COMSOL(object):
 
         return 
 
+## res A end length. 
+# model = 1766.77
+# COMSOL = 152.5*2*
+    
 ## the resonator parameters are now all correct.
     # 
 
 ## testing the filter parameters now
     #  173 + 20 + 275
     
-# resonator_A = RIKEN_resonator_COMSOL()
-# filter_A = RIKEN_resonator_COMSOL()
+resonator_A = RIKEN_resonator_COMSOL()
+filter_A = RIKEN_resonator_COMSOL()
 
 resonator_B = RIKEN_resonator_COMSOL()
 filter_B = RIKEN_resonator_COMSOL()
@@ -422,8 +423,8 @@ COMSOL_filter_user_params_B = \
         'readout_via_pad_deformation': 37.5
     }
 
-# resonator_A.update_base_params_from_readout_COMSOL_params(COMSOL_resonator_user_params_A)
-# filter_A.update_base_params_from_filter_COMSOL_params(COMSOL_filter_user_params_A)
+resonator_A.update_base_params_from_readout_COMSOL_params(COMSOL_resonator_user_params_A)
+filter_A.update_base_params_from_filter_COMSOL_params(COMSOL_filter_user_params_A)
 
 resonator_B.update_base_params_from_readout_COMSOL_params(COMSOL_resonator_user_params_B)
 filter_B.update_base_params_from_filter_COMSOL_params(COMSOL_filter_user_params_B)
@@ -443,11 +444,16 @@ res_couple_len = resonator_lengths[2]
 filter_frequency = np.pi/2 * 1.2e8/(res_short_len+filter_short_len+res_couple_len) * 1e6
 print('filter_frequency (GHz):', filter_frequency/(2*np.pi*1e9))
 
-omega_n = 8.466026082533308*1e9 * 2*np.pi
-omega_r = 10.43*1e9 * 2*np.pi
-l_c = 317.5*1e-6
+omega_n = filter_frequency
+omega_r = resonator_B.resonance_omega()
+l_c = res_couple_len * 1e-6
 
-predicted_J = J_coupling_analytic_by_freqs(omega_r, omega_r, omega_n, l_c, cap.get_Cm(3.8e-6), phase_vel=3*10**8/2.5, Z0=65)
+print('omega_n:', omega_n)
+print('omega_r:', omega_r)
+
+print('cap.get_Cm(3.8e-6):', cap.get_Cm(3.8e-6))
+
+predicted_J = J_coupling_analytic_by_freqs(omega_r, omega_r, omega_n, l_c, cap.get_Cm(3.8e-6), phase_vel=1.2e8, Z0=65)
 
 filter_length = filter_B.total_resonator_length_from_base_COMSOL_params()
 
@@ -461,7 +467,7 @@ print('omega_shift (GHZ):', omega_shift/(2*np.pi*1e9))
 
 print('predicted_J (MHz):', predicted_J/(2*np.pi*1e6))
 
-input('.')
+#input('.')
 
 test_omega_res_B = resonator_B.resonance_omega()
 test_omega_filter_B = filter_B.resonance_omega()
