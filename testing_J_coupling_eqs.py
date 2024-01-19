@@ -89,7 +89,7 @@ l_Rf = 1.85e-3
 l_Rn = 0.75e-3 + 0.35e-3
 l_Gf = 2.4e-3 
 l_Gn = 0.21e-3 + 0.15e-3
-l_c = 0.35e-3 
+l_c = 0.3175e-3 
 
 print('l_Gf + l_Gn:', l_Gf + l_Gn)
 print('l_Rf + l_Rn:', l_Rf + l_Rn)
@@ -166,10 +166,14 @@ J_vals_exact_circuit = np.array([J_coupling(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, cap
 J_vals_analytic = np.array([J_coupling_analytic(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Cm(7.5e-6), phase_vel=phase_vel, Z0=Z0) for l_c_val in l_c_vals])
 J_vals_analytic_raw = np.array([J_coupling_analytic(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Cm(7.5e-6), phase_vel=phase_vel, Z0=Z0, simplified=False) for l_c_val in l_c_vals])
 
+
+
 plt.plot(l_c_vals, J_vals_exact_circuit/(2*np.pi * 1e6), color = 'r')
 plt.plot(l_c_vals, J_vals_analytic/(2*np.pi * 1e6), color = 'g')
 plt.plot(l_c_vals, J_vals_analytic_raw/(2*np.pi * 1e6), color = 'b')
 plt.show()
+
+
 
 plt.plot(l_c_vals, 100*(J_vals_analytic-J_vals_exact_circuit)/(J_vals_exact_circuit), color = 'r')
 plt.show()
