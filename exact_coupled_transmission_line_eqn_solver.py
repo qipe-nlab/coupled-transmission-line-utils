@@ -1728,6 +1728,31 @@ def qubit_radiative_decay_equivalent_LE_circuit_single_resonator(C_q, C_g, C_ext
 
     return T1
 
+def qubit_radiative_decay_equivalent_LE_circuit_approximate(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50):
+
+    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
+
+    Z1 = 1/(1j*omegas*C1 + 1/(1j*omegas*L1))
+    Z2 = 1/(1j*omegas*Cg + 1/(1j*omegas*Lg))
+    Z3 = 1/(1j*omegas*C2 + 1/(1j*omegas*L2))
+
+    Zg = Zcap(C_g, omegas)
+    Z_ext = Zcap(C_ext, omegas) + Zline
+
+    Z21 = lumped_model_Z_transmission(omegas, C1, L1, C2, L2, Cg, Lg)
+    Z11 = lumped_model_Z11(omegas, C1, L1, C2, L2, Cg, Lg)
+    Z22 = lumped_model_Z11(omegas, C2, L2, C1, L1, Cg, Lg)
+
+    #Y_re = np.abs(Z21/(Z11+Zg))**2 * Zline / np.abs(Z_ext)**2
+
+    Y_re = np.abs(Z21*Zpara(Z22,Z_ext)/Z22/(Z11+Zg))**2 * Zline / np.abs(Z_ext)**2
+
+    Zq_env_re = 1/(Y_re)
+
+    T1 = qubit_radiative_T1(C_q, Zq_env_re)
+
+    return T1
+
 #####################
 ### get ham terms ###
 #####################

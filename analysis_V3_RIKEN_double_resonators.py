@@ -30,7 +30,7 @@ for name in names:
 
 import cap_util as cap
 
-## QA
+## QA ##
 
 omega_r = 10.45 * 2 * np.pi* 1e9
 omega_p = 10.45 * 2 * np.pi* 1e9
@@ -42,7 +42,7 @@ Cm_per_len = cap.get_Cm(5.5e-6)
 predicted_J_qub_A = J_coupling_analytic_by_freqs(omega_r, omega_p, omega_n, l_c, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65, simplified = True)
 print('predicted_J_qub_A (MHz):', predicted_J_qub_A/(2*np.pi*1e6))
 
-## QB
+## QB ##
 
 omega_r = 10.45 * 2 * np.pi* 1e9
 omega_p = 10.45 * 2 * np.pi* 1e9
@@ -54,7 +54,7 @@ Cm_per_len = cap.get_Cm(3.8e-6)
 predicted_J_qub_B = J_coupling_analytic_by_freqs(omega_r, omega_p, omega_n, l_c, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65, simplified = True)
 print('predicted_J_qub_B (MHz):', predicted_J_qub_B/(2*np.pi*1e6))
 
-## QC
+## QC ##
 
 omega_r = 10.6 * 2 * np.pi* 1e9
 omega_p = 10.6 * 2 * np.pi* 1e9
@@ -66,10 +66,10 @@ Cm_per_len = cap.get_Cm(4.2e-6)
 predicted_J_qub_C = J_coupling_analytic_by_freqs(omega_r, omega_p, omega_n, l_c, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65, simplified = True)
 print('predicted_J_qub_C (MHz):', predicted_J_qub_C/(2*np.pi*1e6))
 
-## QD
+## QD ##
 
-omega_r = 10.2 * 2 * np.pi* 1e9
-omega_p = 10.2 * 2 * np.pi* 1e9
+omega_r = 10.1 * 2 * np.pi* 1e9
+omega_p = 10.1 * 2 * np.pi* 1e9
 
 omega_n = 8.15 * 2 * np.pi * 1e9
 l_c = 317.5 * 1e-6

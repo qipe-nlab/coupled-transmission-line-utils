@@ -243,8 +243,11 @@ test_T1_radiative_equivalent_LE_circuit = qubit_radiative_decay_equivalent_LE_ci
 test_T1_radiative_equivalent_LE_circuit_without_notch = qubit_radiative_decay_equivalent_LE_circuit_without_notch(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
 test_T1_radiative_equivalent_LE_circuit_single_resonator = qubit_radiative_decay_equivalent_LE_circuit_single_resonator(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
 
+test_T1_radiative_equivalent_LE_circuit_approx = qubit_radiative_decay_equivalent_LE_circuit_approximate(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
+
 plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_exact * 1e3, color = my_cmap3(1), linewidth = 3, label = 'with intrinsic notch - exact')
 plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_equivalent_LE_circuit * 1e3, color = my_cmap2(7), linewidth = 3, label = 'with intrinsic notch - e.c.', alpha = 0.5)
+plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_equivalent_LE_circuit_approx * 1e3, color = my_cmap2(7), linewidth = 3, linestyle = '-.', label = 'with intrinsic notch - e.c. approx', alpha = 0.5)
 plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_equivalent_LE_circuit_without_notch * 1e3, color = my_cmap2(7), linewidth = 3, linestyle = '--', label = 'without intrinsic notch - e.c.', alpha = 0.5)
 # plt.plot(omegas/(2*np.pi * 1e9), test_T1_radiative_equivalent_LE_circuit_single_resonator * 1e3, color = 'b', linestyle = '--', label = 'equiv. single resonator circuit')
 
@@ -284,7 +287,7 @@ omega_r = lambda_quarter_omega(l_c + l_Gf + l_Gn, phase_vel=phase_vel)
 omega_p = lambda_quarter_omega(l_c + l_Rf + l_Rn, phase_vel=phase_vel)
 
 predicted_notch_enhancement = enhancement_factor_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, omegas)
-#plt.plot(omegas/(2*np.pi * 1e9), predicted_notch_enhancement, color = 'g')
+plt.plot(omegas/(2*np.pi * 1e9), predicted_notch_enhancement, color = 'g')
 
 exact_bandwidth = find_notch_enhancement_bandwidth(omegas, enhancement_factor, 10)
 
