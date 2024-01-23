@@ -316,15 +316,15 @@ class RIKEN_coupled_readout_filter_COMSOL(object):
 
     def __init__(self, resonator_user_param_dict, filter_user_param_dict):
 
-        self.resonator = RIKEN_resonator_COMSOL()
+        self.readout = RIKEN_resonator_COMSOL()
         self.filter = RIKEN_resonator_COMSOL()
 
-        self.resonator.update_base_params_from_readout_COMSOL_params(resonator_user_param_dict)
+        self.readout.update_base_params_from_readout_COMSOL_params(resonator_user_param_dict)
         self.filter.update_base_params_from_filter_COMSOL_params(filter_user_param_dict)
 
     def omega_notch(self, phase_vel = 1.2e8):
 
-        l_ro, l_rs, l_c = self.resonator.resonator_lengths_from_base_COMSOL_params()
+        l_ro, l_rs, l_c = self.readout.resonator_lengths_from_base_COMSOL_params()
         l_po, l_ps, l_c =self.filter.resonator_lengths_from_base_COMSOL_params()
 
         notch_length = (l_rs + l_ps + l_c)* 1e-6 ## in meters
@@ -335,7 +335,7 @@ class RIKEN_coupled_readout_filter_COMSOL(object):
 
     def omega_notch_numeric(self, Z0 = 65, phase_vel = 1.2e8):
 
-        l_Gn, l_Gf, l_c = self.resonator.resonator_lengths_from_base_COMSOL_params()
+        l_Gn, l_Gf, l_c = self.readout.resonator_lengths_from_base_COMSOL_params()
         l_Rn, l_Rf, l_c = self.filter.resonator_lengths_from_base_COMSOL_params()
 
         l_Gn = l_Gn * 1e-6
@@ -344,7 +344,7 @@ class RIKEN_coupled_readout_filter_COMSOL(object):
         l_Rf = l_Rf * 1e-6
         l_c = l_c * 1e-6
 
-        sep = self.resonator.resonator_filter_spacing * 1e-6 # in meters
+        sep = self.readout.resonator_filter_spacing * 1e-6 # in meters
         lm = cap.get_Lm(sep)
         cm = cap.get_Cm(sep)
 
@@ -354,7 +354,7 @@ class RIKEN_coupled_readout_filter_COMSOL(object):
 
     def J_coupling_symbolic_sol(self, Z0 = 65, phase_vel = 1.2e8, assume_hybridized = True, kappa_exp = None):
 
-        omega_r = self.resonator.resonance_omega()
+        omega_r = self.readout.resonance_omega()
         if assume_hybridized:
             omega_p = omega_r ## assume perfect hybridization
         elif kappa_exp is None:
@@ -364,11 +364,11 @@ class RIKEN_coupled_readout_filter_COMSOL(object):
 
         omega_n = self.omega_notch(phase_vel = phase_vel)
 
-        _, _, l_c = self.resonator.resonator_lengths_from_base_COMSOL_params()
+        _, _, l_c = self.readout.resonator_lengths_from_base_COMSOL_params()
 
         l_c = l_c * 1e-6 ## in meters
 
-        sep = self.resonator.resonator_filter_spacing * 1e-6 # in meters
+        sep = self.readout.resonator_filter_spacing * 1e-6 # in meters
 
         cm = cap.get_Cm(sep)
 
@@ -378,7 +378,7 @@ class RIKEN_coupled_readout_filter_COMSOL(object):
 
     def J_coupling_numeric_sol(self, Z0 = 65, phase_vel = 1.2e8):
 
-        l_Gn, l_Gf, l_c = self.resonator.resonator_lengths_from_base_COMSOL_params()
+        l_Gn, l_Gf, l_c = self.readout.resonator_lengths_from_base_COMSOL_params()
         l_Rn, l_Rf, l_c = self.filter.resonator_lengths_from_base_COMSOL_params()
 
         l_Gn = l_Gn * 1e-6
@@ -387,7 +387,7 @@ class RIKEN_coupled_readout_filter_COMSOL(object):
         l_Rf = l_Rf * 1e-6
         l_c = l_c * 1e-6
 
-        sep = self.resonator.resonator_filter_spacing * 1e-6 # in meters
+        sep = self.readout.resonator_filter_spacing * 1e-6 # in meters
         lm = cap.get_Lm(sep)
         cm = cap.get_Cm(sep)
 
