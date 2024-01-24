@@ -280,6 +280,10 @@ test_enhancement_bandwidth = notch_enhancement_bandwidth(l_c, l_Gf, l_Gn, l_Rf, 
 
 print('test_enhancement_bandwidth (GHz):', test_enhancement_bandwidth / (2*np.pi*1e9))
 
+test_enhancement_bandwidth_exact = notch_enhancement_bandwidth_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, T1_enhancement_fact = 10, phase_vel = 3*10**8/2.5)
+
+print('test_enhancement_bandwidth_exact (GHz):', test_enhancement_bandwidth_exact / (2*np.pi*1e9))
+
 plt.plot(omegas/(2*np.pi * 1e9), enhancement_factor, color = my_cmap3(1), linewidth = 3, label = 'exact soltution')
 plt.plot(omegas/(2*np.pi * 1e9), enhancement_factor_approx, color = my_cmap2(7), linewidth = 3, label = 'equivalent circuit solution', alpha = 0.5)
 

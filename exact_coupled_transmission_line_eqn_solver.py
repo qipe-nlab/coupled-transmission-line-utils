@@ -1953,6 +1953,16 @@ def notch_enhancement_bandwidth_by_omegas(omega_n, omega_r, omega_p, T1_enhancem
 
     return bandwidth_val
 
+def notch_enhancement_bandwidth_by_omegas_exact(omega_n, omega_r, omega_p, T1_enhancement_fact = 10):
+
+    omega_bar = (omega_r + omega_p)/ 2
+
+    factor = 1/np.sqrt(T1_enhancement_fact)
+    
+    bandwidth_val = omega_n*(1 - (omega_n/omega_bar)**2) / (1/factor - (1 - (omega_n/omega_bar)**2)/2)
+
+    return bandwidth_val
+
 def notch_enhancement_bandwidth(l_c, l_Gf, l_Gn, l_Rf, l_Rn, T1_enhancement_fact = 10, phase_vel = 3*10**8/2.5):
     ## returns the predicted bandwidth of the enhancement to T1 that comes from using the ind-cap coupling design
     ## vs using a direct capacitive coupling design with the same J coupling between the resonators
@@ -1962,6 +1972,18 @@ def notch_enhancement_bandwidth(l_c, l_Gf, l_Gn, l_Rf, l_Rn, T1_enhancement_fact
     omega_n = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf)
 
     bandwidth_val = notch_enhancement_bandwidth_by_omegas(omega_n, omega_r, omega_p, T1_enhancement_fact = T1_enhancement_fact)
+
+    return bandwidth_val
+
+def notch_enhancement_bandwidth_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, T1_enhancement_fact = 10, phase_vel = 3*10**8/2.5):
+    ## returns the predicted bandwidth of the enhancement to T1 that comes from using the ind-cap coupling design
+    ## vs using a direct capacitive coupling design with the same J coupling between the resonators
+
+    omega_r = lambda_quarter_omega(l_c + l_Gf + l_Gn, phase_vel=phase_vel)
+    omega_p = lambda_quarter_omega(l_c + l_Rf + l_Rn, phase_vel=phase_vel)
+    omega_n = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf)
+
+    bandwidth_val = notch_enhancement_bandwidth_by_omegas_exact(omega_n, omega_r, omega_p, T1_enhancement_fact = T1_enhancement_fact)
 
     return bandwidth_val
 
