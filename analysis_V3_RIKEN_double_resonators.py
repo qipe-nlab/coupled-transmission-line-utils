@@ -44,9 +44,6 @@ predicted_J_qub_A = J_coupling_analytic_by_freqs(omega_r, omega_p, omega_n, l_c,
 print('predicted_J_qub_A (MHz):', predicted_J_qub_A/(2*np.pi*1e6))
 
 ## QB ##
-
-blablabla
-
 omega_r = 10.45 * 2 * np.pi* 1e9
 omega_p = 10.45 * 2 * np.pi* 1e9
 
