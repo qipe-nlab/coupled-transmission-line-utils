@@ -570,14 +570,25 @@ def find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, ph
         tau_c = l_c / phase_vel_c
         tau_G_dash = (l_Gf / phase_vel + l_c / phase_vel_c / 2) 
         tau_R_dash = (l_Rf / phase_vel + l_c / phase_vel_c / 2) 
-        val = omega * tau_c / (np.sin(omega * tau_c)) * (np.cos(2*omega*tau_G_dash) + np.cos(2*omega*tau_R_dash)) /(1 + np.cos(2*omega*(tau_G_dash + tau_R_dash)))
+        
+        #val_old = omega * tau_c / (np.sin(omega * tau_c)) * (np.cos(2*omega*tau_G_dash) + np.cos(2*omega*tau_R_dash)) /(1 + np.cos(2*omega*(tau_G_dash + tau_R_dash)))
+        
+        ## corrected form
+        ## also reciprocal of old value
+        val = np.sinc(omega * tau_c)*np.cos(omega*(tau_G_dash + tau_R_dash)) / np.cos(omega * (tau_R_dash - tau_G_dash))
+        
+        # print('val_old:', val_old)
+        # print('val:', val)
+        #input('abc')
+        
         return val
 
     def defining_eq2(Z0, phase_vel, Lm, Cm):
         Cl, Ll= transmission_line_C_and_L(phase_vel, Z0)
         Zm = Zchar(Cm, Lm)
         Z0_c = Zchar(Cl + Cm, Ll)
-        val = ((Zm/Z0_c)**2 + 1) / (1 - (Zm/Z0_c)**2)
+        val = (1 - (Zm/Z0_c)**2) / ((Zm/Z0_c)**2 + 1) 
+        #print('val:', val)
         return val
 
     # find get rule of thumb notch freq first
@@ -643,7 +654,6 @@ def notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm = None, phase_vel=3
 
     if Cm is not None:
         # add the effect of the scaled v_c. For weak coupling it is a small effect.
-
         phase_vel_c = omega_r(Cl + Cm, Ll)
 
     else:
@@ -862,7 +872,7 @@ def get_lumped_elements_from_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, p
     C2, L2 = lumped_model_C_and_L(phase_vel, Z0, cpw__length2, res_type = receiver_type)
     #Cg, Lg = lumped_model_Cg_and_Lg(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, receiver_type = receiver_type)
     
-    omega_notch_symbolic = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, phase_vel=phase_vel, Z0=Z0)
+    omega_notch_symbolic = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm_per_len, phase_vel=phase_vel, Z0=Z0)
 
     Z_notch_symbolic_val = Z_notch_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, phase_vel=phase_vel, Z0=Z0)
 
