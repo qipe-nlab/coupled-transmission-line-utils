@@ -570,14 +570,25 @@ def find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, ph
         tau_c = l_c / phase_vel_c
         tau_G_dash = (l_Gf / phase_vel + l_c / phase_vel_c / 2) 
         tau_R_dash = (l_Rf / phase_vel + l_c / phase_vel_c / 2) 
-        val = omega * tau_c / (np.sin(omega * tau_c)) * (np.cos(2*omega*tau_G_dash) + np.cos(2*omega*tau_R_dash)) /(1 + np.cos(2*omega*(tau_G_dash + tau_R_dash)))
+        
+        #val_old = omega * tau_c / (np.sin(omega * tau_c)) * (np.cos(2*omega*tau_G_dash) + np.cos(2*omega*tau_R_dash)) /(1 + np.cos(2*omega*(tau_G_dash + tau_R_dash)))
+        
+        ## corrected form
+        ## also reciprocal of old value
+        val = np.sinc(omega * tau_c)*np.cos(omega*(tau_G_dash + tau_R_dash)) / np.cos(omega * (tau_R_dash - tau_G_dash))
+        
+        # print('val_old:', val_old)
+        # print('val:', val)
+        #input('abc')
+        
         return val
 
     def defining_eq2(Z0, phase_vel, Lm, Cm):
         Cl, Ll= transmission_line_C_and_L(phase_vel, Z0)
         Zm = Zchar(Cm, Lm)
         Z0_c = Zchar(Cl + Cm, Ll)
-        val = ((Zm/Z0_c)**2 + 1) / (1 - (Zm/Z0_c)**2)
+        val = (1 - (Zm/Z0_c)**2) / ((Zm/Z0_c)**2 + 1) 
+        #print('val:', val)
         return val
 
     # find get rule of thumb notch freq first
@@ -643,7 +654,6 @@ def notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm = None, phase_vel=3
 
     if Cm is not None:
         # add the effect of the scaled v_c. For weak coupling it is a small effect.
-
         phase_vel_c = omega_r(Cl + Cm, Ll)
 
     else:
@@ -862,7 +872,7 @@ def get_lumped_elements_from_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, p
     C2, L2 = lumped_model_C_and_L(phase_vel, Z0, cpw__length2, res_type = receiver_type)
     #Cg, Lg = lumped_model_Cg_and_Lg(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, receiver_type = receiver_type)
     
-    omega_notch_symbolic = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, phase_vel=phase_vel, Z0=Z0)
+    omega_notch_symbolic = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm_per_len, phase_vel=phase_vel, Z0=Z0)
 
     Z_notch_symbolic_val = Z_notch_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, phase_vel=phase_vel, Z0=Z0)
 
@@ -1728,6 +1738,31 @@ def qubit_radiative_decay_equivalent_LE_circuit_single_resonator(C_q, C_g, C_ext
 
     return T1
 
+def qubit_radiative_decay_equivalent_LE_circuit_approximate(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50):
+
+    C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
+
+    Z1 = 1/(1j*omegas*C1 + 1/(1j*omegas*L1))
+    Z2 = 1/(1j*omegas*Cg + 1/(1j*omegas*Lg))
+    Z3 = 1/(1j*omegas*C2 + 1/(1j*omegas*L2))
+
+    Zg = Zcap(C_g, omegas)
+    Z_ext = Zcap(C_ext, omegas) + Zline
+
+    Z21 = lumped_model_Z_transmission(omegas, C1, L1, C2, L2, Cg, Lg)
+    Z11 = lumped_model_Z11(omegas, C1, L1, C2, L2, Cg, Lg)
+    Z22 = lumped_model_Z11(omegas, C2, L2, C1, L1, Cg, Lg)
+
+    #Y_re = np.abs(Z21/(Z11+Zg))**2 * Zline / np.abs(Z_ext)**2
+
+    Y_re = np.abs(Z21*Zpara(Z22,Z_ext)/Z22/(Z11+Zg))**2 * Zline / np.abs(Z_ext)**2
+
+    Zq_env_re = 1/(Y_re)
+
+    T1 = qubit_radiative_T1(C_q, Zq_env_re)
+
+    return T1
+
 #####################
 ### get ham terms ###
 #####################
@@ -1928,6 +1963,16 @@ def notch_enhancement_bandwidth_by_omegas(omega_n, omega_r, omega_p, T1_enhancem
 
     return bandwidth_val
 
+def notch_enhancement_bandwidth_by_omegas_exact(omega_n, omega_r, omega_p, T1_enhancement_fact = 10):
+
+    omega_bar = (omega_r + omega_p)/ 2
+
+    factor = 1/np.sqrt(T1_enhancement_fact)
+    
+    bandwidth_val = omega_n*(1 - (omega_n/omega_bar)**2) / (1/factor - (1 - (omega_n/omega_bar)**2)/2)
+
+    return bandwidth_val
+
 def notch_enhancement_bandwidth(l_c, l_Gf, l_Gn, l_Rf, l_Rn, T1_enhancement_fact = 10, phase_vel = 3*10**8/2.5):
     ## returns the predicted bandwidth of the enhancement to T1 that comes from using the ind-cap coupling design
     ## vs using a direct capacitive coupling design with the same J coupling between the resonators
@@ -1937,6 +1982,18 @@ def notch_enhancement_bandwidth(l_c, l_Gf, l_Gn, l_Rf, l_Rn, T1_enhancement_fact
     omega_n = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf)
 
     bandwidth_val = notch_enhancement_bandwidth_by_omegas(omega_n, omega_r, omega_p, T1_enhancement_fact = T1_enhancement_fact)
+
+    return bandwidth_val
+
+def notch_enhancement_bandwidth_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, T1_enhancement_fact = 10, phase_vel = 3*10**8/2.5):
+    ## returns the predicted bandwidth of the enhancement to T1 that comes from using the ind-cap coupling design
+    ## vs using a direct capacitive coupling design with the same J coupling between the resonators
+
+    omega_r = lambda_quarter_omega(l_c + l_Gf + l_Gn, phase_vel=phase_vel)
+    omega_p = lambda_quarter_omega(l_c + l_Rf + l_Rn, phase_vel=phase_vel)
+    omega_n = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf)
+
+    bandwidth_val = notch_enhancement_bandwidth_by_omegas_exact(omega_n, omega_r, omega_p, T1_enhancement_fact = T1_enhancement_fact)
 
     return bandwidth_val
 

@@ -29,7 +29,6 @@ default_phase_vel = constants.c / np.sqrt(6.351)
 default_Z0 = 65.62
 
 print('default_phase_vel:', default_phase_vel)
-input('.')
 
 Cl = 1/(default_phase_vel * default_Z0)
 Ll = default_Z0/default_phase_vel
@@ -72,6 +71,40 @@ plt.show()
 Zc_vals = np.sqrt(Ll/(Cl + Cm_vals))
 
 homogeneous_validity = (Zc_vals**2 - Zm_vals**2) / (Zc_vals**2 + Zm_vals**2)
+
+plt.plot(d_vals * 1e6, Zc_vals, color = my_cmap3(1), marker = 'o', markersize = 8, label = '$Z_c$', linestyle = 'None')
+plt.plot(d_vals * 1e6, Zm_vals, color = my_cmap2(7), marker = 'o', markersize = 8, label = '$Z_m$', linestyle = 'None')
+
+ax = plt.gca()
+
+# Customize the border settings
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['bottom'].set_linewidth(2.5)
+ax.spines['left'].set_linewidth(2.5)
+
+# Adjust tick thickness and label size
+ax.tick_params(axis='both', which='both', width=2.5)
+ax.tick_params(axis='both', labelsize=25)
+
+ax.set_xticks([0, 5, 10, 15, 20, 25, 30, 35, 40 ])
+ax.set_xticklabels(['0', '5', '10', '15', '20', '25', '30', '35', '40'])
+
+# Set axis labels and font size
+ax.set_xlabel(r'$d$ (um)', fontsize=30)
+ax.set_ylabel(r'Char. Z ($\Omega$)', fontsize=30)
+
+# Add legend with fontsize 20
+
+ax.legend( fontsize=25) # loc = 'upper right',
+# ax.set_xlim(0, 20)
+# ax.set_ylim(60, 68)
+plt.tight_layout()
+plt.show()
+
+################
+
+homogeneous_validity = (Zm_vals**2 - Zc_vals**2) / (Zc_vals**2 + Zm_vals**2)
 
 plt.plot(d_vals * 1e6, homogeneous_validity, color = my_cmap3(1), marker = 'o', markersize = 8, linestyle = 'None')
 

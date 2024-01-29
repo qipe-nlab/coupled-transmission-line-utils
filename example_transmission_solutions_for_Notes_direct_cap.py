@@ -26,9 +26,13 @@ d_val = 10e-6 # 12.5*1e-6 # separation between the coupled sections
 CJ = 2e-15
 
 l_Rf = 1.7e-3
-l_Rn = 0.96e-3
+l_Rn = 1.21e-3
 l_Gf = 1.2e-3
-l_Gn = 1.5e-3
+l_Gn = 1.75e-3
+
+test_J_value = J_coupling_direct_cap_analytic(l_Gf, l_Gn, l_Rf, l_Rn, CJ, phase_vel=phase_vel, Z0=Z0)
+
+print('test_J_value:',test_J_value/(2*np.pi*1e6))
 
 L_readout = l_Gn + l_Gf
 

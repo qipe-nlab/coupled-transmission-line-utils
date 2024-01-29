@@ -5,6 +5,19 @@ import matplotlib.pyplot as plt
 import sys
 import cap_util as cap
 
+import seaborn as sns
+from scipy import constants
+
+hex_codes = sns.color_palette().as_hex()
+hex_codes2 = sns.color_palette('husl', 9).as_hex()
+
+from matplotlib.colors import ListedColormap
+
+#flatui = ["#9b59b6", "#3498db", "#95a5a6", "#e74c3c", "#34495e", "#2ecc71"]
+my_cmap = ListedColormap(hex_codes)
+my_cmap2 = ListedColormap(hex_codes2)
+my_cmap3 = ListedColormap(["#9b59b6", "#34495e"])
+
 d_vals = np.linspace(1, 40, 20) * 1e-6
 
 # print('d_vals:', d_vals)
@@ -13,30 +26,22 @@ test_Cm_vals = cap.get_Cm(d_vals)
 test_Lm_vals = cap.get_Lm(d_vals)
 test_Zm_vals = cap.get_Zm(d_vals)
 
-default_phase_vel = 119919602
-default_Z0 = 65
-
-Cl = 1/(default_phase_vel * default_Z0)
-Ll = default_Z0/default_phase_vel
-
-Zc_vals = np.sqrt(Ll/(Cl + test_Cm_vals))
+# default_phase_vel = 119919602
+# default_Z0 = 65
 
 from exact_coupled_transmission_line_eqn_solver import *
 
-phase_vel = 119919602
-Z0 = 65.6 #65
+phase_vel = 1.2e8
+Z0 = 65
 
-Cl = 1/(default_phase_vel * default_Z0)
-Ll = default_Z0/default_phase_vel
+Cm_per_len = cap.get_Cm(10e-6)
+Lm_per_len = cap.get_Lm(10e-6)
 
-Cm_per_len = cap.get_Cm(8e-6)
-Lm_per_len = cap.get_Lm(8e-6)
-
-l_Rf = 1.55e-3
-l_Rn = 0.7e-3
-l_Gf = 1.7e-3
-l_Gn = 0.51e-3
-l_c = 0.5e-3
+l_Rf = 1.7e-3
+l_Rn = 0.96e-3
+l_Gf = 1.4e-3
+l_Gn = 1.3e-3
+l_c = 0.25e-3
 
 # l_Rf = 1.85e-3
 # l_Rn = 0.75e-3 + 0.35e-3
@@ -56,21 +61,11 @@ l_c = 0.5e-3
 # print('notch_val:', notch_val)
 # print('test_simple_notch_val:', test_simple_notch_val)
 
-d_vals = np.linspace(2, 10, 10) * 1e-6
+d_vals = np.linspace(2, 10, 20) * 1e-6
 
 print('d_vals', d_vals)
 
-# J_vals_test = np.array([J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Lm(d), cap.get_Cm(d), phase_vel=phase_vel, Z0=Z0) for d in d_vals])
-
-# plt.plot(d_vals, J_vals_test/(2*np.pi * 1e6))
-# plt.show()
-
 l_c_vals = np.linspace(100, 400, 15) * 1e-6
-
-# notch_vals = np.array([find_notch_filter_frequency_analytic(l_c_val, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, Z0 = Z0, search_span = 3 * 2*np.pi*1e9, search_spacing=(10*2*np.pi*10**6))  for l_c_val in l_c_vals]) 
-
-# plt.plot(l_c_vals, notch_vals/(2*np.pi * 1e9))
-# plt.show()
 
 cpw_length_G = l_Gf + l_Gn + l_c
 cpw_length_R = l_Rf + l_Rn + l_c
@@ -78,9 +73,7 @@ cpw_length_R = l_Rf + l_Rn + l_c
 omega_r = lambda_quarter_omega(cpw_length_G, phase_vel=phase_vel)
 omega_p = lambda_quarter_omega(cpw_length_R, phase_vel=phase_vel)
 
-#omega_f = find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=phase_vel, Z0=Z0, search_span=2*2*np.pi*10**9, search_spacing=(2.5*2*np.pi*10**6))
-
-omega_f_analytic = find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=phase_vel, Z0=Z0, search_span=2*2*np.pi*10**9, search_spacing=(2.5*2*np.pi*10**6))
+#omega_f_analytic = find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=phase_vel, Z0=Z0, search_span=2*2*np.pi*10**9, search_spacing=(2.5*2*np.pi*10**6))
 
 omega_f_rule_of_thumb_scaled = notch_filter_frequency_rule_of_thumb(l_c, l_Gf,l_Rf, Cm_per_len, phase_vel=phase_vel, Z0=Z0)
 omega_f_rule_of_thumb_basic = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, phase_vel=phase_vel, Z0=Z0)
@@ -99,12 +92,31 @@ print('J_vals_analytic_raw:', J_vals_analytic_raw/(2*np.pi*1e9))
 J_vals_analytic_simplified = np.array([J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, cap.get_Cm(d_val), phase_vel=phase_vel, Z0=Z0, simplified=True) for d_val in d_vals])
 print('J_vals_analytic_simplified:', J_vals_analytic_simplified/(2*np.pi*1e9))
 
-plt.plot(J_vals_solve_eq_c/(2*np.pi*1e6), color= 'r')
-plt.plot(J_vals_analytic_raw/(2*np.pi*1e6), color = 'b')
-plt.plot(J_vals_analytic_simplified/(2*np.pi*1e6), color = 'g', linestyle = '--')
+ax = plt.gca()
+
+ax.tick_params(axis='both', which='major', labelsize=16)
+
+# ax.set_yticks([1e-6,1e-3,1,1e3]) 
+# ax.set_yticklabels(['1 ns','1 us','1 ms', '1 s'])
+# ax.set_ylim([0.5e-6, 5e3])
+
+for axis in ['top','bottom','left','right']:
+    ax.spines[axis].set_linewidth(2)
+
+ax.tick_params(width=3)
+
+plt.xlabel(r'$d$ (um)', size = 20)
+plt.ylabel(r'$J/2\pi$ (MHz)', size = 20)
+
+plt.plot(d_vals * 1e6, J_vals_solve_eq_c/(2*np.pi*1e6), linestyle = 'none', marker = 'o', color = my_cmap3(1), label = 'Numeric', linewidth = 3, markersize = 9)
+#plt.plot(d_vals * 1e6, J_vals_analytic_raw/(2*np.pi*1e6), color = 'b')
+plt.plot(d_vals * 1e6, J_vals_analytic_simplified/(2*np.pi*1e6), linestyle = 'none', marker = 'o', color = my_cmap2(7), label = 'Symbolic', linewidth = 3, markersize = 9)
+
+plt.legend(loc = 'upper right', fontsize = 14)
+plt.tight_layout()
 plt.show()
 
-#sys.exit()
+sys.exit()
 
 l_c_exp = 340e-6 
 s_exp = 5e-6
