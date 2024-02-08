@@ -1,10 +1,10 @@
 
 COMSOL_readout_filter_shared_params = \
-    {   'res_couple_line_len': 500, # 400
+    {   'res_couple_line_len': 600, # 400
         'height': 230,
-        'start_len' : 250,    
+        'start_len' : 300,    
         'straight_len': 531.5,
-        'l_line_len': 450,
+        'l_line_len': 550,
         'Q_res_coupler_gap': 5,
         'double_resonator_offset': 150,
         'meander_spacing': 45,
@@ -33,9 +33,9 @@ COMSOL_filter_shared_params = \
 ### unique parameters begin here
 
 COMSOL_readout_user_params_A = \
-    {   'end_sec_len': 329,
+    {   'end_sec_len': 100,
         'fine_tuning_end': 195, 
-        'Q_diam': 149,
+        'Q_diam': 260,
         'inner_pad_deformation': 42.5,
         'double_resonator_spacing': 5.5,
         'start_curve_radius': 110,
