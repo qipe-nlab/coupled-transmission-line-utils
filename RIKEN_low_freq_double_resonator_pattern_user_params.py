@@ -1,12 +1,12 @@
 
 COMSOL_readout_filter_shared_params = \
-    {   'res_couple_line_len': 600, # 400
+    {   'res_couple_line_len': 750, # 400
         'height': 230,
-        'start_len' : 300,    
+        'start_len' : 375,    
         'straight_len': 531.5,
-        'l_line_len': 550,
+        'l_line_len': 700,
         'Q_res_coupler_gap': 5,
-        'double_resonator_offset': 150,
+        'double_resonator_offset': 125,
         'meander_spacing': 45,
         'curvatur_radius': 60,
         'center_line_width': 20,
@@ -36,7 +36,7 @@ COMSOL_readout_user_params_A = \
         'fine_tuning_end': 178, 
         'Q_diam': 270,
         'inner_pad_deformation': 35,
-        'double_resonator_spacing': 5.5,
+        'double_resonator_spacing': 8,
         'start_curve_radius': 110,
         'meander_curves': 5,
     }
@@ -52,7 +52,7 @@ COMSOL_readout_user_params_B = \
         'fine_tuning_end': 150, 
         'Q_diam': 240,
         'inner_pad_deformation': 17.5,
-        'double_resonator_spacing': 3.8, #3.8
+        'double_resonator_spacing': 6, #3.8
         'start_curve_radius': 60,
         'meander_curves': 4,
     }
@@ -68,7 +68,7 @@ COMSOL_readout_user_params_C = \
         'fine_tuning_end': 150, 
         'Q_diam': 250,
         'inner_pad_deformation': 17.5,
-        'double_resonator_spacing': 4.2, # 4.2
+        'double_resonator_spacing': 6.5, # 4.2
         'start_curve_radius': 60,
         'meander_curves': 4,
     }
@@ -80,11 +80,11 @@ COMSOL_filter_user_params_C = \
     }
 
 COMSOL_readout_user_params_D = \
-    {   'end_sec_len': 100,
+    {   'end_sec_len': 130,
         'fine_tuning_end': 220, 
         'Q_diam': 280,
         'inner_pad_deformation': 35,
-        'double_resonator_spacing': 5.5,
+        'double_resonator_spacing': 7.5,
         'start_curve_radius': 130,
         'meander_curves': 5,
     }
