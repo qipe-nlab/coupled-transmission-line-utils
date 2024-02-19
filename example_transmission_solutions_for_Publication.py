@@ -26,6 +26,38 @@ d_val = 10e-6 # 12.5*1e-6 # separation between the coupled sections
 Cm = cap.get_Cm(d_val)
 Lm = cap.get_Lm(d_val)
 
+d_vals = np.linspace(1, 25, 50) * 1e-6
+Cm_vals = cap.get_Cm(d_vals)
+
+plt.figure(figsize=(8,5.5))
+plt.plot(d_vals * 1e6, Cm_vals * 1e12, color = my_cmap2(7), linewidth = 5)
+
+plt.xlabel(r'$d$ (um)', size = 32)
+plt.ylabel(r'$c_m$ (fF/um)', size = 32)
+#plt.legend(fontsize = 16)
+#plt.title('Radiative T1 limit through detector line')
+
+ax = plt.gca()
+
+ax.tick_params(axis='both', which='major', labelsize=16)
+
+# ax.set_yticks([1e-6,1e-3,1,1e3]) 
+# ax.set_yticklabels(['1 ns','1 us','1 ms', '1 s'])
+# ax.set_ylim([0.5e-6, 5e3])
+
+for axis in ['top','bottom','left','right']:
+    ax.spines[axis].set_linewidth(2)
+
+plt.xticks([1, 5, 10, 15, 20, 25],[1, 5, 10, 15, 20, 25], size = 30)
+plt.yticks([0, 5, 10, 15],[0, 5, 10, 15], size = 30)
+plt.yticks(size = 30)
+
+ax.tick_params(width=3)
+plt.tight_layout()
+plt.show()
+
+
+
 print('Cm:', Cm)
 print('Lm:', Lm)
 
@@ -135,7 +167,7 @@ Z11_LE_circuit_symbolic = Z_input_equivalent_LE_circuit(l_c, l_Gf, l_Gn, l_Rf, l
 plt.plot(omegas/(2*np.pi * 1e9), np.abs(Z11_exact), color = my_cmap3(1), label = 'Distributed circuit', linewidth = 3)
 #plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_weak_coupling), color = 'r', linestyle = '--', label = 'Z transfer weak coupling model')
 plt.plot(omegas/(2*np.pi*1e9), np.abs(Z11_LE_circuit), color = my_cmap2(7), label = 'Equivalent circuit', linewidth = 3, alpha = 0.85)
-plt.plot(omegas/(2*np.pi*1e9), np.abs(Z11_LE_circuit_symbolic), color = my_cmap3(7), linestyle = '--', label = 'Equivalent circuit - symbolic', linewidth = 3, alpha = 0.5)
+#plt.plot(omegas/(2*np.pi*1e9), np.abs(Z11_LE_circuit_symbolic), color = my_cmap3(7), linestyle = '--', label = 'Equivalent circuit - symbolic', linewidth = 3, alpha = 0.5)
 
 plt.yscale('log')
 plt.legend(loc = 'upper left', fontsize = 14)
@@ -178,7 +210,7 @@ test_Z_equiv_LE_circuit_symbolic = Z_transfer_equivalent_LE_circuit_from_symboli
 plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_exact), color = my_cmap3(1), label = 'Distributed circuit', linewidth = 3)
 #plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_weak_coupling), color = 'r', linestyle = '--', label = 'Z transfer weak coupling model')
 plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit), color = my_cmap2(7), label = 'Equivalent circuit', linewidth = 3, alpha = 0.85)
-plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit_symbolic), color = my_cmap3(7), label = 'Equivalent circuit - sybc.', linewidth = 3, alpha = 0.5)
+#plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit_symbolic), color = my_cmap3(7), label = 'Equivalent circuit - sybc.', linewidth = 3, alpha = 0.5)
 
 #print('test_notch_freq_rule_of_thumb/(2*np.pi*1e9):', test_notch_freq_rule_of_thumb/(2*np.pi*1e9))
 #plt.vlines(test_notch_freq_analytic/(2*np.pi*1e9), 0.008, 2, color = my_cmap(7), linestyle = 'dotted', linewidth = 3)
