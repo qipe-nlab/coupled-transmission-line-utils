@@ -6,11 +6,11 @@ COMSOL_readout_filter_shared_params = \
         'l_line_len': 350,
         'Q_res_coupler_gap': 5,
         'double_resonator_offset': 150,
-        'meander_spacing': 45,
+        'meander_spacing': 40,
         'curvatur_radius': 60,
-        'center_line_width': 20,
+        'center_line_width': 5,
         'meander_curves': 4,
-        'readout_via_pad_deformation': 37.5 
+        'readout_via_pad_deformation': 27.5
     }
 
 COMSOL_readout_shared_params = \
@@ -18,26 +18,26 @@ COMSOL_readout_shared_params = \
         'wiggle_length': 90,
         'wiggle_n':0,
         'wiggle_r': 20,
-        'wiggle_meander_spacing': 50,
+        'wiggle_meander_spacing': 40,
      }
 
 COMSOL_filter_shared_params = \
-    {   'wiggle_offset':30,
+    {   'wiggle_offset':45,
         'wiggle_r': 20,
-        'wiggle_meander_spacing': 35,
-        'thickness_res_coupler_pad': 32.5,
-        'readout_via_pad_deformation': 37.5
+        'wiggle_meander_spacing': 40,
+        'thickness_res_coupler_pad': 26,
+        'readout_via_pad_deformation': 27.5
      }
 
 ### unique parameters begin here
 
 COMSOL_readout_user_params_A = \
-    {   'end_sec_len': 329,
+    {   'end_sec_len': 282.5,
         'fine_tuning_end': 195, 
         'Q_diam': 149,
-        'inner_pad_deformation': 42.5,
+        'inner_pad_deformation': 31,
         'double_resonator_spacing': 5.5,
-        'start_curve_radius': 110,
+        'start_curve_radius': 40,
     }
 
 COMSOL_filter_user_params_A = \
@@ -46,40 +46,40 @@ COMSOL_filter_user_params_A = \
     }
 
 COMSOL_readout_user_params_B = \
-    {   'end_sec_len': 255,
-        'fine_tuning_end': 222, 
-        'Q_diam': 126.5,
-        'inner_pad_deformation': 25,
-        'double_resonator_spacing': 3.8, #3.8
-        'start_curve_radius': 60,
+    {   'end_sec_len': 230,
+        'fine_tuning_end': 152.5, 
+        'Q_diam': 126.75,
+        'inner_pad_deformation': 22,
+        'double_resonator_spacing': 5.5, #3.8
+        'start_curve_radius': 40,
     }
 
 COMSOL_filter_user_params_B = \
-    {   'wiggle_n': 3,
-        'wiggle_length': 82.5,
+    {   'wiggle_n': 2,
+        'wiggle_length': 90,
     }
 
 COMSOL_readout_user_params_C = \
-    {   'end_sec_len': 329,
-        'fine_tuning_end': 175, 
-        'Q_diam': 130,
-        'inner_pad_deformation': 25,
-        'double_resonator_spacing': 4.2, # 4.2
-        'start_curve_radius': 60,
+    {   'end_sec_len': 270,
+        'fine_tuning_end': 167.5, 
+        'Q_diam': 129.25,
+        'inner_pad_deformation': 21,
+        'double_resonator_spacing': 5.5, # 4.2
+        'start_curve_radius': 40,
     }
 
 COMSOL_filter_user_params_C = \
-    {   'wiggle_n': 3,
-        'wiggle_length': 85,
+    {   'wiggle_n': 2,
+        'wiggle_length': 90,
     }
 
 COMSOL_readout_user_params_D = \
-    {   'end_sec_len': 333,
-        'fine_tuning_end': 238, 
-        'Q_diam': 150.5,
-        'inner_pad_deformation': 42.5,
+    {   'end_sec_len': 267.5,
+        'fine_tuning_end': 275, 
+        'Q_diam': 151.5,
+        'inner_pad_deformation': 32,
         'double_resonator_spacing': 5.5,
-        'start_curve_radius': 130,
+        'start_curve_radius': 40,
     }
 
 COMSOL_filter_user_params_D = \

@@ -21,19 +21,21 @@ import cap_util as cap
 phase_vel = 1.2e8 #constants.c / np.sqrt(6.351)
 Z0 = 65
 
-d_val = 10e-6 # 12.5*1e-6 # separation between the coupled sections
+d_val = 5e-6 # 12.5*1e-6 # separation between the coupled sections
 
 Cm = cap.get_Cm(d_val)
 Lm = cap.get_Lm(d_val)
 
 d_vals = np.linspace(1, 25, 50) * 1e-6
-Cm_vals = cap.get_Cm(d_vals)
+Cm_vals = cap.get_Cm(d_vals) ### F per meter
 
-plt.figure(figsize=(8,5.5))
-plt.plot(d_vals * 1e6, Cm_vals * 1e12, color = my_cmap2(7), linewidth = 5)
+plt.figure(figsize=(8, 5))
+plt.plot(d_vals * 1e6, Cm_vals * 1e12, color = my_cmap2(7), linewidth = 7)
 
-plt.xlabel(r'$d$ (um)', size = 32)
-plt.ylabel(r'$c_m$ (fF/um)', size = 32)
+### pF per meter - fF / mm
+
+plt.xlabel(r'$d$ (um)', size = 35)
+plt.ylabel(r'$c_m$ (fF/mm)', size = 35)
 #plt.legend(fontsize = 16)
 #plt.title('Radiative T1 limit through detector line')
 
@@ -48,30 +50,27 @@ ax.tick_params(axis='both', which='major', labelsize=16)
 for axis in ['top','bottom','left','right']:
     ax.spines[axis].set_linewidth(2)
 
-plt.xticks([1, 5, 10, 15, 20, 25],[1, 5, 10, 15, 20, 25], size = 30)
-plt.yticks([0, 5, 10, 15],[0, 5, 10, 15], size = 30)
-plt.yticks(size = 30)
+plt.xticks([1, 5, 10, 15, 20, 25],[1, 5, 10, 15, 20, 25], size = 35)
+plt.yticks([0, 5, 10, 15],[0, 5, 10, 15], size = 35)
 
 ax.tick_params(width=3)
 plt.tight_layout()
 plt.show()
 
-
-
 print('Cm:', Cm)
 print('Lm:', Lm)
 
-l_Rf = 1.7e-3
-l_Rn = 0.96e-3
-l_Gf = 1.2e-3
-l_Gn = 1.5e-3
-l_c = 0.25e-3
-
 # l_Rf = 1.7e-3
 # l_Rn = 0.96e-3
-# l_Gf = 1.4e-3
-# l_Gn = 1.3e-3
+# l_Gf = 1.2e-3
+# l_Gn = 1.5e-3
 # l_c = 0.25e-3
+
+l_Rf = 1.7e-3
+l_Rn = 0.96e-3
+l_Gf = 1.7e-3
+l_Gn = 1.0e-3
+l_c = 0.25e-3
 
 L_readout = l_Gn + l_c + l_Gf
 
@@ -112,7 +111,7 @@ print('test_omega_1 (GHz):', test_omega_1/(2*np.pi*1e9))
 print('test_omega_2 (GHz):', test_omega_2/(2*np.pi*1e9))
 # print('test_J_val (MHz):', test_J_val/(2*np.pi*1e6))
 
-omegas = np.arange(7.5, 11, 0.02) * 1e9 * 2*np.pi
+omegas = np.arange(7.5, 11, 0.005) * 1e9 * 2*np.pi
 
 test_Z_transfer_exact = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
 
@@ -271,7 +270,7 @@ print('Z_ratios:', Z_ratios)
 
 print('test_k_val (MHz):', test_k_val/(2*np.pi*1e6))
 
-omegas = np.arange(7.5, 11, 0.02) * 1e9 * 2*np.pi
+omegas = np.arange(7, 11, 0.005) * 1e9 * 2*np.pi
 
 test_T1_radiative_exact = qubit_radiative_decay_sym_3_lines_exact(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
 test_T1_radiative_equivalent_LE_circuit = qubit_radiative_decay_equivalent_LE_circuit(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
@@ -319,14 +318,14 @@ test_enhancement_bandwidth_exact = notch_enhancement_bandwidth_exact(l_c, l_Gf, 
 
 print('test_enhancement_bandwidth_exact (GHz):', test_enhancement_bandwidth_exact / (2*np.pi*1e9))
 
-plt.plot(omegas/(2*np.pi * 1e9), enhancement_factor, color = my_cmap3(1), linewidth = 3, label = 'exact soltution')
-plt.plot(omegas/(2*np.pi * 1e9), enhancement_factor_approx, color = my_cmap2(7), linewidth = 3, label = 'equivalent circuit solution', alpha = 0.5)
+plt.plot(omegas/(2*np.pi * 1e9), enhancement_factor, color = my_cmap2(7), linewidth = 3, label = 'exact solution')
+#plt.plot(omegas/(2*np.pi * 1e9), enhancement_factor_approx, color = my_cmap2(7), linewidth = 3, label = 'equivalent circuit solution', alpha = 0.5)
 
 omega_r = lambda_quarter_omega(l_c + l_Gf + l_Gn, phase_vel=phase_vel)
 omega_p = lambda_quarter_omega(l_c + l_Rf + l_Rn, phase_vel=phase_vel)
 
 predicted_notch_enhancement = enhancement_factor_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, omegas)
-plt.plot(omegas/(2*np.pi * 1e9), predicted_notch_enhancement, color = 'g')
+#plt.plot(omegas/(2*np.pi * 1e9), predicted_notch_enhancement, color = 'g')
 
 exact_bandwidth = find_notch_enhancement_bandwidth(omegas, enhancement_factor, 10)
 
@@ -334,8 +333,8 @@ print('exact_bandwidth (GHz):', exact_bandwidth / (2*np.pi*1e9))
 
 plt.yscale('log')
 plt.xlabel('Frequency (GHz)', size = 20)
-plt.ylabel(r'Purcell $T_1$ enhancement', size = 20)
-plt.legend(fontsize = 16)
+plt.ylabel(r'Purcell $T_1$ enhancement factor', size = 20)
+#plt.legend(fontsize = 16)
 
 ax = plt.gca()
 
@@ -346,7 +345,9 @@ for axis in ['top','bottom','left','right']:
 
 ax.tick_params(width=3)
 plt.tight_layout()
-
+plt.xlim(7, 9.75)
 plt.hlines(10, 6, 11, color = 'k', linestyle = '--')
 plt.yscale('log')
+plt.yticks([1, 10, 100, 1000, 10**4, 10**5], ['1', '10', '100', r'$10^3$', r'$10^4$', r'$10^5$'])
+plt.ylim(0.5, 5*10**5)
 plt.show()
