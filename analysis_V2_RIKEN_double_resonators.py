@@ -22,6 +22,9 @@ for name in names:
     print('short_lens:', short_lens)
     print('coupled_len:', coupled_len)
 
+    short_lens_filter = res_filter_system.filter.length_short()
+    print('short_lens_filter:', short_lens_filter)
+
     predicted_notch = res_filter_system.omega_notch()
     predicted_numeric_notch = res_filter_system.omega_notch_numeric()
 
@@ -38,7 +41,7 @@ for name in names:
 
     print('res freq (GHz):', omegas/(2*np.pi*1e9))
 
-measured_notches = np.array([8.27, 8.96, 8.69, 8.27]) * 2*np.pi * 1e9
+measured_notches = np.array([8.27, 8.96, 8.69, 8.266]) * 2*np.pi * 1e9 ##8.27
 measured_omega_rs = np.array([10264,10690,10479,10050]) * 2*np.pi * 1e6
 measured_omega_ps = np.array([10310,10707,10518,10060]) * 2*np.pi * 1e6
 
@@ -48,8 +51,8 @@ J_preds = []
 
 for i, name in enumerate(names):
     
-    l_c = 317.5 * 1e-6
-    sep = 5.5*1e-6
+    l_c = 337.5 * 1e-6
+    sep = 5*1e-6
     Cm_per_len = cap.get_Cm(sep)
     
     J_pred = J_coupling_analytic_by_freqs(measured_omega_rs[i], measured_omega_ps[i], measured_notches[i], l_c, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65, simplified = True)
