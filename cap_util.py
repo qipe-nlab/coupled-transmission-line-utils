@@ -130,15 +130,9 @@ def get_Ck(d):
     f = interpol.interp1d(Ck_mat[:,0], Ck_mat[:,1]/1e15, "linear", fill_value="extrapolate")
     return f(d)
 
-
-
-
-
-
 ##################
 # Initialization #
 ##################
-
 
 Cq_file = ".\\cap_files\\cq_140-185.csv"
 Cg_file = ".\\cap_files\\cg_q-r-160_5-50.csv"
@@ -155,7 +149,6 @@ Cm_mat = generate_Cm(Cm_file)
 Lm_mat = generate_Lm(Lm_file)
 
 Ck_mat = generate_Ck(Ck_file)
-
 
 """
 d = np.linspace(1,150,10000)

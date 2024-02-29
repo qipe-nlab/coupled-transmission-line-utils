@@ -1,5 +1,5 @@
 from RIKEN_res_COMSOL_utils import *
-from RIKEN_V3_double_resonator_pattern_user_params import *
+from RIKEN_low_freq_double_resonator_pattern_user_params import *
 
 #initial_lengths = resonator_A.resonator_lengths_from_base_COMSOL_params()
 
@@ -15,6 +15,10 @@ for name in names:
     #print('readout_lengths:', readout_lengths)
     total_readout_length = res_filter_system.readout.total_resonator_length_from_base_COMSOL_params()
     print('total_readout_length:', total_readout_length)
+
+    omega_readout = res_filter_system.readout.resonance_omega()
+
+    print('omega_readout (GHz):', omega_readout/(2*np.pi*1e9))
 
     predicted_notch = res_filter_system.omega_notch()
     predicted_numeric_notch = res_filter_system.omega_notch_numeric()
