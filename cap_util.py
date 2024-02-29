@@ -49,8 +49,6 @@ def get_Cg(d):
     f = interpol.interp1d(Cg_mat[:,0]/1e6, Cg_mat[:,1]/1e15, "linear", fill_value="extrapolate")
     return f(d)
 
-
-
 ######
 # Cm #
 ######
@@ -69,11 +67,9 @@ def generate_Cm(filename):
 
     return Cm_mat
 
-
 def get_Cm(d):
     f = interpol.interp1d(Cm_mat[:,0]/1e6, Cm_mat[:,1], "quadratic")
     return f(d)
-
 
 ######
 # Lm #
@@ -98,7 +94,6 @@ def generate_Lm(filename):
         Lm_mat[i,1] = L_matrix[0,1]
 
     return Lm_mat
-
 
 def get_Lm(d):
     f = interpol.interp1d(Lm_mat[:,0]/1e6, Lm_mat[:,1], "quadratic")
