@@ -169,9 +169,9 @@ plt.plot(omegas/(2*np.pi*1e9), np.abs(Z11_LE_circuit), color = my_cmap2(7), labe
 #plt.plot(omegas/(2*np.pi*1e9), np.abs(Z11_LE_circuit_symbolic), color = my_cmap3(7), linestyle = '--', label = 'Equivalent circuit - symbolic', linewidth = 3, alpha = 0.5)
 
 plt.yscale('log')
-plt.legend(loc = 'upper left', fontsize = 14)
+plt.legend(loc = 'upper left', fontsize = 18, frameon=False)
 plt.xlabel('Frequency (GHz)', size = 20)
-plt.ylabel(r'$Z_{11}$ ($\Omega$)', size = 20)
+plt.ylabel(r'Impedance $Z_{11}$ ($\Omega$)', size = 20)
 #plt.title('Z transfer function for different models')
 # Customize the border settings
 ax = plt.gca()
@@ -216,9 +216,9 @@ plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit), color = my_cmap2
 #plt.vlines(test_notch_freq_rule_of_thumb/(2*np.pi*1e9), 0.008, 2, color = my_cmap(4), linestyle = 'dotted', linewidth = 3, label = 'Notch eq.',zorder=10)
 
 plt.yscale('log')
-plt.legend(loc = 'upper left', fontsize = 14)
+plt.legend(loc = 'upper left', fontsize = 18, frameon=False)
 plt.xlabel('Frequency (GHz)', size = 20)
-plt.ylabel(r'$Z_{21}$ ($\Omega$)', size = 20)
+plt.ylabel(r'Impedance $Z_{21}$ ($\Omega$)', size = 20)
 #plt.title('Z transfer function for different models')
 # Customize the border settings
 ax = plt.gca()
