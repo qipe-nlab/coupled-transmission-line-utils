@@ -335,17 +335,17 @@ test_Z_transfer_exact = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn
 # plt.plot(omegas/(2*np.pi*1e9), np.abs(Z11_LE_circuit), color = my_cmap2(7), label = 'Equivalent circuit', linewidth = 3, alpha = 0.85)
 # #plt.plot(omegas/(2*np.pi*1e9), np.abs(Z11_LE_circuit_symbolic), color = my_cmap3(7), linestyle = '--', label = 'Equivalent circuit - symbolic', linewidth = 3, alpha = 0.5)
 
-# plt.yscale('log')
-# plt.legend(loc = 'upper left', fontsize = 14)
-# plt.xlabel('Frequency (GHz)', size = 25)
-# plt.ylabel(r'Impedance $Z_{11}$ ($\Omega$)', size = 25)
-# #plt.title('Z transfer function for different models')
-# # Customize the border settings
-# ax = plt.gca()
-# ax.spines['top'].set_visible(False)
-# ax.spines['right'].set_visible(False)
-# ax.spines['bottom'].set_linewidth(3)
-# ax.spines['left'].set_linewidth(3)
+plt.yscale('log')
+plt.legend(loc = 'upper left', fontsize = 18, frameon=False)
+plt.xlabel('Frequency (GHz)', size = 20)
+plt.ylabel(r'Impedance $Z_{11}$ ($\Omega$)', size = 20)
+#plt.title('Z transfer function for different models')
+# Customize the border settings
+ax = plt.gca()
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['bottom'].set_linewidth(3)
+ax.spines['left'].set_linewidth(3)
 
 # ax.set_xticks([8, 9, 10, 11])
 
@@ -421,6 +421,9 @@ plt.yscale('log')
 plt.legend(loc = 'upper left', fontsize = 22.5, frameon = False)
 plt.xlabel('Frequency (GHz)', size = 25)
 plt.ylabel(r'Impedance $Z_{21}$ ($\Omega$)', size = 25)
+plt.legend(loc = 'upper left', fontsize = 18, frameon=False)
+plt.xlabel('Frequency (GHz)', size = 20)
+plt.ylabel(r'Impedance $Z_{21}$ ($\Omega$)', size = 20)
 #plt.title('Z transfer function for different models')
 # Customize the border settings
 ax = plt.gca()
