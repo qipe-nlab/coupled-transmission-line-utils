@@ -99,18 +99,20 @@ test_Z_equiv_LE_circuit_symbolic = Z_transfer_direct_cap_equivalent_LE_circuit(l
 
 # my_cmap2(7)
 
-plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_exact), color = my_cmap3(1), label = 'Distributed circuit', linewidth = 3)
+plt.figure(figsize=(7.5, 4.25))
+
+plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_exact), color = my_cmap3(1), label = 'Distributed circuit', linewidth = 4)
 #plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_weak_coupling), color = 'r', linestyle = '--', label = 'Z transfer weak coupling model')
 #plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit), color = my_cmap2(7), label = 'Equivalent circuit', linewidth = 3, alpha = 0.85)
-plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit_symbolic), color = my_cmap2(7), label = 'Equivalent circuit - sybc.', linewidth = 3, alpha = 0.5)
+plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit_symbolic), color = my_cmap2(7), label = 'Equivalent circuit', linewidth = 4, alpha = 0.5)
 
 #plt.vlines(test_notch_freq_analytic/(2*np.pi*1e9), 0.008, 2, color = my_cmap(7), linestyle = 'dotted', linewidth = 3)
 #plt.vlines(test_notch_freq_rule_of_thumb/(2*np.pi*1e9), 0.008, 2, color = my_cmap(7), linestyle = 'dotted', linewidth = 3, label = 'Notch eq.',zorder=10)
 
 plt.yscale('log')
-plt.legend(loc = 'upper left', fontsize = 14)
-plt.xlabel('Frequency (GHz)', size = 20)
-plt.ylabel(r'$Z_{21}$ ($\Omega$)', size = 20)
+plt.legend(loc = 'upper left', fontsize = 25, frameon=False)
+plt.xlabel('Frequency (GHz)', size = 25)
+plt.ylabel(r'Impedance $Z_{21}$ ($\Omega$)', size = 25)
 #plt.title('Z transfer function for different models')
 # Customize the border settings
 ax = plt.gca()
@@ -121,12 +123,12 @@ ax.spines['left'].set_linewidth(3)
 
 ax.set_xticks([8, 9, 10, 11])
 
-ax.set_yticks([1e-2, 1, 100, 1e4])
+ax.set_yticks([1, 100, 1e4])
 #ax2.set_yticklabels(['0', '5', '10', '15'])
 
 # Adjust tick thickness and label size
 ax.tick_params(axis='both', which='both', width=2.5)
-ax.tick_params(axis='both', labelsize=20)
+ax.tick_params(axis='both', labelsize=25)
 plt.tight_layout()
 
 plt.show()

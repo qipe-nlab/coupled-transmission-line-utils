@@ -686,17 +686,27 @@ def transmission_line_Zchar_phase_vel(Lmutual, Cmutual):
 
     return Zchar, phasevel
 
-def lumped_model_C_and_L(phase_vel, Z0, cpw__length, res_type = 'lambda/4'):
+def lumped_model_C_and_L(phase_vel, Z0, cpw_length, res_type = 'lambda/4'):
 
     tl_C_val, tl_L_val = transmission_line_C_and_L(phase_vel, Z0)
 
     if res_type == 'lambda/4':
-        C_val = tl_C_val * cpw__length / 2
-        L_val = 8 * tl_L_val * cpw__length / np.pi**2 
+        C_val = tl_C_val * cpw_length / 2
+        L_val = 8 * tl_L_val * cpw_length / np.pi**2 
 
     elif res_type == 'lambda/2':
-        L_val = tl_L_val * cpw__length / 2
-        C_val = 2*tl_C_val * cpw__length / np.pi**2 
+        L_val = tl_L_val * cpw_length / 2
+        C_val = 2*tl_C_val * cpw_length / np.pi**2 
+
+    return C_val, L_val
+
+def lumped_model_C_and_L_from_freq(phase_vel, Z0, omega_res, res_type = 'lambda/4'):
+
+    length = np.pi*phase_vel/(2*omega_res)
+    
+    print('length:', length)
+
+    C_val, L_val = lumped_model_C_and_L(phase_vel, Z0, length, res_type = res_type)
 
     return C_val, L_val
 
@@ -1788,6 +1798,16 @@ def J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=3*
 
     return J
 
+def k_filter(C_ext, l_c, l_Rf, l_Rn, phase_vel=3*10**8/2.5, Z0=65, Zline = 50):
+    
+    cpw_length = l_c + l_Rf + l_Rn
+    
+    C, L = lumped_model_C_and_L(phase_vel, Z0, cpw_length, res_type = 'lambda/4')
+    
+    k_ext_val = k_ext_from_LE_model(C, L, C_ext, Zline)
+    
+    return k_ext_val
+
 def k_readout(C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65, Zline = 50):
 
     C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
@@ -1865,6 +1885,35 @@ def J_coupling_analytic_by_freqs(omega_r, omega_p, omega_n, l_c, Cm_per_len, pha
 ######################
 ### User functions ###
 ######################
+
+def qubit_radiative_decay_from_ham(C_q, C_g, C_ext, omega_r, omega_p, omega_n, J, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50):
+
+    ## need to fix this to give g and kappa rather than Cg and Cext
+
+    #C1, L1, C2, L2, Cg, Lg = get_lumped_elements(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0)
+
+    C1, L1 = lumped_model_C_and_L_from_freq(phase_vel, Z0, omega_r) 
+    C2, L2 = lumped_model_C_and_L_from_freq(phase_vel, Z0, omega_p + 0.5 * 2*np.pi*1e9) 
+    
+    omega_avg = (omega_r + omega_p) / 2
+    
+    Z_0n = 2/ np.pi * omega_avg/J * (omega_avg/omega_n - omega_n/omega_avg) * Z0
+    
+    Cg = 1/(Z_0n * omega_n)
+    Lg = Z_0n/omega_n
+
+    Z1 = 1/(1j*omegas*C1 + 1/(1j*omegas*L1))
+    Z2 = 1/(1j*omegas*Cg + 1/(1j*omegas*Lg))
+    Z3 = 1/(1j*omegas*C2 + 1/(1j*omegas*L2))
+
+    Zg = Zcap(C_g, omegas)
+    Z_ext = Zcap(C_ext, omegas) + Zline 
+
+    Zq_env = Zg + Zpara(Z1, Z2 + Zpara(Z3, Z_ext)) 
+
+    T1 = qubit_radiative_T1(C_q, Zq_env)
+
+    return T1
 
 def lambda_quarter_omega(cpw_length, phase_vel=3*10**8/2.5):
     # Small utility function to calculate the resonance frequency of an uncoupled lambda/4 resonator

@@ -71,9 +71,9 @@ def get_Cm(d):
     f = interpol.interp1d(Cm_mat[:,0]/1e6, Cm_mat[:,1], "quadratic")
     return f(d)
 
-## edit - temp
+## test funcs Peter S:
 
-def generate_C(filename):
+def generate_Cc_plus_Cm(filename):
 
     data = np.genfromtxt(filename,delimiter="," ,skip_header=5)
     len_data = int(np.shape(data)[0]/2)
@@ -87,10 +87,9 @@ def generate_C(filename):
 
     return C_mat
 
-def get_C(d):
+def get_Cc_plus_Cm(d):
     f = interpol.interp1d(C_mat[:,0]/1e6, C_mat[:,1], "quadratic")
     return f(d)
-
 
 ######
 # Lm #
@@ -120,10 +119,10 @@ def get_Lm(d):
     f = interpol.interp1d(Lm_mat[:,0]/1e6, Lm_mat[:,1], "quadratic")
     return f(d)
 
-## edit - temp
+## test funcs Peter S:
 
 def generate_L(filename):
-
+    
     epsilon = 8.854e-12
     mu = 1.256e-6
     
@@ -143,9 +142,10 @@ def generate_L(filename):
     return L_mat
 
 def get_L(d):
-    f = interpol.interp1d(L_mat[:,0]/1e6, L_mat[:,1], "quadratic")
+    f = interpol.interp1d(Lm_mat[:,0]/1e6, L_mat[:,1], "quadratic")
     return f(d)
 
+#
 
 def get_Zm(d):
 
@@ -196,11 +196,9 @@ Cq_mat = generate_Cq(Cq_file)
 Cm_mat = generate_Cm(Cm_file)
 Lm_mat = generate_Lm(Lm_file)
 
-### edit - temp
-
-C_mat = generate_C(Cm_file)
+## edit
+C_mat = generate_Cc_plus_Cm(Cm_file)
 L_mat = generate_L(Lm_file)
-
 #
 
 Ck_mat = generate_Ck(Ck_file)
