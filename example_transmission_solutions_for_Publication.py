@@ -559,3 +559,5 @@ plt.yscale('log')
 plt.yticks([1, 10, 100, 1000, 10**4, 10**5], ['1', '10', '100', r'$10^3$', r'$10^4$', r'$10^5$'])
 plt.ylim(0.5, 5*10**5)
 plt.show()
+
+##### test predicted T1 limits from circuit model:
