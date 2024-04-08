@@ -31,8 +31,24 @@ Cm_vals = cap.get_Cm(d_vals) ### F per meter
 
 plt.figure(figsize=(8, 5))
 plt.plot(d_vals * 1e6, Cm_vals * 1e12, color = my_cmap2(7), linewidth = 7)
+plt.show()
 
 ### pF per meter - fF / mm
+
+C_vals =  cap.get_C(d_vals)
+L_vals =  cap.get_L(d_vals)
+
+Cm_vals
+Lm_vals =  cap.get_Lm(d_vals)
+
+test = L_vals*C_vals - Cm_vals*Lm_vals
+
+test = test*((3*10**8)/(3/1.2))**2
+
+plt.plot(d_vals, test)
+plt.show()
+
+###
 
 plt.xlabel(r'$d$ (um)', size = 35)
 plt.ylabel(r'$c_m$ (fF/mm)', size = 35)

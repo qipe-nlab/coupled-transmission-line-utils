@@ -71,6 +71,27 @@ def get_Cm(d):
     f = interpol.interp1d(Cm_mat[:,0]/1e6, Cm_mat[:,1], "quadratic")
     return f(d)
 
+## edit - temp
+
+def generate_C(filename):
+
+    data = np.genfromtxt(filename,delimiter="," ,skip_header=5)
+    len_data = int(np.shape(data)[0]/2)
+
+    # Format: [[d,Cm],[d,Cm],[d,Cm]]
+    C_mat = np.zeros((len_data, 2))
+
+    for i in range(len_data):
+        C_mat[i,0] = data[2*i,0]
+        C_mat[i,1] = data[2*i,1]/1e-3 # account for simulation being of 1mm
+
+    return C_mat
+
+def get_C(d):
+    f = interpol.interp1d(C_mat[:,0]/1e6, C_mat[:,1], "quadratic")
+    return f(d)
+
+
 ######
 # Lm #
 ######
@@ -98,6 +119,33 @@ def generate_Lm(filename):
 def get_Lm(d):
     f = interpol.interp1d(Lm_mat[:,0]/1e6, Lm_mat[:,1], "quadratic")
     return f(d)
+
+## edit - temp
+
+def generate_L(filename):
+
+    epsilon = 8.854e-12
+    mu = 1.256e-6
+    
+    data = np.genfromtxt(filename,delimiter="," ,skip_header=5)
+    len_data = int(np.shape(data)[0]/2)
+
+    # Format: [[d,Lm],[d,Lm],[d,Lm]]
+    L_mat = np.zeros((len_data, 2))
+
+    for i in range(len_data):
+        C_matrix = np.array([[data[2*i,1], data[2*i,2]],[data[2*i+1,1], data[2*i+1,2]]])/1e-3
+        L_matrix = lin.inv(C_matrix)*epsilon*mu
+
+        L_mat[i,0] = data[2*i,0]
+        L_mat[i,1] = L_matrix[0,0]
+
+    return L_mat
+
+def get_L(d):
+    f = interpol.interp1d(L_mat[:,0]/1e6, L_mat[:,1], "quadratic")
+    return f(d)
+
 
 def get_Zm(d):
 
@@ -147,6 +195,13 @@ Cq_mat = generate_Cq(Cq_file)
 
 Cm_mat = generate_Cm(Cm_file)
 Lm_mat = generate_Lm(Lm_file)
+
+### edit - temp
+
+C_mat = generate_C(Cm_file)
+L_mat = generate_L(Lm_file)
+
+#
 
 Ck_mat = generate_Ck(Ck_file)
 
