@@ -1,6 +1,7 @@
 from RIKEN_res_COMSOL_utils import *
 from RIKEN_V2_double_resonator_pattern_user_params import *
 import cap_util as cap
+import numpy as np
 
 ## colors
 color0= '#ff674b'
@@ -80,7 +81,7 @@ J_symb_preds = np.array(J_symb_preds)
 ###
 omega_q = 8.4 * np.pi*1e9
 
-C_q = 50e-15
+C_q = 70e-15
 C_g = 5e-15
 C_ext = 19e-15
 
@@ -102,18 +103,42 @@ d_val = 5e-6
 Lm_per_len = cap.get_Lm(d_val) * 1.33
 Cm_per_len = cap.get_Cm(d_val) * 1.33
 
-omega_r = 10.050*2*np.pi*1e9
-omega_p = 10.060*2*np.pi*1e9
-omega_n = 8.7*2*np.pi*1e9
-J = 28*2*np.pi*1e6
+
+# ## Q3
+# omega_r = 10.050*2*np.pi*1e9
+# omega_p = 10.060*2*np.pi*1e9
+# omega_n = 8.266*2*np.pi*1e9
+# J = 30*2*np.pi*1e6
+
+# ## Q2
+# omega_r = 10.479*2*np.pi*1e9
+# omega_p = 10.501*2*np.pi*1e9
+# omega_n = 8.69*2*np.pi*1e9
+# J = 33*2*np.pi*1e6
+
+## Q1
+omega_r = 10.690*2*np.pi*1e9
+omega_p = 10.707*2*np.pi*1e9
+omega_n = 8.9*2*np.pi*1e9
+J = 38*2*np.pi*1e6
+
+#Q0
+# omega_q = 7699 * 2*np.pi * 1e6
+# omega_r = 10264 * 2*np.pi * 1e6
+# omega_p = 10310 * 2*np.pi * 1e6
+# omega_n = 8.3*2*np.pi*1e9
+# J = 35 * 2 * np.pi * 1e6
 
 T1_vals = qubit_radiative_decay_equivalent_LE_circuit(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
 T1_vals_no_notch = qubit_radiative_decay_equivalent_LE_circuit_without_notch(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
 T1_from_ham_test = qubit_radiative_decay_from_ham(C_q, C_g, C_ext, omega_r, omega_p, omega_n, J, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
 
-# plt.plot(omegas/(1e9*2*np.pi), T1_vals * 1e3)
-# plt.plot(omegas/(1e9*2*np.pi), T1_vals_no_notch * 1e3, color ='k')
-# plt.plot(omegas/(1e9*2*np.pi), T1_from_ham_test * 1e3, color ='k')
+plt.plot(omegas/(1e9*2*np.pi), T1_vals * 1e3)
+plt.plot(omegas/(1e9*2*np.pi), T1_vals_no_notch * 1e3, color ='k')
+plt.plot(omegas/(1e9*2*np.pi), T1_from_ham_test * 1e3, color ='k')
+
+np.save('T1_limits_from_circ_Q1', T1_from_ham_test)
+np.save('T1_limits_from_circ_Q1_omegas', omegas)
 
 # plt.yscale('log')
 # plt.show()
