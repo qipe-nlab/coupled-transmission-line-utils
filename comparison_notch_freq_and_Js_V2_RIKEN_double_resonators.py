@@ -23,7 +23,7 @@ predicted_numeric_notches = []
 
 J_symb_preds = []
 
-names = ['D']
+#names = ['D']
 
 for name in names:
     
@@ -34,32 +34,37 @@ for name in names:
     readout_lengths = res_filter_system.readout.resonator_lengths_from_base_COMSOL_params()
     #print('readout_lengths:', readout_lengths)
     total_readout_length = res_filter_system.readout.total_resonator_length_from_base_COMSOL_params()
+    print(name)
     print('total_readout_length:', total_readout_length)
 
+    open_lens = res_filter_system.readout.length_open()
     short_lens = res_filter_system.readout.length_short()
     coupled_len = res_filter_system.readout.length_coupled()
     
-    print('short_lens:', short_lens)
+    print('readout open_lens:', open_lens)
+    print('readout short_lens:', short_lens)
     print('coupled_len:', coupled_len)
 
+    open_lens_filter = res_filter_system.filter.length_open()
     short_lens_filter = res_filter_system.filter.length_short()
-    print('short_lens_filter:', short_lens_filter)
+    print('filter open_lens:', open_lens_filter)
+    print('filter short_lens:', short_lens_filter)
 
     predicted_notch = res_filter_system.omega_notch(phase_vel = v_val)
     predicted_numeric_notch = res_filter_system.omega_notch_numeric(Z0 = Z_val, phase_vel = v_val)
 
-    print(f'predicted_notch_{name} (GHz):', predicted_notch / (2*np.pi*1e9))
-    print(f'predicted_numeric_notch_{name} (GHz):', predicted_numeric_notch / (2*np.pi*1e9))
+    #print(f'predicted_notch_{name} (GHz):', predicted_notch / (2*np.pi*1e9))
+    #print(f'predicted_numeric_notch_{name} (GHz):', predicted_numeric_notch / (2*np.pi*1e9))
 
     J_symb = res_filter_system.J_coupling_symbolic_sol()
     J_num = res_filter_system.J_coupling_numeric_sol()
 
-    print('J_symb:', J_symb / (2*np.pi*1e6))
-    print('J_num:', J_num / (2*np.pi*1e6))
+    #print('J_symb:', J_symb / (2*np.pi*1e6))
+    #print('J_num:', J_num / (2*np.pi*1e6))
     
     omegas = res_filter_system.readout.resonance_omega()
 
-    print('res freq (GHz):', omegas/(2*np.pi*1e9))
+    #print('res freq (GHz):', omegas/(2*np.pi*1e9))
     
     predicted_notches.append(predicted_notch)
     predicted_numeric_notches.append(predicted_numeric_notch)
@@ -106,14 +111,14 @@ T1_vals = qubit_radiative_decay_equivalent_LE_circuit(C_q, C_g, C_ext, l_c, l_Gf
 T1_vals_no_notch = qubit_radiative_decay_equivalent_LE_circuit_without_notch(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
 T1_from_ham_test = qubit_radiative_decay_from_ham(C_q, C_g, C_ext, omega_r, omega_p, omega_n, J, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
 
-plt.plot(omegas/(1e9*2*np.pi), T1_vals * 1e3)
-plt.plot(omegas/(1e9*2*np.pi), T1_vals_no_notch * 1e3, color ='k')
-plt.plot(omegas/(1e9*2*np.pi), T1_from_ham_test * 1e3, color ='k')
+# plt.plot(omegas/(1e9*2*np.pi), T1_vals * 1e3)
+# plt.plot(omegas/(1e9*2*np.pi), T1_vals_no_notch * 1e3, color ='k')
+# plt.plot(omegas/(1e9*2*np.pi), T1_from_ham_test * 1e3, color ='k')
 
-plt.yscale('log')
-plt.show()
+# plt.yscale('log')
+# plt.show()
 
-sys.exit()
+#sys.exit()
 
 ## quick_bandwidth_test
 alpha = 10
@@ -249,8 +254,8 @@ ax.spines['left'].set_linewidth(2)
 plt.xlabel(r'Predicted $J/2\pi$ (MHz)', size = 20)
 plt.ylabel(r'Measured $J/2\pi$ (MHz)', size = 20)
 plt.grid(visible=True)
-plt.xticks([20, 25, 30, 35, 40]) # 0,5,10,15,
-plt.yticks([20, 25, 30, 35, 40]) #0,5,10,15,
+plt.xticks([0,5,10,15,20, 25, 30, 35, 40]) # 0,5,10,15,
+plt.yticks([0,5,10,15,20, 25, 30, 35, 40]) #0,5,10,15,
 ax.tick_params(axis='both', which='both', width=2.5, labelsize=20)
 
 plt.tight_layout()
@@ -282,8 +287,8 @@ ax.spines['left'].set_linewidth(2)
 plt.xlabel(r'Predicted $\omega_n/2\pi$ (GHz)', size = 20)
 plt.ylabel(r'Measured $\omega_n/2\pi$ (GHz)', size = 20)
 plt.grid(visible=True)
-plt.xticks([8,8.5, 9, 9.5, 10])
-plt.yticks([8,8.5, 9, 9.5, 10])
+plt.xticks([0,1,2,3,4,5,6,7,8,9,10]) #0,1,2,3,4,5,6,7,8,9,10
+plt.yticks([0,1,2,3,4,5,6,7,8,9,10]) # 8,8.5, 9, 9.5, 10
 ax.tick_params(axis='both', which='both', width=2.5, labelsize=20)
 
 plt.tight_layout()
