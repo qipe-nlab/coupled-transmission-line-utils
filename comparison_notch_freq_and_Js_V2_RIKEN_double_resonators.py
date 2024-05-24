@@ -17,7 +17,6 @@ L_val = cap.get_L(49e-6)
 Z_val = np.sqrt(L_val/C_val)
 v_val = 1/(np.sqrt(L_val*C_val))
 
-
 names = ['A', 'B', 'C', 'D']
 predicted_notches = []
 predicted_numeric_notches = []
@@ -133,9 +132,9 @@ T1_vals = qubit_radiative_decay_equivalent_LE_circuit(C_q, C_g, C_ext, l_c, l_Gf
 T1_vals_no_notch = qubit_radiative_decay_equivalent_LE_circuit_without_notch(C_q, C_g, C_ext, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
 T1_from_ham_test = qubit_radiative_decay_from_ham(C_q, C_g, C_ext, omega_r, omega_p, omega_n, J, omegas, phase_vel=3*10**8/2.5, Z0=65, Zline = 50)
 
-plt.plot(omegas/(1e9*2*np.pi), T1_vals * 1e3)
-plt.plot(omegas/(1e9*2*np.pi), T1_vals_no_notch * 1e3, color ='k')
-plt.plot(omegas/(1e9*2*np.pi), T1_from_ham_test * 1e3, color ='k')
+# plt.plot(omegas/(1e9*2*np.pi), T1_vals * 1e3)
+# plt.plot(omegas/(1e9*2*np.pi), T1_vals_no_notch * 1e3, color ='k')
+# plt.plot(omegas/(1e9*2*np.pi), T1_from_ham_test * 1e3, color ='k')
 
 np.save('T1_limits_from_circ_Q1', T1_from_ham_test)
 np.save('T1_limits_from_circ_Q1_omegas', omegas)
