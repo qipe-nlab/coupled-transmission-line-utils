@@ -79,8 +79,8 @@ ax.tick_params(axis='both', which='major', labelsize=16)
 for axis in ['top','bottom','left','right']:
     ax.spines[axis].set_linewidth(3)
 
-plt.xticks([0, 5, 10, 15, 20, 25],[0, 5, 10, 15, 20, 25], size = 45)
-plt.yticks([0, 5, 10, 15],['0', '', '', '15'], size = 45)
+plt.xticks([0, 5, 10, 15, 20, 25],[0, 5, 10, 15, 20, 25], size = 30)
+plt.yticks([0, 5, 10, 15],['0', 5, 10, '15'], size = 30)
 plt.grid(visible = True)
 plt.xlim([0,25])
 plt.ylim([0,15])
@@ -115,20 +115,20 @@ C_ratios = Cm_vals/Cc
 Z_ms = (Lm_vals/Cm_vals)**0.5
 Z_cs = (Lc/Cc)**0.5
 
-Z_ratios = Z_ms/Z_cs
+Z_ratios_squared = (Z_ms/Z_cs)**2
 
 plt.plot(d_vals * 1e6, L_ratios, color = my_cmap2(0), linewidth = 6, label = r'$l_m/l_c$')
 plt.plot(d_vals * 1e6, C_ratios, color = my_cmap3(1), linewidth = 6, linestyle = ':', label = r'$c_m/c_c$')
-plt.plot(d_vals * 1e6, Z_ratios, color = my_cmap2(6), linewidth = 6, label = r'$Z_m/Z_c$')
+plt.plot(d_vals * 1e6, Z_ratios_squared, color = my_cmap2(6), linewidth = 6, label = r'$Z_m/Z_c$')
 plt.plot(d_vals * 1e6, Z_vals/Z_val, color = my_cmap3(3), linewidth = 6, label = r'$Z_c/Z_0$')
 plt.plot(d_vals * 1e6, v_vals/v_val, color = my_cmap3(0), linewidth = 6, linestyle = ':', label = r'$v_c/v$')
 
 ### pF per meter - fF / mm
 
-C_vals =  cap.get_C(d_vals)
+C_vals =  cap.get_Cc_plus_Cm(d_vals)
 L_vals =  cap.get_L(d_vals)
 
-Cm_vals
+Cm_vals =  cap.get_Cm(d_vals)
 Lm_vals =  cap.get_Lm(d_vals)
 
 test = L_vals*C_vals - Cm_vals*Lm_vals
@@ -203,10 +203,9 @@ plt.show()
 
 ###### Split two
 
-
 plt.figure(figsize=(9, 4))
 
-plt.plot(d_vals * 1e6, Z_ratios, color = my_cmap3(3), linewidth = 6, label = r'$Z_m/Z_c$')
+plt.plot(d_vals * 1e6, Z_ratios_squared, color = my_cmap3(3), linewidth = 6, label = r'$Z_m/Z_c$')
 plt.plot(d_vals * 1e6, Z_vals/Z_val, color = my_cmap2(0), linewidth = 6, label = r'$Z_c/Z_0$')
 plt.plot(d_vals * 1e6, v_vals/v_val, color = my_cmap3(1), linewidth = 6, linestyle = ':', label = r'$v_c/v$')
 
