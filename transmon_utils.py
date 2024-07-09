@@ -67,9 +67,9 @@ def EC_from_spec(omega_q_val, EJ_val):
     Ec_fitted = res
     return Ec_fitted[0]
 
-    
-
 def EJ_EC_from_spec(omega_q_val, alpha_val):
+
+    ## returns values in MHz!
 
     if np.isnan(omega_q_val) or np.isnan(alpha_val):
 
@@ -83,9 +83,9 @@ def EJ_EC_from_spec(omega_q_val, alpha_val):
         
         res = minimize(fit_func, E_initial, bounds = [(E_initial[0]*0.1,E_initial[0]*10), (E_initial[1]*0.1,E_initial[1]*10)])
         #res = root(fit_func, E_initial)
-        EJ_fitted, EC_fitted = res.x 
-    return EJ_fitted*hbar, EC_fitted*hbar
+        EJ_fitted, EC_fitted = res.x
 
+    return EJ_fitted*hbar, EC_fitted*hbar
 
 def Cq_Lj_from_spec(omega_q_val, alpha_val):
 
