@@ -1864,7 +1864,7 @@ def J_coupling_analytic_by_freqs(omega_r, omega_p, omega_n, l_c, Cm_per_len, pha
         omega_bar = (omega_r + omega_p) / 2
 
         J_val = np.pi **2 / 32 * omega_bar * (omega_bar/omega_n - omega_n/omega_bar)**3 * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_bar)))**2
-    
+        
     else:
         ## return the exact solution to Solgun's simple impedance formula
         J_val = (np.pi * omega_r * omega_p / 8)**2 * (omega_r/omega_n - omega_n/omega_r) * (omega_p/omega_n - omega_n/omega_p) * ((omega_r/omega_n - omega_n/omega_r)/omega_r**3 + (omega_p/omega_n - omega_n/omega_p)/omega_p**3) * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r)) * np.cos(omega_n * np.pi / (2*omega_p)))

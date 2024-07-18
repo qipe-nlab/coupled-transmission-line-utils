@@ -14,6 +14,8 @@ my_cmap3 = ListedColormap(["#9b59b6", "#34495e", "#3498db", "#95a5a6", "#e74c3c"
 ### example solutions
 
 from exact_coupled_transmission_line_eqn_solver import *
+from analytic_coupled_lines_calculator import calc_self_and_coupling_capacitance
+
 import cap_util as cap
 
 ### param set 1: for high freq range
@@ -28,6 +30,9 @@ Lm = cap.get_Lm(d_val)
 
 d_vals = np.linspace(1, 25, 50) * 1e-6
 Cm_vals = cap.get_Cm(d_vals) ### F per meter
+
+# np.save('d_vals.npy', d_vals)
+# np.save('Cm_vals.npy', Cm_vals)
 
 C_val = cap.get_Cc_plus_Cm(49e-6)
 C_vals = cap.get_Cc_plus_Cm(d_vals)
@@ -58,8 +63,19 @@ print('v_val:', v_val)
 
 #sys.exit()
 
+w = 5e-6
+s = 7.5e-6
+eps_r = 11.7
+
+#cs, cm_vals_analytic = calc_self_and_coupling_capacitance(d_vals, w, s, eps_r)
+
+#cm_vals_analytic = np.array(cm_vals_analytic)
+
+#print('cm_vals_analytic:', cm_vals_analytic)
+
 plt.figure(figsize=(8, 4))
 plt.plot(d_vals * 1e6, Cm_vals * 1e12, color = my_cmap2(7), linewidth = 7)
+#plt.plot(d_vals * 1e6, -cm_vals_analytic * 1e12, color = 'k', linewidth = 7, linestyle = '--')
 
 ### pF per meter - fF / mm
 
@@ -87,6 +103,8 @@ plt.ylim([0,15])
 ax.tick_params(width=4)
 plt.tight_layout()
 plt.show()
+
+#sys.exit()
 
 #######
 
@@ -296,59 +314,6 @@ omegas = np.arange(7.5115, 11.0115, 0.005) * 1e9 * 2*np.pi
 
 test_Z_transfer_exact = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
 
-# # test_S_transfer_sym_3_lines_exact = S_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
-
-# # print('test_S_transfer_sym_3_lines_exact:', test_S_transfer_sym_3_lines_exact)
-
-# # S_transfer = test_S_transfer_sym_3_lines_exact[:, 0, 1]
-
-# # print('S_transfer:', S_transfer)
-
-# # plt.plot(omegas/(2*np.pi*1e9), np.abs(S_transfer))
-# # plt.yscale('log')
-# # plt.show()
-
-# Z_test_exact_vals = voltage_at_source_location_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, Z0, phase_vel, omegas)
-# Z_test_approx_vals = Z_trans_along_shorted_tl(Z0, phase_vel, l_Gn+l_Gf+l_c, l_Gn, omegas)
-
-# plt.plot(omegas/(2*np.pi * 1e9), np.imag(Z_test_exact_vals), color = my_cmap3(1), label = 'Exact solution', linewidth = 3)
-# plt.plot(omegas/(2*np.pi * 1e9), np.imag(Z_test_approx_vals), color = my_cmap2(7), label = 'Single transmission line solution', linewidth = 3, alpha = 0.6)
-
-# plt.yscale('log')
-
-# plt.xlabel('Frequency (GHz)', size = 20)
-# plt.ylabel(r'$V_1 / I_{in}$' + r' $(\Omega)$', size = 20)
-# plt.legend(fontsize = 16)
-# #plt.title('Radiative T1 limit through detector line')
-
-# ax = plt.gca()
-
-# ax.tick_params(axis='both', which='major', labelsize=16)
-
-# # ax.set_yticks([1e-6,1e-3,1,1e3]) 
-# # ax.set_yticklabels(['1 ns','1 us','1 ms', '1 s'])
-# # ax.set_ylim([0.5e-6, 5e3])
-
-# for axis in ['top','bottom','left','right']:
-#     ax.spines[axis].set_linewidth(2)
-
-# ax.tick_params(width=3)
-# plt.tight_layout()
-# plt.show()
-
-###
-
-# Z11_exact = Z_input_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
-
-# Z11_LE_circuit = Z_input_equivalent_LE_circuit(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
-
-# Z11_LE_circuit_symbolic = Z_input_equivalent_LE_circuit(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
-
-# plt.plot(omegas/(2*np.pi * 1e9), np.abs(Z11_exact), color = my_cmap3(1), label = 'Distributed circuit', linewidth = 3)
-# #plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_weak_coupling), color = 'r', linestyle = '--', label = 'Z transfer weak coupling model')
-# plt.plot(omegas/(2*np.pi*1e9), np.abs(Z11_LE_circuit), color = my_cmap2(7), label = 'Equivalent circuit', linewidth = 3, alpha = 0.85)
-# #plt.plot(omegas/(2*np.pi*1e9), np.abs(Z11_LE_circuit_symbolic), color = my_cmap3(7), linestyle = '--', label = 'Equivalent circuit - symbolic', linewidth = 3, alpha = 0.5)
-
 plt.yscale('log')
 plt.legend(loc = 'upper left', fontsize = 18, frameon=False)
 plt.xlabel('Frequency (GHz)', size = 20)
@@ -360,17 +325,6 @@ ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 ax.spines['bottom'].set_linewidth(3)
 ax.spines['left'].set_linewidth(3)
-
-# ax.set_xticks([8, 9, 10, 11])
-
-# #ax.set_yticks([1e-2, 1, 100, 1e4])
-
-# # Adjust tick thickness and label size
-# ax.tick_params(axis='both', which='both', width=2.5)
-# ax.tick_params(axis='both', labelsize=20)
-# plt.tight_layout()
-
-# plt.show()
 
 ###
 
