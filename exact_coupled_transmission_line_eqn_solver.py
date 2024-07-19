@@ -865,9 +865,7 @@ def Z_notch_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm, phase_vel=3*10**8/2.5, Z0=
 
     val_1 = Z0 * (64/np.pi**3) * np.cos(omega_n * np.pi/(2*omega_r)) * np.cos(omega_n * np.pi/(2*omega_p)) / (((omega_r/omega_n)-(omega_n/omega_r))*((omega_p/omega_n)-(omega_n/omega_p)))
 
-    tau_c = l_c/phase_vel
-
-    val_2 = (tl_C/Cm)/np.sin(omega_n * tau_c)
+    val_2 = (tl_C/Cm)/np.sin(omega_n * l_c/phase_vel)
 
     val = val_1*val_2
 
@@ -1854,20 +1852,20 @@ def J_coupling_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, phase_vel=3*10*
 
     return J_val
 
-def J_coupling_analytic_by_freqs(omega_r, omega_p, omega_n, l_c, Cm_per_len, phase_vel=3*10**8/2.5, Z0=65, simplified = True):
+def J_coupling_analytic_by_freqs(omega_r, omega_p, omega_n, l_c, Cm_per_len, C_c, phase_vel=3*10**8/2.5, simplified = True):
 
-    C_l = 1/(Z0 * phase_vel)
+    #C_l = 1/(Z0 * phase_vel)
 
     if simplified:
         ## return the solution ignoring second order terms in the parameter delta_rp/omega_n
         
         omega_bar = (omega_r + omega_p) / 2
 
-        J_val = np.pi **2 / 32 * omega_bar * (omega_bar/omega_n - omega_n/omega_bar)**3 * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_bar)))**2
+        J_val = np.pi **2 / 32 * omega_bar * (omega_bar/omega_n - omega_n/omega_bar)**3 * (Cm_per_len /C_c) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_bar)))**2
         
     else:
         ## return the exact solution to Solgun's simple impedance formula
-        J_val = (np.pi * omega_r * omega_p / 8)**2 * (omega_r/omega_n - omega_n/omega_r) * (omega_p/omega_n - omega_n/omega_p) * ((omega_r/omega_n - omega_n/omega_r)/omega_r**3 + (omega_p/omega_n - omega_n/omega_p)/omega_p**3) * (Cm_per_len /C_l) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r)) * np.cos(omega_n * np.pi / (2*omega_p)))
+        J_val = (np.pi * omega_r * omega_p / 8)**2 * (omega_r/omega_n - omega_n/omega_r) * (omega_p/omega_n - omega_n/omega_p) * ((omega_r/omega_n - omega_n/omega_r)/omega_r**3 + (omega_p/omega_n - omega_n/omega_p)/omega_p**3) * (Cm_per_len /C_c) * np.sin(omega_n * l_c / phase_vel) * 1/(np.cos(omega_n * np.pi / (2*omega_r)) * np.cos(omega_n * np.pi / (2*omega_p)))
 
     return J_val
 

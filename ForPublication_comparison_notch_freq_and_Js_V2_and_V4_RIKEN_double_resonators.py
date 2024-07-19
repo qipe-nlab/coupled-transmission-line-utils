@@ -1,6 +1,7 @@
 from RIKEN_res_COMSOL_utils import *
 import cap_util as cap
 import numpy as np
+from analytic_coupled_lines_calculator import calc_self_and_coupling_capacitance
 
 ## colors
 color0= '#ff674b'
@@ -11,8 +12,22 @@ color4 = '#d8a4f6'
 
 #initial_lengths = resonator_A.resonator_lengths_from_base_COMSOL_params()
 
-C_val = cap.get_Cc_plus_Cm(49e-6)
+C_val = cap.get_Cc(49e-6)
 L_val = cap.get_L(49e-6)
+print('C_val:', C_val)
+
+
+w = 5e-6
+s = 7.5e-6
+eps_r = 11.7
+
+cs, cm_vals_analytic = calc_self_and_coupling_capacitance([1000e-6], w, s, eps_r)
+
+C_val = cs
+C_val = C_val[0]
+
+print('C_val:', C_val)
+
 Z_val = np.sqrt(L_val/C_val)
 v_val = 1/(np.sqrt(L_val*C_val))
 
@@ -130,8 +145,8 @@ for name in names:
     #print(f'predicted_notch_{name} (GHz):', predicted_notch / (2*np.pi*1e9))
     #print(f'predicted_numeric_notch_{name} (GHz):', predicted_numeric_notch / (2*np.pi*1e9))
 
-    J_symb = res_filter_system.J_coupling_symbolic_sol()
-    J_num = res_filter_system.J_coupling_numeric_sol()
+    # J_symb = res_filter_system.J_coupling_symbolic_sol()
+    # J_num = res_filter_system.J_coupling_numeric_sol()
 
     #print('J_symb:', J_symb / (2*np.pi*1e6))
     #print('J_num:', J_num / (2*np.pi*1e6))
@@ -158,7 +173,6 @@ print('notch agreement V4 (to meas):', (predicted_notches - measured_notches)/me
 print('notch agreement V4 (to sim):', (measured_notches - predicted_notches)/predicted_notches * 100)
 avg_notch_agreement_to_sim = np.mean((measured_notches - predicted_notches)/predicted_notches * 100)
 print('avg notch agreement (to sim):', avg_notch_agreement_to_sim)
-
 
 straight_line = [0,10]
 plt.plot(straight_line, straight_line, linestyle = '--', color = 'k')
@@ -223,13 +237,18 @@ measured_notches = np.array([8.01, 9.325, 8.775, 7.99]) * 2*np.pi * 1e9 #- 0.1* 
 measured_omega_rs = np.array([10386,10666,10540,10250]) * 2*np.pi * 1e6
 measured_omega_ps = np.array([10407,10710,10566,10232]) * 2*np.pi * 1e6
 
+seps = np.array([5.5, 3.8, 4.2, 5.5])*1e-6
+Cm_per_lens = cap.get_Cm(seps)
+cs, cm_vals_analytic = calc_self_and_coupling_capacitance(seps, w, s, eps_r)
+cm_vals_analytic = cm_vals_analytic
+
+c_l = cs + cm_vals_analytic
+
 for i, name in enumerate(names):
     
     l_c = 317.5 * 1e-6
-    seps = np.array([5.5, 3.8, 4.2, 5.5])*1e-6
-    Cm_per_lens = cap.get_Cm(seps)
     
-    J_pred = J_coupling_analytic_by_freqs(measured_omega_rs[i], measured_omega_ps[i], measured_notches[i], l_c, Cm_per_lens[i], phase_vel=v_val, Z0=Z_val, simplified = True)
+    J_pred = J_coupling_analytic_by_freqs(measured_omega_rs[i], measured_omega_ps[i], measured_notches[i], l_c, cm_vals_analytic[i], c_l[i], phase_vel=v_val, simplified = True)
 
     J_preds.append(J_pred)
 

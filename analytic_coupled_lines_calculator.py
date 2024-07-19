@@ -62,9 +62,15 @@ def mcpw_capacitance_matrix(d: list[float], eps_r: float):
 def calc_self_and_coupling_capacitance(d_list, w, s, eps_r):
     cs = []
     cm = []
+    
     for d in d_list:
         p = [s, w, s, d, s, w, s]
         C = mcpw_capacitance_matrix(p, eps_r)
         cs.append(C[0][0])
         cm.append(C[0][2])
+    
+    # mutual to Maxwell capacitance matrix
+    cm = -np.array(cm)
+    cs = np.array(cs) - cm
+    
     return cs, cm

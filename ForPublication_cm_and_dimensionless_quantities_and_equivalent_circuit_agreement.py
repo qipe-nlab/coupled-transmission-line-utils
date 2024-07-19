@@ -34,8 +34,8 @@ Cm_vals = cap.get_Cm(d_vals) ### F per meter
 # np.save('d_vals.npy', d_vals)
 # np.save('Cm_vals.npy', Cm_vals)
 
-C_val = cap.get_Cc_plus_Cm(49e-6)
-C_vals = cap.get_Cc_plus_Cm(d_vals)
+C_val = cap.get_Cc(49e-6)
+C_vals = cap.get_Cc(d_vals)
 
 # plt.plot(d_vals * 1e6, (C_vals-Cm_vals) * 1e12, color = my_cmap2(7), linewidth = 7)
 # plt.show()
@@ -46,7 +46,7 @@ L_vals = cap.get_L(d_vals)
 print('Cm:', Cm)
 print('C_val:', C_val)
 
-C_val2 = cap.get_Cc_plus_Cm(d_val)
+C_val2 = cap.get_Cc(d_val)
 print('C_val2:', C_val2)
 
 Z_val = np.sqrt(L_val/C_val)
@@ -67,21 +67,19 @@ w = 5e-6
 s = 7.5e-6
 eps_r = 11.7
 
-#cs, cm_vals_analytic = calc_self_and_coupling_capacitance(d_vals, w, s, eps_r)
+cs, cm_vals_analytic = calc_self_and_coupling_capacitance(d_vals, w, s, eps_r)
 
-#cm_vals_analytic = np.array(cm_vals_analytic)
-
-#print('cm_vals_analytic:', cm_vals_analytic)
+print('cm_vals_analytic:', cm_vals_analytic)
 
 plt.figure(figsize=(8, 4))
-plt.plot(d_vals * 1e6, Cm_vals * 1e12, color = my_cmap2(7), linewidth = 7)
-#plt.plot(d_vals * 1e6, -cm_vals_analytic * 1e12, color = 'k', linewidth = 7, linestyle = '--')
+plt.plot(d_vals * 1e6, Cm_vals * 1e12, color = my_cmap2(7), linewidth = 7, label = 'COMSOL')
+plt.plot(d_vals * 1e6, cm_vals_analytic * 1e12, color = 'k', linewidth = 7, linestyle = '--', label = 'numeric')
 
 ### pF per meter - fF / mm
 
 plt.xlabel(r'$d$ (um)', size = 45)
 plt.ylabel(r'$c_m$ (fF/mm)', size = 45)
-#plt.legend(fontsize = 16)
+plt.legend(fontsize = 16)
 #plt.title('Radiative T1 limit through detector line')
 
 ax = plt.gca()
@@ -104,7 +102,48 @@ ax.tick_params(width=4)
 plt.tight_layout()
 plt.show()
 
+# plt.close()
+
 #sys.exit()
+
+#######
+
+print('cs:', cs)
+
+plt.figure(figsize=(8, 4))
+plt.plot(d_vals * 1e6, Cm_vals/C_vals[-1], color = my_cmap2(7), linewidth = 7, label = 'COMSOL')
+#plt.plot(d_vals * 1e6, cm_vals_analytic/(cs), color = 'k', linewidth = 7, linestyle = '--')
+plt.plot(d_vals * 1e6, cm_vals_analytic/(cs[-1]), color = 'k', linewidth = 7, linestyle = 'dotted', label = 'Conformal mapping') # (0,(5,4))
+
+plt.xlabel(r'$d$ (um)', size = 45)
+plt.ylabel(r'$c_m/c$', size = 45)
+
+ax = plt.gca()
+
+ax.tick_params(axis='both', which='major', labelsize=16)
+
+# ax.set_yticks([1e-6,1e-3,1,1e3]) 
+# ax.set_yticklabels(['1 ns','1 us','1 ms', '1 s'])
+# ax.set_ylim([0.5e-6, 5e3])
+
+for axis in ['top','bottom','left','right']:
+    ax.spines[axis].set_linewidth(3)
+
+plt.xticks([0, 5, 10, 15, 20, 25],[0, 5, 10, 15, 20, 25], size = 30)
+plt.yticks([0, 0.025, 0.05, 0.075, 0.1, 0.125],[0, '', 0.05, '', 0.1, ''], size = 30)
+plt.grid(visible = True)
+plt.xlim([0,25])
+plt.ylim([0,0.125])
+#plt.yscale('log')
+plt.legend(fontsize = 20)
+ax.tick_params(length = 5, width=2.5,direction='in')
+plt.tight_layout()
+plt.show()
+
+plt.plot(d_vals * 1e6, cs, color = my_cmap2(7), linewidth = 7)
+
+plt.show()
+sys.exit()
 
 #######
 
@@ -133,7 +172,7 @@ Z_cs = (Lc/Cc)**0.5
 
 Z_ratios_squared = (Z_ms/Z_cs)**2
 
-C_vals =  cap.get_Cc_plus_Cm(d_vals)
+C_vals =  cap.get_Cc(d_vals)
 L_vals =  cap.get_L(d_vals)
 
 Cm_vals =  cap.get_Cm(d_vals)
