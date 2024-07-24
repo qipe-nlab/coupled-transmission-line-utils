@@ -89,6 +89,8 @@ names = ['A', 'B', 'C', 'D']
 #     predicted_notches.append(predicted_notch)
 #     predicted_numeric_notches.append(predicted_numeric_notch)
 
+# sys.exit()
+
 # measured_notches = np.array([8.27, 8.96, 8.69, 8.266]) * 2*np.pi * 1e9 #- 0.1* 2*np.pi * 1e9 ##8.27
 # measured_omega_rs = np.array([10264,10690,10479,10050]) * 2*np.pi * 1e6
 # measured_omega_ps = np.array([10310,10707,10518,10060]) * 2*np.pi * 1e6
@@ -157,6 +159,8 @@ for name in names:
     
     predicted_notches.append(predicted_notch)
     predicted_numeric_notches.append(predicted_numeric_notch)
+
+sys.exit()
 
 measured_notches = np.array([8.01, 9.325, 8.775, 8.00]) * 2*np.pi * 1e9 #- 0.1* 2*np.pi * 1e9 ##8.27
 measured_omega_rs = np.array([10386,10666,10540,10250]) * 2*np.pi * 1e6

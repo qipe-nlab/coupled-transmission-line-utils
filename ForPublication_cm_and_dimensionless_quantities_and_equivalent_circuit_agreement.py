@@ -110,13 +110,13 @@ plt.show()
 
 print('cs:', cs)
 
-plt.figure(figsize=(8, 4))
-plt.plot(d_vals * 1e6, Cm_vals/C_vals[-1], color = my_cmap2(7), linewidth = 7, label = 'COMSOL')
+plt.figure(figsize=(8, 4.25))
+plt.plot(d_vals * 1e6, cm_vals_analytic/(cs[-1])*100, color = my_cmap2(7), linewidth = 7, label = 'Numerical') # (0,(5,4))
+plt.plot(d_vals * 1e6, Cm_vals/C_vals[-1]*100, color = 'k', linewidth = 7, linestyle = (5,(5,5)), label = 'COMSOL')
 #plt.plot(d_vals * 1e6, cm_vals_analytic/(cs), color = 'k', linewidth = 7, linestyle = '--')
-plt.plot(d_vals * 1e6, cm_vals_analytic/(cs[-1]), color = 'k', linewidth = 7, linestyle = 'dotted', label = 'Conformal mapping') # (0,(5,4))
 
 plt.xlabel(r'$d$ (um)', size = 45)
-plt.ylabel(r'$c_m/c$', size = 45)
+plt.ylabel(r'$c_m/c~(\%)$', size = 45)
 
 ax = plt.gca()
 
@@ -130,14 +130,15 @@ for axis in ['top','bottom','left','right']:
     ax.spines[axis].set_linewidth(3)
 
 plt.xticks([0, 5, 10, 15, 20, 25],[0, 5, 10, 15, 20, 25], size = 30)
-plt.yticks([0, 0.025, 0.05, 0.075, 0.1, 0.125],[0, '', 0.05, '', 0.1, ''], size = 30)
+plt.yticks(np.array([0, 0.025, 0.05, 0.075, 0.1, 0.125])*100, [0, '', 5, '', 10, ''], size = 30)
 plt.grid(visible = True)
 plt.xlim([0,25])
-plt.ylim([0,0.125])
+plt.ylim([0,12.5])
 #plt.yscale('log')
 plt.legend(fontsize = 20)
 ax.tick_params(length = 5, width=2.5,direction='in')
 plt.tight_layout()
+plt.savefig('cm_c_ratio_ForPublication.pdf', format= 'pdf')
 plt.show()
 
 plt.plot(d_vals * 1e6, cs, color = my_cmap2(7), linewidth = 7)
