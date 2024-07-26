@@ -236,6 +236,7 @@ from exact_coupled_transmission_line_eqn_solver import *
 ### V4 pattern
 
 J_preds = []
+J_preds2 = []
 
 measured_notches = np.array([8.01, 9.325, 8.775, 7.99]) * 2*np.pi * 1e9 #- 0.1* 2*np.pi * 1e9 ##8.27
 measured_omega_rs = np.array([10386,10666,10540,10250]) * 2*np.pi * 1e6
@@ -255,8 +256,15 @@ for i, name in enumerate(names):
     J_pred = J_coupling_analytic_by_freqs(measured_omega_rs[i], measured_omega_ps[i], measured_notches[i], l_c, cm_vals_analytic[i], c_l[i], phase_vel=v_val, simplified = True)
 
     J_preds.append(J_pred)
+    
+    avg_omega = 
+    
+    J2 = ()
+    
+    J_preds2.append()
 
 J_preds = np.array(J_preds)
+J_preds2 = np.array(J_preds2)
 
 print('J_preds:', J_preds/(2*np.pi*1e6))
 

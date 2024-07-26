@@ -69,6 +69,13 @@ eps_r = 11.7
 
 cs, cm_vals_analytic = calc_self_and_coupling_capacitance(d_vals, w, s, eps_r)
 
+cs, cm_vals_analytic = calc_self_and_coupling_capacitance(d_vals, w, s, eps_r)
+
+d_vals_device = np.array([5.5, 5.5, 4.2, 3.8])*1e-6
+cs_, cm_for_device = calc_self_and_coupling_capacitance(d_vals_device, w, s, eps_r)
+print('cm_for_device:', cm_for_device)
+sys.exit()
+
 print('cm_vals_analytic:', cm_vals_analytic)
 
 plt.figure(figsize=(8, 4))
