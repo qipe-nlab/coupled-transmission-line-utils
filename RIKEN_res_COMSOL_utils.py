@@ -371,8 +371,10 @@ class RIKEN_coupled_readout_filter_COMSOL(object):
         sep = self.readout.resonator_filter_spacing * 1e-6 # in meters
 
         cm = cap.get_Cm(sep)
+        
+        c_c = 1/(phase_vel*Z0)
 
-        val = J_coupling_analytic_by_freqs(omega_r, omega_p, omega_n, l_c, cm, phase_vel=phase_vel, Z0=Z0)
+        val = J_coupling_analytic_by_freqs(omega_r, omega_p, omega_n, l_c, cm, c_c, phase_vel=phase_vel)
 
         return val
 

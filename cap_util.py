@@ -73,7 +73,7 @@ def get_Cm(d):
 
 ## test funcs Peter S:
 
-def generate_Cc_plus_Cm(filename):
+def generate_Cc(filename):
 
     data = np.genfromtxt(filename,delimiter="," ,skip_header=5)
     len_data = int(np.shape(data)[0]/2)
@@ -83,11 +83,11 @@ def generate_Cc_plus_Cm(filename):
 
     for i in range(len_data):
         C_mat[i,0] = data[2*i,0]
-        C_mat[i,1] = data[2*i,1]/1e-3 # account for simulation being of 1mm
+        C_mat[i,1] = data[2*i,1]/1e-3 ## account for simulation being of 1mm
 
     return C_mat
 
-def get_Cc_plus_Cm(d):
+def get_Cc(d):
     f = interpol.interp1d(C_mat[:,0]/1e6, C_mat[:,1], "quadratic")
     return f(d)
 
@@ -197,7 +197,7 @@ Cm_mat = generate_Cm(Cm_file)
 Lm_mat = generate_Lm(Lm_file)
 
 ## edit
-C_mat = generate_Cc_plus_Cm(Cm_file)
+C_mat = generate_Cc(Cm_file)
 L_mat = generate_L(Lm_file)
 #
 
