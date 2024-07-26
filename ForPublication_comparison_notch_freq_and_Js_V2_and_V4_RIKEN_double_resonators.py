@@ -247,6 +247,9 @@ print('J agreement V4 (to sim):', (J_measured - J_preds/(2*np.pi*1e6))/ (J_preds
 avg_J_agreement_to_sim = np.mean((J_measured - J_preds/(2*np.pi*1e6))/ (J_preds/(2*np.pi*1e6) ) * 100)
 print('avg J agreement (to sim):', avg_J_agreement_to_sim)
 
+plt.plot(J_preds2/(2*np.pi*1e6), J_measured, linestyle = 'none', marker = 'o', color = color0, markersize = 8)
+
+
 ### plotting
 
 plt.xlim(20, 40)
