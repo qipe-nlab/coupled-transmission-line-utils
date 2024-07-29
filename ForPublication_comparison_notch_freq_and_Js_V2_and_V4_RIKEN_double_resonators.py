@@ -160,7 +160,7 @@ for name in names:
     predicted_notches.append(predicted_notch)
     predicted_numeric_notches.append(predicted_numeric_notch)
 
-sys.exit()
+#sys.exit()
 
 measured_notches = np.array([8.01, 9.325, 8.775, 8.00]) * 2*np.pi * 1e9 #- 0.1* 2*np.pi * 1e9 ##8.27
 measured_omega_rs = np.array([10386,10666,10540,10250]) * 2*np.pi * 1e6
@@ -257,11 +257,13 @@ for i, name in enumerate(names):
 
     J_preds.append(J_pred)
     
-    avg_omega = 
+    avg_omega = (measured_omega_rs[i] + measured_omega_ps[i])/2
     
-    J2 = ()
+    k = cm_vals_analytic[i]/c_l[i]
+
+    J2 = 2 * avg_omega/np.pi * k * np.sin(l_c * avg_omega / v_val) * np.cos(np.pi/2 * (avg_omega / measured_notches[i]))
     
-    J_preds2.append()
+    J_preds2.append(J2)
 
 J_preds = np.array(J_preds)
 J_preds2 = np.array(J_preds2)
@@ -277,9 +279,9 @@ print('J agreement V4 (to meas):', (J_preds/(2*np.pi*1e6) - J_measured)/J_measur
 print('J agreement V4 (to sim):', (J_measured - J_preds/(2*np.pi*1e6))/ (J_preds/(2*np.pi*1e6) ) * 100)
 avg_J_agreement_to_sim = np.mean((J_measured - J_preds/(2*np.pi*1e6))/ (J_preds/(2*np.pi*1e6) ) * 100)
 print('avg J agreement (to sim):', avg_J_agreement_to_sim)
+print('J_preds2:', -J_preds2/(2*np.pi*1e6))
 
-plt.plot(J_preds2/(2*np.pi*1e6), J_measured, linestyle = 'none', marker = 'o', color = color0, markersize = 8)
-
+#plt.plot(-J_preds2/(2*np.pi*1e6), J_measured, linestyle = 'none', marker = 'o', color = color0, markersize = 8)
 
 ### plotting
 
