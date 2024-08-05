@@ -81,6 +81,11 @@ l_Rf = l_Rf + l_c/2
 l_Gn = l_Gn + l_c/2
 l_Gf = l_Gf + l_c/2
 
+print('l_Rn:', l_Rn)
+print('l_Rf:', l_Rf)
+print('l_Gn:', l_Gn)
+print('l_Gf:', l_Gf)
+
 print('l_Rf + l_Rn:', l_Rf + l_Rn)
 print('l_Gf + l_Gn:', l_Gf + l_Gn)
 
