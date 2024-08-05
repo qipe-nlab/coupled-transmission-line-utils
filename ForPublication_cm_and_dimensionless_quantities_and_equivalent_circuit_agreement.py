@@ -28,7 +28,7 @@ d_val = 5e-6 # 12.5*1e-6 # separation between the coupled sections
 Cm = cap.get_Cm(d_val)
 Lm = cap.get_Lm(d_val)
 
-d_vals = np.linspace(1, 25, 50) * 1e-6
+d_vals = np.linspace(1, 25, 10) * 1e-6
 Cm_vals = cap.get_Cm(d_vals) ### F per meter
 
 # np.save('d_vals.npy', d_vals)
@@ -67,7 +67,7 @@ w = 5e-6
 s = 7.5e-6
 eps_r = 11.7
 
-# cs, cm_vals_analytic = calc_self_and_coupling_capacitance(d_vals, w, s, eps_r)
+cs, cm_vals_analytic = calc_self_and_coupling_capacitance(d_vals, w, s, eps_r)
 
 # cs, cm_vals_analytic = calc_self_and_coupling_capacitance(d_vals, w, s, eps_r)
 
