@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.integrate as integrate
-from scipy.constants import epsilon_0
+from scipy.constants import epsilon_0, mu_0
 
 def mcpw_capacitance_matrix(d: list[float], eps_r: float):
     """Calculate capacitance matrix of multiconductor coplanar waveguide (mcpw)
@@ -63,6 +63,11 @@ def calc_self_and_coupling_capacitance(d_list, w, s, eps_r):
     cs = []
     cm = []
     
+    try:
+        iter(d_list)
+    except TypeError:
+        d_list = [d_list]
+
     for d in d_list:
         p = [s, w, s, d, s, w, s]
         C = mcpw_capacitance_matrix(p, eps_r)
@@ -74,3 +79,27 @@ def calc_self_and_coupling_capacitance(d_list, w, s, eps_r):
     cs = np.array(cs) - cm
     
     return cs, cm
+
+def calc_self_and_coupling_inductance(d_list, w, s):
+    ls = []
+    lm = []
+    eps_r = 1
+
+    try:
+        iter(d_list)
+    except TypeError:
+        d_list = [d_list]
+
+    for d in d_list:
+        p = [s, w, s, d, s, w, s]
+        C = mcpw_capacitance_matrix(p, eps_r)
+        
+        C_reduced = np.array([[C[0][0], C[0][2]],[C[0][2], C[0][0]]])
+
+        L = epsilon_0 * mu_0 * np.linalg.inv(C_reduced)
+        ls.append(L[0][0])
+        lm.append(L[0][1])
+        # cs.append(C[0][0])
+        # cm.append(C[0][2])
+
+    return ls, lm

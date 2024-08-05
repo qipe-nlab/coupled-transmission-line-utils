@@ -556,7 +556,7 @@ def voltage_at_source_location(Z0, phase_vel, Cm_per_len, l_c, l_Gf, l_Gn, omega
 
     return val
 
-def find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65, search_span = 4 * 2*np.pi * 1e9, search_spacing=(10*2*np.pi*10**6), receiver_type = 'lambda/4'):
+def find_notch_filter_frequency_analytic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65, search_span = 2 * 2*np.pi * 1e9, search_spacing=(10*2*np.pi*10**6), receiver_type = 'lambda/4'):
     
     # find the filter frequency by solving the analytic equation using the weak coupling assumption
 
@@ -712,7 +712,7 @@ def lumped_model_C_and_L_from_freq(phase_vel, Z0, omega_res, res_type = 'lambda/
 
 def lumped_model_Cg_and_Lg(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, receiver_type = 'lambda/4'):
 
-    omega_f = find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0, search_span=2*2*np.pi*10**9, search_spacing=1e6*2*np.pi, receiver_type = receiver_type)
+    omega_f = find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, phase_vel, Z0, search_span=3*2*np.pi*10**9, search_spacing=1e6*2*np.pi, receiver_type = receiver_type)
     #print('omega_f/2pi (GHz):', omega_f/(2*np.pi*1e9))
     Z0_f = find_notch_filter_char_impedance(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, omega_f, phase_vel=phase_vel, Z0=Z0, receiver_type = receiver_type)
     #print('Z0_f:', Z0_f)
@@ -772,7 +772,7 @@ def lumped_model_resonator_coupling(C1, L1, C2, L2, Cg, Lg):
 
     return val
 
-def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65, search_span=2*2*np.pi*10**9, search_spacing=(2.5*2*np.pi*10**6), receiver_type = 'lambda/4'):
+def find_notch_filter_frequency(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=3*10**8/2.5, Z0=65, search_span=2.5*2*np.pi*10**9, search_spacing=(1*2*np.pi*10**6), receiver_type = 'lambda/4'):
 
     ## find notch frequency by directly solving for the zeros of the transfer impedance
 
@@ -880,7 +880,8 @@ def get_lumped_elements_from_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, p
     C2, L2 = lumped_model_C_and_L(phase_vel, Z0, cpw__length2, res_type = receiver_type)
     #Cg, Lg = lumped_model_Cg_and_Lg(phase_vel, Z0, l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm_per_len, Cm_per_len, receiver_type = receiver_type)
     
-    omega_notch_symbolic = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm_per_len, phase_vel=phase_vel, Z0=Z0)
+    # omega_notch_symbolic = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, Cm_per_len, phase_vel=phase_vel, Z0=Z0)
+    omega_notch_symbolic = notch_filter_frequency_rule_of_thumb(l_c, l_Gf, l_Rf, phase_vel=phase_vel, Z0=Z0)
 
     Z_notch_symbolic_val = Z_notch_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm_per_len, phase_vel=phase_vel, Z0=Z0)
 

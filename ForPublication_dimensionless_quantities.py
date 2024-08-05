@@ -67,92 +67,6 @@ w = 5e-6
 s = 7.5e-6
 eps_r = 11.7
 
-# cs, cm_vals_analytic = calc_self_and_coupling_capacitance(d_vals, w, s, eps_r)
-
-# cs, cm_vals_analytic = calc_self_and_coupling_capacitance(d_vals, w, s, eps_r)
-
-# d_vals_device = np.array([5.5, 5.5, 4.2, 3.8])*1e-6
-# cs_, cm_for_device = calc_self_and_coupling_capacitance(d_vals_device, w, s, eps_r)
-# print('cm_for_device:', cm_for_device)
-#sys.exit()
-
-#print('cm_vals_analytic:', cm_vals_analytic)
-
-plt.figure(figsize=(8, 4))
-plt.plot(d_vals * 1e6, Cm_vals * 1e12, color = my_cmap2(7), linewidth = 7, label = 'COMSOL')
-plt.plot(d_vals * 1e6, cm_vals_analytic * 1e12, color = 'k', linewidth = 7, linestyle = '--', label = 'numeric')
-
-### pF per meter - fF / mm
-
-plt.xlabel(r'$d$ (um)', size = 45)
-plt.ylabel(r'$c_m$ (fF/mm)', size = 45)
-plt.legend(fontsize = 16)
-#plt.title('Radiative T1 limit through detector line')
-
-ax = plt.gca()
-
-ax.tick_params(axis='both', which='major', labelsize=16)
-
-# ax.set_yticks([1e-6,1e-3,1,1e3]) 
-# ax.set_yticklabels(['1 ns','1 us','1 ms', '1 s'])
-# ax.set_ylim([0.5e-6, 5e3])
-
-for axis in ['top','bottom','left','right']:
-    ax.spines[axis].set_linewidth(3)
-
-plt.xticks([0, 5, 10, 15, 20, 25],[0, 5, 10, 15, 20, 25], size = 30)
-plt.yticks([0, 5, 10, 15],['0', 5, 10, '15'], size = 30)
-plt.grid(visible = True)
-plt.xlim([0,25])
-plt.ylim([0,15])
-ax.tick_params(width=4)
-plt.tight_layout()
-plt.show()
-
-# plt.close()
-
-#sys.exit()
-
-#######
-
-print('cs:', cs)
-
-plt.figure(figsize=(8, 4.25))
-plt.plot(d_vals * 1e6, cm_vals_analytic/(cs[-1])*100, color = my_cmap2(7), linewidth = 7, label = 'Numerical') # (0,(5,4))
-plt.plot(d_vals * 1e6, Cm_vals/C_vals[-1]*100, color = 'k', linewidth = 7, linestyle = (5,(5,5)), label = 'COMSOL')
-#plt.plot(d_vals * 1e6, cm_vals_analytic/(cs), color = 'k', linewidth = 7, linestyle = '--')
-
-plt.xlabel(r'$d$ (um)', size = 45)
-plt.ylabel(r'$c_m/c~(\%)$', size = 45)
-
-ax = plt.gca()
-
-ax.tick_params(axis='both', which='major', labelsize=16)
-
-# ax.set_yticks([1e-6,1e-3,1,1e3]) 
-# ax.set_yticklabels(['1 ns','1 us','1 ms', '1 s'])
-# ax.set_ylim([0.5e-6, 5e3])
-
-for axis in ['top','bottom','left','right']:
-    ax.spines[axis].set_linewidth(3)
-
-plt.xticks([0, 5, 10, 15, 20, 25],[0, 5, 10, 15, 20, 25], size = 30)
-plt.yticks(np.array([0, 0.025, 0.05, 0.075, 0.1, 0.125])*100, [0, '', 5, '', 10, ''], size = 30)
-plt.grid(visible = True)
-plt.xlim([0,25])
-plt.ylim([0,12.5])
-#plt.yscale('log')
-plt.legend(fontsize = 20)
-ax.tick_params(length = 5, width=2.5,direction='in')
-plt.tight_layout()
-plt.savefig('cm_c_ratio_ForPublication.pdf', format= 'pdf')
-plt.show()
-
-plt.plot(d_vals * 1e6, cs, color = my_cmap2(7), linewidth = 7)
-
-plt.show()
-sys.exit()
-
 #######
 
 phase_vel = 1.2e8 #constants.c / np.sqrt(6.351)
@@ -192,6 +106,8 @@ plt.figure(figsize=(9, 4))
 
 plt.plot(d_vals * 1e6, L_ratios, color = my_cmap2(0), linewidth = 6, label = r'$l_m/l_c$')
 plt.plot(d_vals * 1e6, C_ratios, color = my_cmap3(1), linewidth = 6, linestyle = ':', label = r'$c_m/c_c$')
+plt.axvline(x=3.8, color='k', linestyle='-')
+plt.axvline(x=5.5, color='k', linestyle='-')
 
 plt.xlabel(r'$d$ (um)', size = 35)
 #plt.ylabel(r'$c_m$ (fF/mm)', size = 35)
@@ -217,6 +133,8 @@ ax.tick_params(width=3)
 plt.tight_layout()
 plt.xlim([0,25])
 plt.ylim([0,0.15])
+plt.axvline(x=3.8, color='k', linestyle='-')
+plt.axvline(x=5.5, color='k', linestyle='-')
 plt.grid(visible=True, axis='y')
 plt.show()
 
