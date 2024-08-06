@@ -129,7 +129,7 @@ k = (1-(Lm_vals/Lc_vals)**2)**0.5
 
 if not show_conformal_mapping_result:
 
-    plt.figure(figsize=(10, 4))
+    plt.figure(figsize=(10, 3.5))
 
 #plt.figure(figsize=(10, 4))
 
@@ -154,10 +154,10 @@ ax.tick_params(axis='both', which='major', labelsize=16)
 for axis in ['top','bottom','left','right']:
     ax.spines[axis].set_linewidth(3)
 
-plt.xticks([0, 5, 10, 15, 20, 25],[0, 5, 10, 15, 20, 25], size = 28)
+plt.xticks([0, 5, 10, 15, 20, 25],[0, 5, 10, 15, 20, 25], size = 25)
 #plt.yticks([0, 0.2, 0.4, 0.6, 0.8,1],[0, 0.2, 0.4, 0.6, 0.8,1], size = 35)
-plt.yticks([0.975, 1, 1.025],['0.975', '1', '1.025'], size = 28)
-plt.legend(loc='upper right', prop={'size': 28}, frameon = False)
+plt.yticks([0.975, 1, 1.025],['0.975', '1', '1.025'], size = 25)
+plt.legend(loc='upper right', prop={'size': 25}, frameon = False)
 ax.tick_params(width=3, length = 8, direction = 'in')
 ax.yaxis.set_ticks_position('both')
 ax.xaxis.set_ticks_position('both')
