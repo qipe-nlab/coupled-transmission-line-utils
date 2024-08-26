@@ -129,7 +129,7 @@ k = (1-(Lm_vals/Lc_vals)**2)**0.5
 
 if not show_conformal_mapping_result:
 
-    plt.figure(figsize=(10, 3.5))
+    plt.figure(figsize=(9, 3.5))
 
 #plt.figure(figsize=(10, 4))
 
@@ -142,7 +142,7 @@ plt.plot(d_vals * 1e6, vc_vals/phase_vel, color = my_cmap3(1), linewidth = 5, li
 plt.plot(d_vals * 1e6, k, color = my_cmap3(5), linewidth = 5, linestyle = '-', label = r'$k$', alpha = 0.75)
 
 plt.xlabel(r'$d$ (um)', size = 35)
-#plt.ylabel(r'$c_m$ (fF/mm)', size = 35)
+plt.ylabel(r'Ratio', size = 35)
 #plt.legend(fontsize = 16)
 #plt.title('Radiative T1 limit through detector line')
 
@@ -159,14 +159,15 @@ for axis in ['top','bottom','left','right']:
 
 plt.xticks([0, 5, 10, 15, 20, 25],[0, 5, 10, 15, 20, 25], size = 25)
 #plt.yticks([0, 0.2, 0.4, 0.6, 0.8,1],[0, 0.2, 0.4, 0.6, 0.8,1], size = 35)
-plt.yticks([0.98, 0.99, 1, 1.01, 1.02],['0.98', '0.99', '1', '1.01', '1.02'], size = 25)
+#plt.yticks([0.98, 0.99, 1, 1.01, 1.02],['0.98', '0.99', '1', '1.01', '1.02'], size = 25)
+plt.yticks([0.975, 1, 1.025],['0.975', '1',  '1.025'], size = 25)
 plt.legend(loc='upper right', prop={'size': 25}, frameon = False)
 ax.tick_params(width=3, length = 8, direction = 'in')
 ax.yaxis.set_ticks_position('both')
 ax.xaxis.set_ticks_position('both')
 plt.tight_layout()
 plt.xlim([0,25])
-plt.ylim([0.99,1.02])
+plt.ylim([0.975, 1.025])
 plt.grid(visible=True, axis='y')
 plt.axvline(x=3.8, color='k', linestyle=':')
 plt.axvline(x=5.5, color='k', linestyle=':')
