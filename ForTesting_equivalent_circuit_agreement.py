@@ -59,14 +59,17 @@ J_val = J_coupling(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, phase_vel=phase_vel, Z0=
 print('J_val_dist (MHz):', J_val/(2*np.pi*1e6))
 
 #omegas = np.arange(7.5115, 11.8115, 0.005) * 1e9 * 2*np.pi
-omegas = np.arange(5, 9.5, 0.01) * 1e9 * 2*np.pi
+omegas = np.arange(5, 10, 0.01) * 1e9 * 2*np.pi
 test_Z_transfer_exact = Z_transfer_sym_3_lines_exact(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Lm, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
 
 plt.figure(figsize=(8, 3.85))
 test_Z_equiv_LE_circuit_symbolic = Z_transfer_equivalent_LE_circuit_from_symbolic(l_c, l_Gf, l_Gn, l_Rf, l_Rn, Cm, omegas, phase_vel=phase_vel, Z0=Z0)
 
-plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_exact), color = my_cmap3(1), label = 'Distributed circuit', linewidth = 3, zorder = 8)
-plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit_symbolic), color = my_cmap2(7), label = 'Equivalent circuit', linestyle = (0,(5.5,4.5)), linewidth = 3, alpha = 0.7, zorder = 11)
+# plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_exact), color = my_cmap3(1), label = 'Distributed circuit', linewidth = 3, zorder = 8)
+# plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit_symbolic), color = my_cmap2(7), label = 'Equivalent circuit', linestyle = (0,(5.5,4.5)), linewidth = 3, alpha = 0.7, zorder = 11)
+
+plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit_symbolic/test_Z_transfer_exact), color = my_cmap2(7), label = 'Equivalent circuit', linestyle = (0,(5.5,4.5)), linewidth = 3, alpha = 0.7, zorder = 11)
+
 
 # plt.yscale('log')
 # plt.show()
@@ -105,10 +108,12 @@ test_Z_equiv_LE_circuit_symbolic = Z_transfer_direct_cap_equivalent_LE_circuit(l
 
 # my_cmap2(7)
 
-plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_exact), color = my_cmap3(1), label = 'cap', linewidth = 3, zorder = 5)
-plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit_symbolic), color = 'lightskyblue', label = 'Equiv. cap', linestyle = (0,(5.5,4.5)),  linewidth = 3, alpha = 0.7, zorder = 10)
+plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit_symbolic/test_Z_transfer_exact), color = 'lightskyblue', label = 'Equiv. cap', linestyle = (0,(5.5,4.5)),  linewidth = 3, alpha = 0.7, zorder = 10)
 
-plt.yscale('log')
+# plt.plot(omegas/(2*np.pi * 1e9), np.abs(test_Z_transfer_exact), color = my_cmap3(1), label = 'cap', linewidth = 3, zorder = 5)
+# plt.plot(omegas/(2*np.pi*1e9), np.abs(test_Z_equiv_LE_circuit_symbolic), color = 'lightskyblue', label = 'Equiv. cap', linestyle = (0,(5.5,4.5)),  linewidth = 3, alpha = 0.7, zorder = 10)
+
+#plt.yscale('log')
 # plt.legend(loc = 'upper left', fontsize = 16, frameon = False)
 plt.xlabel('Frequency (GHz)', size = 20)
 plt.ylabel(r'$Z_{21}$ ($\Omega$)', size = 20)
@@ -122,7 +127,7 @@ ax.spines['right'].set_linewidth(2)
 ax.spines['bottom'].set_linewidth(2)
 ax.spines['left'].set_linewidth(2)
 
-ax.set_xticks([8, 9, 10, 11])
+#ax.set_xticks([8, 9, 10, 11])
 #ax.set_yticks([1e-2, 1, 100, 1e4])
 
 #ax2.set_yticklabels(['0', '5', '10', '15'])

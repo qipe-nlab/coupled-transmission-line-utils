@@ -1346,16 +1346,13 @@ def Z_transfer_direct_cap_exact(l_Gf, l_Gn, l_Rf, l_Rn, CJ, omega, phase_vel=3*1
     Z_cap = Zcap(CJ, omega)
 
     Z_Rn = Z_open_tl(Z0, phase_vel, l_Rn, omega)
-    Z_Rf = Z_short_tl(Z0, phase_vel, l_Rf, omega) #Z_short_tl(Z0, phase_vel, l_Rf, omega)
+    Z_Rf = Z_short_tl(Z0, phase_vel, l_Rf, omega)
 
     Z_2 = Z_cap + Zpara(Z_Rn, Z_Rf)
 
     Ztot = Zpara(Z_Gf, Z_2)
 
-    ## approximate solution
-    #Z_trans_along_shorted_tr_val = Z_trans_along_shorted_tl(Z0, phase_vel, L_G, l_Gn, omega)
-
-    ## more accurate solution
+    ## exact solution
     Ztot_in = Zinput(Z0, Ztot, omega*l_Gn/phase_vel)
 
     V_in = Ztot_in * I_dummy

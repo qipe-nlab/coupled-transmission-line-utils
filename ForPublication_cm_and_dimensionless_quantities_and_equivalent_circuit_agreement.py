@@ -145,7 +145,7 @@ plt.ylim([0,12.5])
 plt.legend(fontsize = 20)
 ax.tick_params(length = 5, width=2.5,direction='in')
 plt.tight_layout()
-plt.savefig('cm_c_ratio_ForPublication.pdf', format= 'pdf')
+#plt.savefig('cm_c_ratio_ForPublication.pdf', format= 'pdf')
 plt.show()
 
 plt.plot(d_vals * 1e6, cs, color = my_cmap2(7), linewidth = 7)

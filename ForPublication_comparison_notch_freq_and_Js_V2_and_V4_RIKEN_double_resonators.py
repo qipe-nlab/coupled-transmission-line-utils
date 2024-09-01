@@ -162,7 +162,7 @@ for name in names:
 
 #sys.exit()
 
-measured_notches = np.array([8.01, 9.325, 8.775, 8.00]) * 2*np.pi * 1e9 #- 0.1* 2*np.pi * 1e9 ##8.27
+measured_notches = np.array([8.01, 9.325, 8.775, 8.05]) * 2*np.pi * 1e9 # np.array([8.01, 9.325, 8.775, 8.00]) * 2*np.pi * 1e9 #- 0.1* 2*np.pi * 1e9 ##8.27
 measured_omega_rs = np.array([10386,10666,10540,10250]) * 2*np.pi * 1e6
 measured_omega_ps = np.array([10407,10710,10566,10232]) * 2*np.pi * 1e6
 
